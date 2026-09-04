@@ -54,8 +54,11 @@ export interface LifeAmenityItem {
   name: string;
   category?: string;
   tag: LocalizedText;
+  priceLevel?: string;
   walk: string;
   budget?: string;
+  rating?: string;
+  hours?: string;
   note: LocalizedText;
 }
 
@@ -67,6 +70,7 @@ export interface EvaluationResult {
     supermarkets: LifeAmenityItem[];
     convenienceStores: LifeAmenityItem[];
     famousChains: LifeAmenityItem[];
+    isGoogleMapsLive?: boolean;
   };
   naiken: NaikenItem[];
   isVacant: boolean;

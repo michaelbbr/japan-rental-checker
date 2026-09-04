@@ -13,8 +13,6 @@ export default function Home() {
   const [propertyRent, setPropertyRent] = useState<string | null>(null);
   const [evaluation, setEvaluation] = useState<EvaluationResult | null>(null);
   const [copied, setCopied] = useState(false);
-  const [chainCategory, setChainCategory] = useState<string>('all');
-  const [showAllChains, setShowAllChains] = useState<boolean>(false);
 
   const t = {
     zh: {
@@ -34,24 +32,18 @@ export default function Home() {
       destLabel: "📍 直達：",
       pitfallLabel: "注意：",
       amenitiesTitle: "🏪 生活機能速查（超市・超商・知名連鎖）",
-      superLabel: "🛒 主力超市",
-      cvsLabel: "🏪 超商定位與價格",
-      chainLabel: "🍽️ 知名連鎖外食（全日本最常見 21 家名店）",
-      showAllChains: "展開查看全部 21 家知名連鎖",
-      collapseChains: "收起部分連鎖店",
-      chainFilterAll: "全部 (21)",
-      chainFilterGyudon: "🥩 牛丼・咖哩",
-      chainFilterFastfood: "🍔 速食・薩莉亞",
-      chainFilterTeishoku: "🍱 定食・炸豬排",
-      chainFilterRamen: "🍜 拉麵・中華",
-      chainFilterUdon: "🍲 烏龍・蕎麥",
-      chainFilterCafe: "☕ 連鎖咖啡",
+      superLabel: "🛒 主力超市（定位＆價格檔次）",
+      cvsLabel: "🏪 超商定位與價格檔次",
+      chainLabel: "🍽️ 周邊知名連鎖外食",
+      priceLabel: "價格檔次：",
       tier3Title: "③ 內見時確認清單",
       copyChecklist: "📋 複製清單",
       copied: "✓ 已複製",
-      footer: "日本租房評分工具 • 繁中 / 日本語 雙語支援 • 簡潔版",
+      footer: "日本租房評分工具 • 繁中 / 日本語 雙語支援 • Google Maps API Ready",
       vacantBadge: "🔴 目前滿室（無招租中 / N/A）",
-      vacantBadgeJa: "🔴 現在満室（募集中なし / N/A）"
+      vacantBadgeJa: "🔴 現在満室（募集中なし / N/A）",
+      mapsLiveBadge: "🟢 Google Maps API 即時地圖資料",
+      mapsLiveBadgeJa: "🟢 Google Maps API リアルタイム連携中"
     },
     ja: {
       badge: "🏢 賃貸チェッカー",
@@ -70,24 +62,18 @@ export default function Home() {
       destLabel: "📍 直通：",
       pitfallLabel: "注意：",
       amenitiesTitle: "🏪 生活インフラ速報（スーパー・コンビニ・有名外食）",
-      superLabel: "🛒 メインスーパー",
-      cvsLabel: "🏪 コンビニのポジショニング",
-      chainLabel: "🍽️ 定番外食チェーン（主要有名21ブランド網羅）",
-      showAllChains: "全21チェーンを展開表示",
-      collapseChains: "折りたたむ",
-      chainFilterAll: "すべて (21)",
-      chainFilterGyudon: "🥩 牛丼・カレー",
-      chainFilterFastfood: "🍔 ファストフード・ファミレス",
-      chainFilterTeishoku: "🍱 定食・かつ",
-      chainFilterRamen: "🍜 ラーメン・中華",
-      chainFilterUdon: "🍲 うどん・そば",
-      chainFilterCafe: "☕ カフェ",
+      superLabel: "🛒 メインスーパー（位置づけ＆価格帯）",
+      cvsLabel: "🏪 コンビニのポジショニング＆価格帯",
+      chainLabel: "🍽️ 周辺の定番外食チェーン",
+      priceLabel: "価格帯目安：",
       tier3Title: "③ 内見時のチェックリスト",
       copyChecklist: "📋 コピー",
       copied: "✓ コピー完了",
-      footer: "日本賃貸物件診断ツール • 日本語 / 繁体中文 対応 • シンプル版",
+      footer: "日本賃貸物件診断ツール • 日本語 / 繁体中文 対応 • Google Maps API Ready",
       vacantBadge: "🔴 目前滿室（無招租中 / N/A）",
-      vacantBadgeJa: "🔴 現在満室（募集中なし / N/A）"
+      vacantBadgeJa: "🔴 現在満室（募集中なし / N/A）",
+      mapsLiveBadge: "🟢 Google Maps API リアルタイム連携中",
+      mapsLiveBadgeJa: "🟢 Google Maps API リアルタイム連携中"
     }
   }[lang];
 
@@ -128,16 +114,6 @@ export default function Home() {
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
-
-  // Filter famous chains
-  const filteredChains = evaluation?.amenities.famousChains.filter(c => {
-    if (chainCategory === 'all') return true;
-    return c.category === chainCategory;
-  }) || [];
-
-  const displayedChains = showAllChains || chainCategory !== 'all' 
-    ? filteredChains 
-    : filteredChains.slice(0, 8);
 
   return (
     <div className="w-full max-w-3xl mx-auto px-4 py-8 flex-1 flex flex-col items-center">
@@ -334,104 +310,85 @@ export default function Home() {
             </div>
           )}
 
-          {/* 🏪 生活機能速查（超市・超商・知名連鎖） */}
+          {/* 🏪 生活機能速查（超市・超商・知名外食） */}
           {evaluation.amenities && (
-            <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-xs space-y-4">
-              <div className="text-xs font-bold text-slate-400 uppercase tracking-wider text-[11px] border-b border-slate-100 pb-1.5">
-                {t.amenitiesTitle}
+            <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-xs space-y-3.5">
+              <div className="flex items-center justify-between border-b border-slate-100 pb-2">
+                <span className="text-xs font-bold text-slate-400 uppercase tracking-wider text-[11px]">
+                  {t.amenitiesTitle}
+                </span>
+                {evaluation.amenities.isGoogleMapsLive && (
+                  <span className="text-[10px] text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded font-medium">
+                    {lang === 'zh' ? t.mapsLiveBadge : t.mapsLiveBadgeJa}
+                  </span>
+                )}
               </div>
 
-              {/* 1. Supermarkets */}
-              <div>
-                <div className="font-bold text-slate-700 text-xs mb-1.5">
+              {/* 1. Supermarkets with Price Level & Positioning */}
+              <div className="space-y-1.5">
+                <div className="font-bold text-slate-700 text-xs">
                   {t.superLabel}
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
                   {evaluation.amenities.supermarkets.map((sm, idx) => (
-                    <div key={idx} className="p-2.5 rounded-xl bg-slate-50 border border-slate-150 space-y-0.5">
+                    <div key={idx} className="p-2.5 rounded-xl bg-slate-50 border border-slate-150 space-y-1">
                       <div className="flex justify-between font-bold text-slate-900">
-                        <span>{sm.name}</span>
-                        <span className="text-indigo-600 font-medium text-[11px]">{sm.walk}</span>
+                        <span className="leading-tight">{sm.name}</span>
+                        <span className="text-indigo-600 font-medium text-[11px] shrink-0 ml-1">{sm.walk}</span>
                       </div>
-                      <p className="text-[11px] text-slate-600">{sm.note[lang]}</p>
+                      <div className="flex items-center gap-1.5 text-[10px]">
+                        <span className="bg-indigo-50 text-indigo-700 px-1.5 py-0.5 rounded font-medium">{sm.tag[lang]}</span>
+                        {sm.priceLevel && <span className="text-amber-700 font-medium">{sm.priceLevel}</span>}
+                      </div>
+                      <p className="text-[11px] text-slate-600 leading-snug">{sm.note[lang]}</p>
                     </div>
                   ))}
                 </div>
               </div>
 
-              {/* 2. Convenience Stores Positioning */}
-              <div>
-                <div className="font-bold text-slate-700 text-xs mb-1.5">
+              {/* 2. Convenience Stores with Price Level & Positioning */}
+              <div className="space-y-1.5 pt-1">
+                <div className="font-bold text-slate-700 text-xs">
                   {t.cvsLabel}
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
                   {evaluation.amenities.convenienceStores.map((cvs, idx) => (
-                    <div key={idx} className="p-2.5 rounded-xl bg-slate-50 border border-slate-150 space-y-0.5">
+                    <div key={idx} className="p-2.5 rounded-xl bg-slate-50 border border-slate-150 space-y-1">
                       <div className="flex justify-between items-center">
                         <span className="font-bold text-slate-900">{cvs.name}</span>
-                        <span className="text-[10px] bg-indigo-50 text-indigo-700 px-1.5 py-0.5 rounded font-medium">{cvs.tag[lang]}</span>
+                        <span className="text-[10px] text-slate-500 font-medium">{cvs.walk}</span>
                       </div>
-                      <p className="text-[11px] text-slate-600">{cvs.note[lang]}</p>
+                      <div className="flex items-center gap-1.5 text-[10px]">
+                        <span className="bg-indigo-50 text-indigo-700 px-1.5 py-0.5 rounded font-medium">{cvs.tag[lang]}</span>
+                        {cvs.priceLevel && <span className="text-amber-700 font-medium">{cvs.priceLevel}</span>}
+                      </div>
+                      <p className="text-[11px] text-slate-600 leading-snug">{cvs.note[lang]}</p>
                     </div>
                   ))}
                 </div>
               </div>
 
-              {/* 3. 21 Famous Chains with Category Filter Tabs */}
-              <div>
-                <div className="flex items-center justify-between mb-2">
-                  <span className="font-bold text-slate-700 text-xs">{t.chainLabel}</span>
-                  <button
-                    onClick={() => setShowAllChains(!showAllChains)}
-                    className="text-[11px] text-indigo-600 hover:text-indigo-800 font-medium underline"
-                  >
-                    {showAllChains ? t.collapseChains : t.showAllChains}
-                  </button>
+              {/* 3. Famous Chains */}
+              <div className="space-y-1.5 pt-1">
+                <div className="font-bold text-slate-700 text-xs">
+                  {t.chainLabel}
                 </div>
-
-                {/* Category Pills */}
-                <div className="flex gap-1.5 overflow-x-auto pb-1.5 text-[11px] scrollbar-none">
-                  {[
-                    { id: 'all', label: t.chainFilterAll },
-                    { id: 'gyudon', label: t.chainFilterGyudon },
-                    { id: 'fastfood', label: t.chainFilterFastfood },
-                    { id: 'teishoku', label: t.chainFilterTeishoku },
-                    { id: 'ramen', label: t.chainFilterRamen },
-                    { id: 'udon', label: t.chainFilterUdon },
-                    { id: 'cafe', label: t.chainFilterCafe },
-                  ].map(cat => (
-                    <button
-                      key={cat.id}
-                      onClick={() => setChainCategory(cat.id)}
-                      className={`px-2.5 py-1 rounded-lg border shrink-0 transition-colors ${
-                        chainCategory === cat.id
-                          ? 'bg-slate-900 text-white border-slate-900 font-medium'
-                          : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
-                      }`}
-                    >
-                      {cat.label}
-                    </button>
-                  ))}
-                </div>
-
-                {/* Chains Grid */}
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-1">
-                  {displayedChains.map((fc, idx) => (
-                    <div key={idx} className="p-2.5 rounded-xl bg-slate-50 border border-slate-150 space-y-1">
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 text-xs">
+                  {evaluation.amenities.famousChains.map((fc, idx) => (
+                    <div key={idx} className="p-2 rounded-xl bg-slate-50 border border-slate-150 space-y-0.5">
                       <div className="flex justify-between items-start">
                         <span className="font-bold text-slate-900 text-xs leading-tight">{fc.name}</span>
+                        <span className="text-[10px] text-indigo-600 font-medium shrink-0 ml-1">{fc.walk}</span>
                       </div>
-                      <div className="flex justify-between text-[10px] text-slate-500">
-                        <span className="text-indigo-600 font-medium">{fc.tag[lang]}</span>
-                        <span>{fc.walk}</span>
+                      <div className="flex items-center gap-1 text-[10px] text-slate-500">
+                        <span>{fc.tag[lang]}</span>
+                        {fc.budget && <span>• {fc.budget}</span>}
                       </div>
-                      <div className="text-[10px] text-slate-400">{fc.budget}</div>
-                      <p className="text-[10px] text-slate-600 leading-tight pt-0.5 line-clamp-2">{fc.note[lang]}</p>
+                      <p className="text-[10px] text-slate-600 leading-tight pt-0.5">{fc.note[lang]}</p>
                     </div>
                   ))}
                 </div>
               </div>
-
             </div>
           )}
 
