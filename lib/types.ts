@@ -51,8 +51,8 @@ export interface StationDetail {
   station: string;
   walkMin: number;
   fullText: string;
-  destinations: LocalizedText; // 能去哪
-  pitfalls: LocalizedText;    // 真實痛點（如大江戶線地下超深）
+  destinations: LocalizedText;
+  pitfalls: LocalizedText;
 }
 
 export interface WardAnalysis {
@@ -62,14 +62,27 @@ export interface WardAnalysis {
   cons: LocalizedText[];
 }
 
-export interface DiningSpot {
-  category: LocalizedText;
-  items: Array<{
-    name: string;
-    type: LocalizedText;
-    walk: string;
-    note: LocalizedText;
-  }>;
+export interface FamousChainItem {
+  name: string;
+  brandType: LocalizedText; // e.g. "牛丼" / "平價速食" / "家庭餐廳" / "平價拉麵" / "連鎖咖啡"
+  walk: string;
+  budget: string;
+  feature: LocalizedText;
+}
+
+export interface FamousChainGroup {
+  categoryName: LocalizedText;
+  chains: FamousChainItem[];
+}
+
+export interface ConvenienceStoreGuide {
+  brandName: string;
+  tier: LocalizedText;      // e.g. "平價省錢型" / "標準三大超商" / "高檔精品型"
+  priceLevel: string;       // e.g. "★☆☆☆☆ (極便宜)" / "★★★☆☆ (標準)" / "★★★★☆ (偏高)"
+  features: LocalizedText;
+  bestFor: LocalizedText;
+  isNearby: boolean;
+  distance: string;
 }
 
 export interface Supermarket {
@@ -108,7 +121,8 @@ export interface EvaluationResult {
   conditions: ConditionCard[];
   stations: StationDetail[];
   wardAnalysis: WardAnalysis;
-  diningGuide: DiningSpot[];
+  famousChains: FamousChainGroup[];
+  convenienceStores: ConvenienceStoreGuide[];
   supermarkets: Supermarket[];
   layoutAnalysis?: LayoutAnalysis;
   areaImpression?: AreaImpression;

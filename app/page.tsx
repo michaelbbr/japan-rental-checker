@@ -18,12 +18,12 @@ export default function Home() {
     zh: {
       badge: "🏢 日本租房 3 層評分器",
       title: "貼上網址，一眼看懂好壞",
-      subtitle: "貼上 SUUMO 房源網址，自動抓取規格、多車站深度、生活機能、超市與街區評價",
+      subtitle: "貼上 SUUMO 房源網址，自動抓取規格、多車站、知名連鎖餐廳、超商定位與街區生活",
       placeholder: "https://suumo.jp/chintai/bc_...",
       btnScore: "評分 ↵",
       btnScoring: "解析中...",
       quickTest: "快速測試：",
-      sampleBtn: "永谷リヴュール新宿 (100524309699)",
+      sampleBtn: "コートドール代々木（渋谷区代々木）",
       tier1Title: "① 一眼看懂（六大指標）",
       tier1Subtitle: "嚴格客觀加權",
       tier2Title: "② 條件別解析（優缺點合一）",
@@ -34,14 +34,19 @@ export default function Home() {
       stationsTitle: "🚉 可利用車站與交通深度解析（複数駅・路線・實際痛點）",
       destLabel: "📍 直達精華地標：",
       pitfallLabel: "真實痛點提醒：",
-      wardTitle: "🏛️ 住「新宿區」的好處與壞處（真實生活面）",
-      wardProsLabel: "🌟 住新宿區的優點",
-      wardConsLabel: "⚡ 住新宿區的缺點",
-      diningTitle: "🍜 附近便利餐廳與外食地圖（麥當勞・拉麵・SUKIYA）",
+      wardTitle: "🏛️ 行政區整體好處與壞處（真實生活面）",
+      wardProsLabel: "🌟 居住優點",
+      wardConsLabel: "⚡ 居住缺點",
+      chainsTitle: "🍽️ 附近知名連鎖餐廳（只挑大家熟知的名店）",
+      chainsSubtitle: "生活外食省錢與便利指標",
+      cvsTitle: "🏪 周邊超商價格與定位分析（便宜？高檔？定位解析）",
+      cvsSubtitle: "日常生活開銷與採買便利度比較",
+      priceLabel: "價格檔次：",
+      bestForLabel: "最適合：",
       superTitle: "🛒 周邊超市地圖、定位與評價（自炊採買指南）",
       superHours: "營業時間：",
       layoutTitle: "📐 房型格局深度剖析（間取り分析）",
-      areaTitle: "🏙️ 街區真實印象與生活氛圍（日本人眼中的西新宿４丁目）",
+      areaTitle: "🏙️ 街區真實印象與生活氛圍（在地人真實評價）",
       costTitle: "💰 入住初期費用概算（租屋預算參考）",
       tier3Title: "③ 內見時確認清單",
       copyChecklist: "📋 複製清單",
@@ -53,12 +58,12 @@ export default function Home() {
     ja: {
       badge: "🏢 賃貸物件チェッカー",
       title: "URLを貼るだけ、一瞬でまるわかり",
-      subtitle: "SUUMOの物件URLを入力すると、条件・駅路線・スーパー・外食・街の住み心地を自動分析",
+      subtitle: "SUUMOの物件URLを入力すると、条件・駅路線・有名チェーン飲食店・コンビニ価格帯を自動分析",
       placeholder: "https://suumo.jp/chintai/bc_...",
       btnScore: "診断する ↵",
       btnScoring: "解析中...",
       quickTest: "テスト用物件：",
-      sampleBtn: "永谷リヴュール新宿 (100524309699)",
+      sampleBtn: "コートドール代々木（渋谷区代々木）",
       tier1Title: "① 一眼看懂（6大レーティング）",
       tier1Subtitle: "厳格な客観評価",
       tier2Title: "② 条件ごとの長所・短所（メリット＆デメリット）",
@@ -69,14 +74,19 @@ export default function Home() {
       stationsTitle: "🚉 利用可能駅・アクセスのリアル検証（複数路線・弱点）",
       destLabel: "📍 直通アクセス：",
       pitfallLabel: "注意点・リアルな弱点：",
-      wardTitle: "🏛️ 「新宿区」に住むメリット・デメリット",
-      wardProsLabel: "🌟 新宿区に住むメリット",
-      wardConsLabel: "⚡ 新宿区に住むデメリット",
-      diningTitle: "🍜 周辺の飲食店・チェーン店マップ（すき家・マック・名店）",
+      wardTitle: "🏛️ エリア（行政区）に住むメリット・デメリット",
+      wardProsLabel: "🌟 エリアのメリット",
+      wardConsLabel: "⚡ エリアのデメリット",
+      chainsTitle: "🍽️ 周辺の有名外食チェーン（定番有名店のみ厳選）",
+      chainsSubtitle: "一人暮らしの外食・自炊休止時の目安",
+      cvsTitle: "🏪 周辺コンビニのポジショニング・価格帯分析",
+      cvsSubtitle: "安い？高級？日常の買い出し利便性比較",
+      priceLabel: "価格帯目安：",
+      bestForLabel: "おすすめ用途：",
       superTitle: "🛒 周辺スーパーマップ・位置づけ・評価（買い物環境）",
       superHours: "営業時間：",
       layoutTitle: "📐 間取り・専有面積のリアル分析",
-      areaTitle: "🏙️ 街の住みやすさ・治安のリアルな印象（西新宿４丁目）",
+      areaTitle: "🏙️ 街の住みやすさ・治安のリアルな印象",
       costTitle: "💰 初期費用の概算シミュレーション",
       tier3Title: "③ 内見時のチェックリスト",
       copyChecklist: "📋 リストをコピー",
@@ -190,7 +200,7 @@ export default function Home() {
         <span className="text-slate-400 text-[11px]">{t.quickTest}</span>
         <button
           type="button"
-          onClick={() => setUrl('https://suumo.jp/chintai/bc_100524309699/')}
+          onClick={() => setUrl('https://suumo.jp/library/tf_13/sc_13113/to_1002051802/')}
           className="px-2.5 py-0.5 rounded-md bg-white border border-slate-200 text-slate-600 hover:border-slate-300 hover:bg-slate-50 transition-colors text-[11px]"
         >
           {t.sampleBtn}
@@ -206,7 +216,7 @@ export default function Home() {
 
       {/* Main Results View */}
       {evaluation && (
-        <div className="w-full mt-6 space-y-4 animate-in fade-in duration-200">
+        <div className="w-full mt-6 space-y-5 animate-in fade-in duration-200">
           
           {/* Property Mini Header */}
           <div className="bg-white px-5 py-4 rounded-2xl border border-slate-200 shadow-xs flex items-center justify-between">
@@ -340,64 +350,86 @@ export default function Home() {
             </div>
           )}
 
-          {/* ④ 住「新宿區」的好處與壞處 (Ward Analysis) */}
-          {evaluation.wardAnalysis && (
-            <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs space-y-4">
-              <div className="text-xs font-bold text-slate-400 uppercase tracking-wider text-[11px]">
-                {t.wardTitle}
+          {/* ④ 附近知名連鎖餐廳 (Famous Chain Restaurants Only) */}
+          {evaluation.famousChains && (
+            <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs space-y-3">
+              <div className="flex items-center justify-between border-b border-slate-100 pb-2">
+                <div>
+                  <div className="text-xs font-bold text-slate-400 uppercase tracking-wider text-[11px]">
+                    {t.chainsTitle}
+                  </div>
+                  <div className="text-[11px] text-slate-500">{t.chainsSubtitle}</div>
+                </div>
               </div>
 
-              <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-150 text-xs text-slate-700 leading-relaxed">
-                {evaluation.wardAnalysis.summary[lang]}
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
-                {/* Pros */}
-                <div className="p-3.5 rounded-xl bg-emerald-50/50 border border-emerald-100 space-y-2">
-                  <div className="font-bold text-emerald-800 text-xs">{t.wardProsLabel}</div>
-                  <ul className="space-y-1.5 text-emerald-950">
-                    {evaluation.wardAnalysis.pros.map((p, idx) => (
-                      <li key={idx} className="leading-relaxed">{p[lang]}</li>
-                    ))}
-                  </ul>
-                </div>
-
-                {/* Cons */}
-                <div className="p-3.5 rounded-xl bg-rose-50/50 border border-rose-100 space-y-2">
-                  <div className="font-bold text-rose-800 text-xs">{t.wardConsLabel}</div>
-                  <ul className="space-y-1.5 text-rose-950">
-                    {evaluation.wardAnalysis.cons.map((c, idx) => (
-                      <li key={idx} className="leading-relaxed">{c[lang]}</li>
-                    ))}
-                  </ul>
-                </div>
+              <div className="space-y-4 pt-1">
+                {evaluation.famousChains.map((group, gIdx) => (
+                  <div key={gIdx} className="space-y-2">
+                    <div className="text-xs font-bold text-slate-800 border-l-2 border-indigo-600 pl-2">
+                      {group.categoryName[lang]}
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 text-xs">
+                      {group.chains.map((chain, cIdx) => (
+                        <div key={cIdx} className="p-3 rounded-xl bg-slate-50/70 border border-slate-150 space-y-1.5">
+                          <div className="flex items-center justify-between">
+                            <span className="font-bold text-slate-900 text-xs">{chain.name}</span>
+                            <span className="text-[10px] font-semibold text-indigo-600 bg-indigo-50 px-1.5 py-0.5 rounded">
+                              {chain.walk}
+                            </span>
+                          </div>
+                          <div className="flex items-center justify-between text-[11px] text-slate-500">
+                            <span>{chain.brandType[lang]}</span>
+                            <span className="font-medium text-slate-700">{chain.budget}</span>
+                          </div>
+                          <p className="text-[11px] text-slate-600 leading-relaxed pt-0.5">
+                            {chain.feature[lang]}
+                          </p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ))}
               </div>
             </div>
           )}
 
-          {/* ⑤ 附近平價餐廳與外食地圖 (Dining Guide) */}
-          {evaluation.diningGuide && (
+          {/* ⑤ 周邊超商價格與定位分析 (Convenience Store Positioning Matrix) */}
+          {evaluation.convenienceStores && (
             <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs space-y-3">
-              <div className="text-xs font-bold text-slate-400 uppercase tracking-wider text-[11px]">
-                {t.diningTitle}
+              <div className="flex items-center justify-between border-b border-slate-100 pb-2">
+                <div>
+                  <div className="text-xs font-bold text-slate-400 uppercase tracking-wider text-[11px]">
+                    {t.cvsTitle}
+                  </div>
+                  <div className="text-[11px] text-slate-500">{t.cvsSubtitle}</div>
+                </div>
               </div>
 
-              <div className="space-y-3 pt-1">
-                {evaluation.diningGuide.map((cat, idx) => (
-                  <div key={idx} className="space-y-2">
-                    <div className="text-xs font-bold text-slate-700 border-l-2 border-indigo-600 pl-2">
-                      {cat.category[lang]}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1 text-xs">
+                {evaluation.convenienceStores.map((cvs, idx) => (
+                  <div key={idx} className="p-3.5 rounded-xl border border-slate-150 bg-slate-50/60 space-y-2">
+                    <div className="flex items-center justify-between">
+                      <span className="font-bold text-sm text-slate-900">{cvs.brandName}</span>
+                      <span className="text-[10px] font-semibold px-2 py-0.5 rounded-md bg-white border border-slate-200 text-slate-700">
+                        {cvs.distance}
+                      </span>
                     </div>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
-                      {cat.items.map((spot, sIdx) => (
-                        <div key={sIdx} className="p-2.5 rounded-xl bg-slate-50 border border-slate-150 space-y-1">
-                          <div className="flex items-center justify-between">
-                            <span className="font-bold text-slate-800">{spot.name}</span>
-                            <span className="text-[11px] text-slate-500 font-medium">{spot.walk}</span>
-                          </div>
-                          <p className="text-[11px] text-slate-600 leading-snug">{spot.note[lang]}</p>
-                        </div>
-                      ))}
+
+                    <div className="text-[11px] font-semibold text-indigo-700 bg-indigo-50 px-2 py-1 rounded-md border border-indigo-100">
+                      {cvs.tier[lang]}
+                    </div>
+
+                    <div className="space-y-1 text-[11px] text-slate-600">
+                      <div>
+                        <strong className="text-slate-700">{t.priceLabel}</strong>
+                        <span className="font-medium text-slate-900">{cvs.priceLevel}</span>
+                      </div>
+                      <p className="text-slate-700 leading-relaxed">
+                        {cvs.features[lang]}
+                      </p>
+                      <div className="text-[10px] text-slate-500 pt-0.5">
+                        <strong className="text-slate-600">{t.bestForLabel}</strong> {cvs.bestFor[lang]}
+                      </div>
                     </div>
                   </div>
                 ))}
@@ -437,7 +469,40 @@ export default function Home() {
             </div>
           )}
 
-          {/* ⑦ 間取り格局深入剖析 */}
+          {/* ⑦ 行政區好處與壞處 (Ward Analysis) */}
+          {evaluation.wardAnalysis && (
+            <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs space-y-4">
+              <div className="text-xs font-bold text-slate-400 uppercase tracking-wider text-[11px]">
+                {t.wardTitle}
+              </div>
+
+              <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-150 text-xs text-slate-700 leading-relaxed">
+                {evaluation.wardAnalysis.summary[lang]}
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                <div className="p-3.5 rounded-xl bg-emerald-50/50 border border-emerald-100 space-y-2">
+                  <div className="font-bold text-emerald-800 text-xs">{t.wardProsLabel}</div>
+                  <ul className="space-y-1.5 text-emerald-950">
+                    {evaluation.wardAnalysis.pros.map((p, idx) => (
+                      <li key={idx} className="leading-relaxed">{p[lang]}</li>
+                    ))}
+                  </ul>
+                </div>
+
+                <div className="p-3.5 rounded-xl bg-rose-50/50 border border-rose-100 space-y-2">
+                  <div className="font-bold text-rose-800 text-xs">{t.wardConsLabel}</div>
+                  <ul className="space-y-1.5 text-rose-950">
+                    {evaluation.wardAnalysis.cons.map((c, idx) => (
+                      <li key={idx} className="leading-relaxed">{c[lang]}</li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* ⑧ 間取り格局深入剖析 */}
           {evaluation.layoutAnalysis && (
             <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs space-y-3">
               <div className="text-xs font-bold text-slate-400 uppercase tracking-wider text-[11px]">
@@ -463,7 +528,7 @@ export default function Home() {
             </div>
           )}
 
-          {/* ⑧ 街區真實印象與生活氛圍 */}
+          {/* ⑨ 街區真實印象與生活氛圍 */}
           {evaluation.areaImpression && (
             <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs space-y-3">
               <div className="text-xs font-bold text-slate-400 uppercase tracking-wider text-[11px]">
@@ -491,7 +556,7 @@ export default function Home() {
             </div>
           )}
 
-          {/* ⑨ 初期費用概算試算 */}
+          {/* ⑩ 初期費用概算試算 */}
           {evaluation.initialCost && (
             <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs space-y-3">
               <div className="flex items-center justify-between text-xs border-b border-slate-100 pb-2">
@@ -513,7 +578,7 @@ export default function Home() {
             </div>
           )}
 
-          {/* ⑩ 內見時確認清單 */}
+          {/* ⑪ 內見時確認清單 */}
           <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs space-y-3">
             <div className="flex items-center justify-between border-b border-slate-100 pb-2.5">
               <span className="font-bold text-slate-400 uppercase tracking-wider text-[11px]">
