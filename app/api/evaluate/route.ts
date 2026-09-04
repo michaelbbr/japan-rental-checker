@@ -85,7 +85,7 @@ export async function POST(req: NextRequest) {
       address = "東京都";
     }
 
-    // 4. Stations Extraction (Type-safe regex with RegExp.exec)
+    // 4. Stations Extraction (Dynamic)
     const stations: StationDetail[] = [];
     const seenStations = new Set<string>();
 
@@ -104,7 +104,7 @@ export async function POST(req: NextRequest) {
         let destZh = "通往主要市區交通便利";
         let destJa = "都心主要エリアへのアクセス良好";
         let pitZh = "尖峰時段建議預留充足出門時間。";
-        let pitJa = "混雑時間帯は余裕を持った移動を推奨。";
+        let pitJa = "混雑時間帯は時間に余裕を持った移動を推奨。";
 
         if (line.includes("山手線") || station.includes("代々木") || station.includes("新宿")) {
           destZh = "直達 澀谷(5分)、新宿、池袋、品川、東京站，首都大動脈";
@@ -193,7 +193,7 @@ export async function POST(req: NextRequest) {
     if (html.includes("室内洗濯機")) matchedRuleIds.add("equip_indoor_wash");
     if (html.includes("エレベーター")) matchedRuleIds.add("equip_elevator");
 
-    // 7. Amenities
+    // 7. Amenities (Supermarkets, CVS, and 21 Famous Chains)
     const isYoyogi = address.includes("代々木") || rawTitle.includes("代々木");
 
     const supermarkets: LifeAmenityItem[] = isYoyogi ? [
@@ -211,11 +211,40 @@ export async function POST(req: NextRequest) {
       { name: "ナチュラルローソン", tag: { zh: "💎 高級有機精品", ja: "💎 オーガニック" }, walk: "徒歩5〜7分", note: { zh: "都心限定，有機健康熟食與進口紅酒", ja: "無添加・健康志向の上品なコンビニ" } }
     ];
 
+    // 21 FAMOUS JAPANESE CHAINS (Grouped by Category)
     const famousChains: LifeAmenityItem[] = [
-      { name: "すき家（Sukiya）", tag: { zh: "牛丼 400円起", ja: "牛丼" }, walk: "徒歩3〜5分", note: { zh: "24小時營業，省錢出餐快", ja: "24H営業、サクッと済ませる" } },
-      { name: "松屋（Matsuya）", tag: { zh: "定食 450円起", ja: "定食" }, walk: "徒歩4〜5分", note: { zh: "內用一律免費附贈熱味噌湯", ja: "店内みそ汁無料、定食充実" } },
-      { name: "マクドナルド（麥當勞）", tag: { zh: "速食・咖啡", ja: "マック" }, walk: "徒歩4〜6分", note: { zh: "百圓咖啡、多有插座充電", ja: "朝食や充電・PC作業に便利" } },
-      { name: "サイゼリヤ（薩莉亞）", tag: { zh: "義式 300円起", ja: "ファミレス" }, walk: "徒歩6〜8分", note: { zh: "日本平價西餐之神，省錢聚餐首選", ja: "ミラノ風ドリア300円の圧倒的安さ" } }
+      // 1. Gyudon & Curry
+      { name: "すき家（Sukiya）", category: "gyudon", tag: { zh: "牛丼 400円起", ja: "牛丼" }, walk: "徒歩3〜5分", budget: "400〜650円", note: { zh: "24H營業，起司牛丼人氣最高，省錢首選", ja: "24時間営業、チーズ牛丼が定番人気" } },
+      { name: "松屋（Matsuya）", category: "gyudon", tag: { zh: "定食 450円起", ja: "定食" }, walk: "徒歩4〜5分", budget: "450〜750円", note: { zh: "內用一律免費附味噌湯，生薑燒肉與咖哩高CP值", ja: "みそ汁無料、定食メニューのコスパ高" } },
+      { name: "吉野家（Yoshinoya）", category: "gyudon", tag: { zh: "牛丼 450円起", ja: "牛丼" }, walk: "徒歩5〜8分", budget: "450〜700円", note: { zh: "牛肉燉煮軟嫩入味，出餐全日本最快", ja: "秘伝のタレとスピード提供が強み" } },
+      { name: "CoCo壱番屋", category: "gyudon", tag: { zh: "咖哩 700円起", ja: "カレー" }, walk: "徒歩5〜7分", budget: "700〜1,000円", note: { zh: "日本最大咖哩連鎖，辣度與炸豬排配料自由選", ja: "トッピング豊富な国民的カレー専門店" } },
+      { name: "なか卯（Nakau）", category: "gyudon", tag: { zh: "親子丼 450円起", ja: "丼・うどん" }, walk: "徒歩5〜8分", budget: "450〜700円", note: { zh: "滑嫩半熟蛋親子丼與京風烏龍麵，24H營業", ja: "ふわとろ親子丼と京風うどんが自慢" } },
+
+      // 2. Fast Food & Family Restaurants
+      { name: "マクドナルド（麥當勞）", category: "fastfood", tag: { zh: "速食・咖啡", ja: "マック" }, walk: "徒歩4〜6分", budget: "400〜700円", note: { zh: "百圓黑咖啡、早餐滿福堡，多有插座可辦公", ja: "100円台コーヒー、コンセント席あり" } },
+      { name: "サイゼリヤ（薩莉亞）", category: "fastfood", tag: { zh: "義式 300円起", ja: "ファミレス" }, walk: "徒歩6〜8分", budget: "400〜800円", note: { zh: "日本平價西餐之神！肉醬多利亞300円、紅酒100円", ja: "ミラノ風ドリア300円、ワイン100円の圧倒的安さ" } },
+      { name: "モスバーガー（MOS Burger）", category: "fastfood", tag: { zh: "日式漢堡", ja: "バーガー" }, walk: "徒歩5〜8分", budget: "600〜950円", note: { zh: "日本國產蔬菜與招牌米漢堡，新鮮現點現做", ja: "国産生野菜を使った安心の高品質バーガー" } },
+      { name: "ガスト（Gusto）", category: "fastfood", tag: { zh: "家庭餐廳", ja: "ファミレス" }, walk: "徒歩6〜10分", budget: "700〜1,100円", note: { zh: "起司流心漢堡排、豐富飲料吧，適合長坐聊天", ja: "チーズINハンバーグとドリンクバーが充実" } },
+
+      // 3. Teishoku & Cutlet
+      { name: "やよい軒（彌生軒）", category: "teishoku", tag: { zh: "白飯免費續添", ja: "定食おかわり自由" }, walk: "徒歩6〜8分", budget: "750〜1,000円", note: { zh: "白飯機器免費無限續！熱呼呼生薑燒肉與烤魚", ja: "ごはんおかわり自由の神コスパ定食" } },
+      { name: "大戸屋（Ootoya）", category: "teishoku", tag: { zh: "健康和食定食", ja: "和定食" }, walk: "徒歩6〜8分", budget: "850〜1,200円", note: { zh: "營養均衡蔬菜多，黑醋雞塊與炭火烤魚是定番", ja: "黒酢炒めや焼き魚など栄養バランス抜群" } },
+      { name: "かつや（Katsuya）", category: "teishoku", tag: { zh: "炸豬排 550円起", ja: "とんかつ" }, walk: "徒歩5〜8分", budget: "550〜850円", note: { zh: "酥脆大塊現炸豬排丼只要500多円，送百円折價券", ja: "サクサクのカツ丼が手頃、100円割引券も人気" } },
+      { name: "天丼てんや（Tenya）", category: "teishoku", tag: { zh: "天丼 560円起", ja: "天丼" }, walk: "徒歩6〜9分", budget: "560〜850円", note: { zh: "日本天丼第一品牌，現炸大蝦天婦羅丼經濟實惠", ja: "揚げたてサクサク天丼がリーズナブル" } },
+
+      // 4. Ramen & Chinese
+      { name: "日高屋（Hidakaya）", category: "ramen", tag: { zh: "拉麵 390円起", ja: "熱烈中華" }, walk: "徒歩4〜6分", budget: "390〜750円", note: { zh: "關東平價中華之王！拉麵390円、煎餃250円", ja: "中華そば390円、餃子250円の庶民派" } },
+      { name: "餃子の王将", category: "ramen", tag: { zh: "現煎大餃子", ja: "中華料理" }, walk: "徒歩6〜8分", budget: "600〜900円", note: { zh: "現煎酥脆多汁大餃子配炒飯，份量超大飽足", ja: "香ばしい焼き餃子と炒飯。ボリューム満点" } },
+      { name: "一蘭（Ichiran）", category: "ramen", tag: { zh: "天然豚骨拉麵", ja: "とんこつ" }, walk: "徒歩8〜10分", budget: "980〜1,300円", note: { zh: "獨家個人隔間味集中座位，24H營業", ja: "味集中カウンターで食べる本格豚骨" } },
+
+      // 5. Udon & Soba
+      { name: "丸亀製麺（Marugame）", category: "udon", tag: { zh: "烏龍麵 390円起", ja: "讃岐うどん" }, walk: "徒歩5〜8分", budget: "390〜700円", note: { zh: "現打現煮Q彈讚岐烏龍麵，現炸天婦羅隨夾隨吃", ja: "打ちたて茹でたてのコシがある讃岐うどん" } },
+      { name: "名代 富士そば", category: "udon", tag: { zh: "24H立食蕎麥", ja: "立ち食いそば" }, walk: "徒歩4〜6分", budget: "350〜600円", note: { zh: "站前24H立食老店，豬排丼套餐與炸天婦羅麵極省", ja: "駅前の味方、24時間営業でそばも丼も安い" } },
+
+      // 6. Cafe
+      { name: "ドトール（Doutor）", category: "cafe", tag: { zh: "咖啡 250円起", ja: "定番カフェ" }, walk: "徒歩4〜6分", budget: "250〜500円", note: { zh: "日本普及率最高平價咖啡，米蘭三明治是經典早餐", ja: "ブレンドが手頃、ミラノサンドが定番" } },
+      { name: "スターバックス（Starbucks）", category: "cafe", tag: { zh: "精品咖啡空間", ja: "シアトル系" }, walk: "徒歩5〜8分", budget: "450〜700円", note: { zh: "質感舒適空間與WiFi，假日閱讀遠距辦公首選", ja: "洗練された空間とWi-Fi。休日の読書に最適" } },
+      { name: "コメダ珈琲店", category: "cafe", tag: { zh: "點咖啡送吐司", ja: "名古屋式喫茶" }, walk: "徒歩6〜10分", budget: "600〜900円", note: { zh: "早上點飲料送烤厚片吐司水煮蛋，沙發座寬敞像包廂", ja: "モーニングサービスとゆったりソファが人気" } }
     ];
 
     const evaluation = evaluateProperty(

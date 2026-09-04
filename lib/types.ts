@@ -52,8 +52,10 @@ export interface StationDetail {
 
 export interface LifeAmenityItem {
   name: string;
+  category?: string;
   tag: LocalizedText;
   walk: string;
+  budget?: string;
   note: LocalizedText;
 }
 
