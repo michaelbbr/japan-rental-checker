@@ -13,6 +13,7 @@ export default function Home() {
   const [propertyRent, setPropertyRent] = useState<string | null>(null);
   const [evaluation, setEvaluation] = useState<EvaluationResult | null>(null);
   const [copied, setCopied] = useState(false);
+  const [selectedDimensionKey, setSelectedDimensionKey] = useState<string>('building');
 
   const t = {
     zh: {
@@ -23,7 +24,7 @@ export default function Home() {
       btnScore: "評分 ↵",
       btnScoring: "解析中...",
       tier1Title: "① 一眼看懂（六大指標）",
-      tier1Subtitle: "客觀嚴格評級",
+      tier1Subtitle: "點擊或懸停指標查看評分理由",
       tier2Title: "② 關鍵條件解析（優缺點合一）",
       meritPrefix: "👍 優點：",
       cautionPrefix: "⚠️ 注意：",
@@ -35,15 +36,15 @@ export default function Home() {
       superLabel: "🛒 主力超市（定位＆價格檔次）",
       cvsLabel: "🏪 超商定位與價格檔次",
       chainLabel: "🍽️ 周邊知名連鎖外食",
-      priceLabel: "價格檔次：",
       tier3Title: "③ 內見時確認清單",
       copyChecklist: "📋 複製清單",
       copied: "✓ 已複製",
-      footer: "日本租房評分工具 • 繁中 / 日本語 雙語支援 • Google Maps API Ready",
+      footer: "日本租房評分工具 • 繁中 / 日本語 雙語支援 • Google Maps 座標精準化",
       vacantBadge: "🔴 目前滿室（無招租中 / N/A）",
       vacantBadgeJa: "🔴 現在満室（募集中なし / N/A）",
       mapsLiveBadge: "🟢 Google Maps API 即時地圖資料",
-      mapsLiveBadgeJa: "🟢 Google Maps API リアルタイム連携中"
+      mapsLiveBadgeJa: "🟢 Google Maps API リアルタイム連携中",
+      reasonPrompt: "💡 點擊或懸停上方任一指標，查看具體評分依據"
     },
     ja: {
       badge: "🏢 賃貸チェッカー",
@@ -53,7 +54,7 @@ export default function Home() {
       btnScore: "診断する ↵",
       btnScoring: "解析中...",
       tier1Title: "① 一眼看懂（6大レーティング）",
-      tier1Subtitle: "客観的・厳格評価",
+      tier1Subtitle: "タップまたはホバーで採点理由を表示",
       tier2Title: "② 条件ごとの長所・短所（メリット＆デメリット）",
       meritPrefix: "👍 メリット：",
       cautionPrefix: "⚠️ 注意点：",
@@ -65,15 +66,15 @@ export default function Home() {
       superLabel: "🛒 メインスーパー（位置づけ＆価格帯）",
       cvsLabel: "🏪 コンビニのポジショニング＆価格帯",
       chainLabel: "🍽️ 周辺の定番外食チェーン",
-      priceLabel: "価格帯目安：",
       tier3Title: "③ 内見時のチェックリスト",
       copyChecklist: "📋 コピー",
       copied: "✓ コピー完了",
-      footer: "日本賃貸物件診断ツール • 日本語 / 繁体中文 対応 • Google Maps API Ready",
+      footer: "日本賃貸物件診断ツール • 日本語 / 繁体中文 対応 • 座標連動",
       vacantBadge: "🔴 目前滿室（無招租中 / N/A）",
       vacantBadgeJa: "🔴 現在満室（募集中なし / N/A）",
       mapsLiveBadge: "🟢 Google Maps API リアルタイム連携中",
-      mapsLiveBadgeJa: "🟢 Google Maps API リアルタイム連携中"
+      mapsLiveBadgeJa: "🟢 Google Maps API リアルタイム連携中",
+      reasonPrompt: "💡 上記の指標をタップすると、採点理由が表示されます"
     }
   }[lang];
 
@@ -100,6 +101,9 @@ export default function Home() {
       setPropertyMeta(data.meta);
       setPropertyRent(data.rent);
       setEvaluation(data.evaluation);
+      if (data.evaluation?.tier1?.length > 0) {
+        setSelectedDimensionKey(data.evaluation.tier1[0].key);
+      }
     } catch (err: any) {
       setError(err.message || '連線逾時或抓取失敗');
     } finally {
@@ -114,6 +118,8 @@ export default function Home() {
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
+
+  const activeDimension = evaluation?.tier1.find(d => d.key === selectedDimensionKey) || evaluation?.tier1[0];
 
   return (
     <div className="w-full max-w-3xl mx-auto px-4 py-8 flex-1 flex flex-col items-center">
@@ -205,8 +211,8 @@ export default function Home() {
             </div>
           </div>
 
-          {/* ① 一眼看懂 (Six Dimensions) */}
-          <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-xs space-y-2.5">
+          {/* ① 一眼看懂 (Interactive: Click / Hover to view Reason) */}
+          <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-xs space-y-3">
             <div className="flex items-center justify-between text-xs">
               <span className="font-bold text-slate-400 uppercase tracking-wider text-[11px]">
                 {t.tier1Title}
@@ -214,8 +220,10 @@ export default function Home() {
               <span className="text-slate-400 text-[11px]">{t.tier1Subtitle}</span>
             </div>
 
+            {/* 6 Dimension Buttons */}
             <div className="grid grid-cols-6 gap-1.5 sm:gap-2 text-center">
               {evaluation.tier1.map(d => {
+                const isSelected = activeDimension?.key === d.key;
                 let colorClass = "bg-slate-50 border-slate-200 text-slate-700";
                 if (d.symbol === '◎') colorClass = "bg-emerald-50 border-emerald-200 text-emerald-800";
                 else if (d.symbol === '○') colorClass = "bg-blue-50 border-blue-200 text-blue-800";
@@ -224,13 +232,38 @@ export default function Home() {
                 else colorClass = "bg-slate-100 border-slate-200 text-slate-500";
 
                 return (
-                  <div key={d.key} className={`p-2 sm:p-2.5 rounded-xl border ${colorClass} flex flex-col items-center justify-center`}>
+                  <button
+                    key={d.key}
+                    type="button"
+                    onClick={() => setSelectedDimensionKey(d.key)}
+                    onMouseEnter={() => setSelectedDimensionKey(d.key)}
+                    className={`p-2 sm:p-2.5 rounded-xl border transition-all cursor-pointer flex flex-col items-center justify-center ${colorClass} ${
+                      isSelected ? 'ring-2 ring-slate-900 shadow-sm scale-105' : 'hover:opacity-90'
+                    }`}
+                  >
                     <span className="text-[10px] sm:text-[11px] font-medium opacity-80">{d.label[lang]}</span>
                     <span className="text-base sm:text-lg font-bold my-0.5">{d.symbol}</span>
-                  </div>
+                    <span className="text-[9px] opacity-60 underline">理由 ▾</span>
+                  </button>
                 );
               })}
             </div>
+
+            {/* Active Dimension Reason Box (點開 / 懸停理由展示區) */}
+            {activeDimension && (
+              <div className="p-3.5 rounded-xl bg-slate-900 text-white text-xs space-y-1 animate-in fade-in duration-150">
+                <div className="flex justify-between items-center font-bold">
+                  <span className="flex items-center gap-1.5">
+                    <span>💡</span>
+                    <span>{activeDimension.label[lang]}【{activeDimension.symbol}】評分理由</span>
+                  </span>
+                  <span className="text-[10px] text-slate-400 font-normal">點擊上方切換指標</span>
+                </div>
+                <p className="text-slate-200 leading-relaxed pt-0.5">
+                  {activeDimension.reason[lang]}
+                </p>
+              </div>
+            )}
           </div>
 
           {/* ② 條件別解析（優缺點合一） */}

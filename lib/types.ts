@@ -24,6 +24,7 @@ export interface DimensionScore {
   label: LocalizedText;
   symbol: RatingSymbol;
   score: number;
+  reason: LocalizedText; // 評分理由（滑鼠移上去或點開顯示）
 }
 
 export interface ConditionCard {
@@ -74,4 +75,5 @@ export interface EvaluationResult {
   };
   naiken: NaikenItem[];
   isVacant: boolean;
+  coordinates?: { lat: number; lng: number };
 }
