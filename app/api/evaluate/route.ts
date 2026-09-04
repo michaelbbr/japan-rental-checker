@@ -243,7 +243,7 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // 3. BULLETPROOF ADDRESS EXTRACTION: STRIP <head> COMPLETELY
+    // 3. UNIVERSAL ADDRESS EXTRACTION (SUUMO, Sumaity, HOME'S)
     const bodyOnlyHtml = html.replace(/<head\b[^<]*(?:(?!<\/head>)<[^<]*)*<\/head>/gi, '');
 
     const cleanAddressText = (raw: string): string => {
@@ -256,28 +256,40 @@ export async function POST(req: NextRequest) {
     };
 
     let address = "";
-    const tableAddrMatch = bodyOnlyHtml.match(/<(?:th|dt)[^>]*>(?:(?!<\/(?:th|dt)>)[\s\S])*?(?:所在地|住所)(?:(?!<\/(?:th|dt)>)[\s\S])*?<\/(?:th|dt)>\s*<(?:td|dd)[^>]*>([\s\S]*?)<\/(?:td|dd)>/i);
-    if (tableAddrMatch) {
-      const cleaned = cleanAddressText(tableAddrMatch[1]);
-      if (cleaned.length >= 4 && (cleaned.includes("区") || cleaned.includes("市") || cleaned.includes("町"))) {
-        address = cleaned;
+    
+    // Pattern 1: Universal Key-Value container for <th>/<td>, <dt>/<dd>, or <div>/<div> (SUUMO responsive divs)
+    const universalKvMatch = bodyOnlyHtml.match(/<(?:th|dt|div|span|p)[^>]*>(?:(?!<\/(?:th|dt|div|span|p)>)[\s\S])*?(?:所在地|住所)(?:(?!<\/(?:th|dt|div|span|p)>)[\s\S])*?<\/(?:th|dt|div|span|p)>\s*<(?:td|dd|div|span|p)[^>]*>([\s\S]*?)<\/(?:td|dd|div|span|p)>/i);
+    if (universalKvMatch) {
+      const cand = cleanAddressText(universalKvMatch[1]);
+      if (cand.length >= 4 && (cand.includes("区") || cand.includes("市") || cand.includes("町") || cand.includes("都") || cand.includes("府") || cand.includes("県"))) {
+        address = cand;
+      }
+    }
+
+    // Pattern 2: Text matching 所在地 followed by Japanese address
+    if (!address) {
+      const textMatch = bodyOnlyHtml.match(/所在地[:：\s]*((?:東京都|北海道|(?:京都|大阪)府|.{2,3}県)?[^\s<"'\/\n\r]+?[区市郡][^\s<"'\/\n\r]{1,30})/);
+      if (textMatch) {
+        const cand = cleanAddressText(textMatch[1]);
+        if (cand.length >= 4) {
+          address = cand;
+        }
+      }
+    }
+
+    // Pattern 3: Explicit Japanese address regex in body (supports "西新宿４" ending with digit without 丁目)
+    if (!address) {
+      const addrRegex = bodyOnlyHtml.match(/((?:東京都|北海道|(?:京都|大阪)府|.{2,3}県)[^\s<"'\/\n\r]{1,15}?[区市郡][^\s<"'\/\n\r]{1,25}?(?:[0-9０-９一二三四五六七八九十]+丁目|[0-9０-９一二三四五六七八九十]+|[0-9０-９-]+番*))/);
+      if (addrRegex) {
+        const cand = cleanAddressText(addrRegex[1]);
+        if (cand.length >= 4) {
+          address = cand;
+        }
       }
     }
 
     if (!address) {
-      const patMatch = bodyOnlyHtml.match(/((?:東京都|北海道|(?:京都|大阪)府|.{2,3}県)[^\s<"'/\n\r]+?[区市郡][^\s<"'/\n\r]{1,30}?(?:[0-9０-９一二三四五六七八九十]+丁目|[0-9０-９-]+番))/);
-      if (patMatch) {
-        address = cleanAddressText(patMatch[1]);
-      }
-    }
-
-    if (!address) {
-      const fallbackMatch = bodyOnlyHtml.match(/所在地[:：\s]*([^\n\r<]{4,50}?[区市町][^\n\r<]{1,30})/);
-      if (fallbackMatch) {
-        address = cleanAddressText(fallbackMatch[1]);
-      } else {
-        address = "東京都";
-      }
+      address = "東京都";
     }
 
     let geocodeTarget = address;
