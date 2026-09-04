@@ -368,7 +368,7 @@ export async function POST(req: NextRequest) {
     }
 
     if (stations.length === 0) {
-      if (address.includes("代々木") || rawTitle.includes("代々木")) {
+      if (address.includes("代々木") || propertyTitle.includes("代々木")) {
         stations.push({ line: "小田急小田原線", station: "南新宿駅", walkMin: 3, fullText: "小田急小田原線 南新宿駅 徒歩3分", destinations: { ja: "新宿へ1駅（徒歩圏）、下北沢直通", zh: "新宿1站（步行亦可直達），下北澤直通", zhCN: "新宿1站（步行亦可直达），下北泽直通", en: "1 stop to Shinjuku, direct to Shimokitazawa" }, pitfalls: { ja: "各駅停車のみ運行", zh: "僅各站停車停靠", zhCN: "仅各站停车停靠", en: "Local trains only" }, mapUrl: makeWalkingMapUrl(address, "南新宿駅") });
         stations.push({ line: "JR山手線・総武線", station: "代々木駅", walkMin: 5, fullText: "JR山手線 代々木駅 徒歩5分", destinations: { ja: "渋谷5分、新宿、東京直通大動脈", zh: "直達 澀谷(5分)、新宿、東京大動脈", zhCN: "直达 涩谷(5分)、新宿、东京大动脉", en: "Direct to Shibuya (5m), Shinjuku, Tokyo" }, pitfalls: { ja: "山手線ラッシュ時の混雑注意", zh: "早晚尖峰人潮擁擠", zhCN: "早晚高峰人潮拥挤", en: "Heavy morning rush crowds" }, mapUrl: makeWalkingMapUrl(address, "代々木駅") });
       } else {
@@ -440,7 +440,7 @@ export async function POST(req: NextRequest) {
 
     if (html.includes("バストイレ別") || html.includes("BT別")) matchedRuleIds.add("equip_bt_sep");
 
-    if (address.includes("西新宿４") || rawTitle.includes("永谷リヴュール")) {
+    if (address.includes("西新宿４") || propertyTitle.includes("永谷リヴュール")) {
       matchedRuleIds.add("env_main_road");
     }
 
@@ -647,7 +647,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Dynamic Fallbacks based on Property
-    const isYoyogi = address.includes("代々木") || rawTitle.includes("代々木");
+    const isYoyogi = address.includes("代々木") || propertyTitle.includes("代々木");
 
     if (!supermarkets.length) {
       if (isYoyogi) {
