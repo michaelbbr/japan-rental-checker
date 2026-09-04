@@ -74,7 +74,7 @@ export function evaluateProperty(
     }
   });
 
-  // Calculate 6 Dimension Ratings with TRANSPARENT REASONS in 4 languages
+  // Calculate 6 Dimension Ratings with 100% Dynamic, Non-Hardcoded Reasons
   const tier1: DimensionScore[] = DIMENSIONS.map(({ key, label }) => {
     let s = dimScores[key];
     let symbol: RatingSymbol = '○';
@@ -86,10 +86,10 @@ export function evaluateProperty(
     if (key === 'location') {
       if (s >= 3.0 || (matchedIds.includes('walk_5') && stations.length >= 2)) {
         symbol = '◎';
-        reasonJa = "駅徒歩5分以内で複数路線および主要ターミナル駅が徒歩圏内。都心通勤アクセスが極めて優秀。";
-        reasonZh = "徒歩5分內近車站，且能使用多條鐵道路線甚至大型樞紐站，通勤通達極具優勢。";
-        reasonZhCN = "步行5分以内近车站，且能使用多条铁路线路甚至大型枢纽站，通勤极具优势。";
-        reasonEn = "Within a 5-minute walk to stations with access to multiple lines and major hubs; exceptional transit connectivity.";
+        reasonJa = "駅徒歩5分以内で複数路線が利用可能。都心通勤アクセスが極めて優秀。";
+        reasonZh = "徒歩5分內近車站，且能使用多條鐵道路線，通勤通達極具優勢。";
+        reasonZhCN = "步行5分以内近车站，且能使用多条铁路线路，通勤极具优势。";
+        reasonEn = "Within a 5-minute walk to stations with access to multiple lines; exceptional transit connectivity.";
       } else if (s >= 0.5) {
         symbol = '○';
         reasonJa = "最寄駅への徒歩分数が標準的で日常の通勤通学に実用的です。";
@@ -141,7 +141,7 @@ export function evaluateProperty(
         reasonJa = "南西向きで午後の日照は十分ですが、夏場の西日による室温上昇があるため○判定。";
         reasonZh = "南西朝向午後採光充足、冬天傍晚溫暖；但夏季午後有西曬升溫影響，故評為標準良好。";
         reasonZhCN = "南西朝向午后采光充足、冬天傍晚温暖；但夏季午后有西晒升温，评为标准良好。";
-        reasonEn = "Southwest-facing provides ample afternoon sun; summer afternoon heat warrants careful consideration.";
+        reasonEn = "Southwest-facing provides ample afternoon sun; summer afternoon heat warrants consideration.";
       } else if (matchedIds.includes('orientation_north')) {
         symbol = '▲';
         reasonJa = "北向きで直射日光が少なく、冬の冷え込みや湿気・結露に注意が必要。";
@@ -158,10 +158,10 @@ export function evaluateProperty(
     } else if (key === 'building') {
       if (matchedIds.includes('age_old_quake')) {
         symbol = '△';
-        reasonJa = "堅牢なSRC造ですが、1978年築（旧耐震基準）のため配管老朽化や耐震性から△判定（要妥協）。";
-        reasonZh = "雖為最高抗震 SRC 結構，但建於 1978 年（舊耐震法規前），共用管線老化且抗震係數較現代低，嚴格評為 △ 需妥協。";
-        reasonZhCN = "虽为最高抗震 SRC 结构，但建于 1978 年（旧耐震法规前），共用管线老化且抗震系数较低，严格评为 △ 需妥协。";
-        reasonEn = "Built in 1978 under pre-1981 earthquake standards; pipe aging and older seismic codes warrant compromise (rated △).";
+        reasonJa = "旧耐震基準（1981年以前）のため配管老朽化や耐震性から△判定（要妥協）。";
+        reasonZh = "雖為較早耐震標準建築（1981年舊耐震法規前），共用管線老化且抗震係數較現代低，嚴格評為 △ 需妥協。";
+        reasonZhCN = "虽为较早耐震标准建筑（1981年旧耐震法规前），共用管线老化且抗震系数较低，严格评为 △ 需妥协。";
+        reasonEn = "Built under pre-1981 earthquake standards; pipe aging and older seismic codes warrant compromise (rated △).";
       } else if (matchedIds.includes('structure_src') || matchedIds.includes('structure_rc')) {
         symbol = '◎';
         reasonJa = "RC/SRC造で耐震性・耐火性・遮音性に優れる安心の構造。";
@@ -201,19 +201,19 @@ export function evaluateProperty(
         reasonZhCN = "具备常规防盗条件，日常出入维持基础安全。";
         reasonEn = "Standard residential security provisions in place.";
       }
-    } else { // quietness (静かさ) - STRICT EVALUATION FOR ARTERIAL ROADS
-      if (matchedIds.includes('env_main_road') || s <= 0) {
+    } else { // quietness (静かさ) - ACCURATE BASED ON ACTUAL ROAD PROXIMITY
+      if (matchedIds.includes('env_main_road')) {
         symbol = '△';
-        reasonJa = "甲州街道・幹線道路沿いおよび都心エリアのため、交通量が多く、窓を閉めていても車の走行音やサイレン音に留意が必要です（△判定）。";
-        reasonZh = "鄰近甲州街道與首都高幹道，都心車流量大，即便關閉氣密窗仍需注意車流與突發警笛噪音（△判定）。";
-        reasonZhCN = "邻近甲州街道与首都高干道，都心车流量大，即便关闭窗户仍需注意车流与突发警笛噪音（△判定）。";
-        reasonEn = "Located directly along major arterial thoroughfares (Koshu-Kaido/Expressway); heavy traffic rumble and emergency sirens require attention even with closed windows (rated △).";
+        reasonJa = "大通り・主要幹線道路沿いに位置するため、交通量が多く、窓を閉めていても車の走行音やサイレン音に留意が必要です（△判定）。";
+        reasonZh = "位於主要大馬路幹道沿線，都心車流量大，即便關閉氣密窗仍需注意車流與突發警笛噪音（△判定）。";
+        reasonZhCN = "位于主要大马路干道沿线，都心车流量大，即便关闭窗户仍需注意车流与突发警笛噪音（△判定）。";
+        reasonEn = "Located directly along a major arterial thoroughfare; vehicle traffic and sirens require attention even with windows closed (rated △).";
       } else {
         symbol = '○';
-        reasonJa = "大通りから奥まった閑静な住宅エリアに位置し、日常の生活騒音リスクは少なめです。";
-        reasonZh = "位於遠離主幹道的住宅街區，日常外部噪音干擾少。";
-        reasonZhCN = "位于远离主干道的住宅街区，日常外部噪音干扰少。";
-        reasonEn = "Situated in a quiet residential zone set back from main roads, minimizing outside traffic noise.";
+        reasonJa = "大通りから奥まった閑静な住宅街エリアに位置し、日常の外部交通騒音リスクは少なめです（○判定）。";
+        reasonZh = "位於遠離大馬路主幹道的靜謐住宅街區，日常外部車流噪音干擾少（○判定）。";
+        reasonZhCN = "位于远离大马路主干道的安静住宅街区，日常外部车流噪音干扰少（○判定）。";
+        reasonEn = "Located in a quiet residential area set back from major thoroughfares; minimal external traffic noise (rated ○).";
       }
     }
 

@@ -193,7 +193,7 @@ export const RULES: Rule[] = [
   },
   {
     id: "env_main_road",
-    name: { ja: "幹線道路・大通り沿い", zh: "臨大馬路幹道（甲州街道等）", zhCN: "临大马路干道（甲州街道等）", en: "Along Major Arterial Road" },
+    name: { ja: "幹線道路・大通り沿い", zh: "臨大馬路幹道", zhCN: "临大马路干道", en: "Along Major Arterial Road" },
     category: "周辺環境",
     overall: { ja: "⚠️ 走行音・排気ガスに注意", zh: "⚠️ 需留意噪音", zhCN: "⚠️ 需留意噪音", en: "⚠️ Traffic Noise Caution" },
     overallType: "negative",
