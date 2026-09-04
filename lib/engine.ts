@@ -1,5 +1,5 @@
 import { RULES } from './rules';
-import { EvaluationResult, Dimension, RatingSymbol, DimensionScore, BulletItem, NaikenItem } from './types';
+import { EvaluationResult, Dimension, RatingSymbol, DimensionScore, ConditionCard, NaikenItem } from './types';
 
 const DIMENSIONS: Array<{ key: Dimension; label: string }> = [
   { key: "location", label: "立地" },
@@ -20,9 +20,7 @@ export function evaluateProperty(matchedIds: string[]): EvaluationResult {
     quietness: 0
   };
 
-  const merits: BulletItem[] = [];
-  const cautions: BulletItem[] = [];
-  const demerits: BulletItem[] = [];
+  const conditions: ConditionCard[] = [];
   const naiken: NaikenItem[] = [];
   const seenNaiken = new Set<string>();
 
@@ -32,6 +30,7 @@ export function evaluateProperty(matchedIds: string[]): EvaluationResult {
     const r = ruleMap.get(id);
     if (!r) return;
 
+    // Dimension effects
     Object.entries(r.effects).forEach(([d, val]) => {
       const dim = d as Dimension;
       if (dimScores[dim] !== undefined && val !== undefined) {
@@ -39,16 +38,25 @@ export function evaluateProperty(matchedIds: string[]): EvaluationResult {
       }
     });
 
-    if (r.bullets.merit) merits.push({ name: r.name, text: r.bullets.merit });
-    if (r.bullets.caution) cautions.push({ name: r.name, text: r.bullets.caution });
-    if (r.bullets.demerit) demerits.push({ name: r.name, text: r.bullets.demerit });
+    // Grouped condition card
+    conditions.push({
+      id: r.id,
+      name: r.name,
+      overall: r.overall,
+      overallType: r.overallType,
+      merits: r.merits,
+      cautions: r.cautions,
+      demerits: r.demerits
+    });
 
+    // Naiken check
     if (r.naiken && !seenNaiken.has(r.naiken)) {
       seenNaiken.add(r.naiken);
       naiken.push({ name: r.name, text: r.naiken });
     }
   });
 
+  // Calculate 6 Dimension Ratings
   const tier1: DimensionScore[] = DIMENSIONS.map(({ key, label }) => {
     const s = dimScores[key];
     let symbol: RatingSymbol = '○';
@@ -60,5 +68,5 @@ export function evaluateProperty(matchedIds: string[]): EvaluationResult {
     return { key, label, symbol, score: s };
   });
 
-  return { tier1, merits, cautions, demerits, naiken };
+  return { tier1, conditions, naiken };
 }

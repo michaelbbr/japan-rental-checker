@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { EvaluationResult } from '@/lib/types';
+import { EvaluationResult, ConditionCard } from '@/lib/types';
 
 export default function Home() {
   const [url, setUrl] = useState('');
@@ -62,7 +62,7 @@ export default function Home() {
           貼上網址，一眼看懂好壞
         </h1>
         <p className="text-xs sm:text-sm text-slate-500">
-          支援貼上 SUUMO 房源網址，自動抓取規格並即時評分
+          貼上 SUUMO 房源網址，自動抓取規格並進行條件解析
         </p>
       </div>
 
@@ -156,47 +156,61 @@ export default function Home() {
             </div>
           </div>
 
-          {/* ② 優點 / 缺點 / 注意點 */}
-          <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs space-y-3">
+          {/* ② 項目別解析（同項目的優缺點放在一起，明確標示整體評價） */}
+          <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs space-y-4">
             <div className="flex items-center justify-between text-xs border-b border-slate-100 pb-2.5">
               <span className="font-bold text-slate-400 uppercase tracking-wider text-[11px]">
-                ② 優點 / 缺點 / 注意點（單句解析）
+                ② 條件別解析（優缺點合一）
               </span>
-              <div className="flex gap-2 text-[11px]">
-                <span className="text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md font-medium">
-                  👍 {evaluation.merits.length}
-                </span>
-                <span className="text-amber-700 bg-amber-50 px-2 py-0.5 rounded-md font-medium">
-                  ⚠️ {evaluation.cautions.length}
-                </span>
-                <span className="text-rose-700 bg-rose-50 px-2 py-0.5 rounded-md font-medium">
-                  👎 {evaluation.demerits.length}
-                </span>
-              </div>
+              <span className="text-slate-400 text-[11px]">共 {evaluation.conditions.length} 項條件</span>
             </div>
 
-            <div className="space-y-2 text-xs divide-y divide-slate-50">
-              {evaluation.merits.map((m, idx) => (
-                <div key={`m-${idx}`} className="pt-2 flex items-start gap-2">
-                  <span className="text-emerald-600 font-bold shrink-0">👍 {m.name}</span>
-                  <span className="text-slate-400">→</span>
-                  <span className="text-slate-600 leading-relaxed">{m.text}</span>
-                </div>
-              ))}
-              {evaluation.cautions.map((c, idx) => (
-                <div key={`c-${idx}`} className="pt-2 flex items-start gap-2">
-                  <span className="text-amber-600 font-bold shrink-0">⚠️ {c.name}</span>
-                  <span className="text-slate-400">→</span>
-                  <span className="text-slate-600 leading-relaxed">{c.text}</span>
-                </div>
-              ))}
-              {evaluation.demerits.map((d, idx) => (
-                <div key={`d-${idx}`} className="pt-2 flex items-start gap-2">
-                  <span className="text-rose-600 font-bold shrink-0">👎 {d.name}</span>
-                  <span className="text-slate-400">→</span>
-                  <span className="text-slate-600 leading-relaxed">{d.text}</span>
-                </div>
-              ))}
+            <div className="space-y-3">
+              {evaluation.conditions.map(c => {
+                // Badge color based on overallType
+                let badgeClass = "bg-slate-100 text-slate-700 border-slate-200";
+                if (c.overallType === 'positive') {
+                  badgeClass = "bg-emerald-50 text-emerald-700 border-emerald-200";
+                } else if (c.overallType === 'neutral') {
+                  badgeClass = "bg-amber-50 text-amber-700 border-amber-200";
+                } else if (c.overallType === 'negative') {
+                  badgeClass = "bg-rose-50 text-rose-700 border-rose-200";
+                }
+
+                return (
+                  <div key={c.id} className="p-3.5 rounded-xl border border-slate-150 bg-slate-50/50 space-y-2">
+                    {/* Condition Header: Name + Overall Evaluation */}
+                    <div className="flex items-center justify-between">
+                      <span className="font-bold text-sm text-slate-800">{c.name}</span>
+                      <span className={`text-[11px] font-semibold px-2 py-0.5 rounded-md border ${badgeClass}`}>
+                        {c.overall}
+                      </span>
+                    </div>
+
+                    {/* Merits, Cautions, Demerits grouped together */}
+                    <div className="space-y-1 text-xs text-slate-600">
+                      {c.merits.map((m, idx) => (
+                        <div key={`m-${idx}`} className="flex items-start gap-1.5 text-emerald-900">
+                          <span className="font-bold text-emerald-600 shrink-0">👍 優點：</span>
+                          <span>{m}</span>
+                        </div>
+                      ))}
+                      {c.cautions.map((caution, idx) => (
+                        <div key={`c-${idx}`} className="flex items-start gap-1.5 text-amber-900">
+                          <span className="font-bold text-amber-600 shrink-0">⚠️ 注意：</span>
+                          <span>{caution}</span>
+                        </div>
+                      ))}
+                      {c.demerits.map((d, idx) => (
+                        <div key={`d-${idx}`} className="flex items-start gap-1.5 text-rose-900">
+                          <span className="font-bold text-rose-600 shrink-0">👎 缺點：</span>
+                          <span>{d}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           </div>
 

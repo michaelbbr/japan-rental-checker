@@ -1,18 +1,19 @@
 export type Dimension = 'location' | 'rent' | 'sunlight' | 'building' | 'security' | 'quietness';
 export type RatingSymbol = '◎' | '○' | '△' | '▲';
 
+export type ConditionOverall = '◎ 明顯優點' | '○ 加分條件' | '△ 中性/看習慣' | '⚠️ 需妥協' | '👎 明顯抗性';
+
 export interface Rule {
   id: string;
   name: string;
   category: string;
+  overall: ConditionOverall;
+  overallType: 'positive' | 'neutral' | 'negative';
   effects: Partial<Record<Dimension, number>>;
-  bullets: {
-    merit?: string;
-    caution?: string;
-    demerit?: string;
-  };
+  merits: string[];
+  cautions: string[];
+  demerits: string[];
   naiken?: string;
-  kw: string[];
 }
 
 export interface DimensionScore {
@@ -22,9 +23,14 @@ export interface DimensionScore {
   score: number;
 }
 
-export interface BulletItem {
+export interface ConditionCard {
+  id: string;
   name: string;
-  text: string;
+  overall: ConditionOverall;
+  overallType: 'positive' | 'neutral' | 'negative';
+  merits: string[];
+  cautions: string[];
+  demerits: string[];
 }
 
 export interface NaikenItem {
@@ -34,8 +40,6 @@ export interface NaikenItem {
 
 export interface EvaluationResult {
   tier1: DimensionScore[];
-  merits: BulletItem[];
-  cautions: BulletItem[];
-  demerits: BulletItem[];
+  conditions: ConditionCard[];
   naiken: NaikenItem[];
 }
