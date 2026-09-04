@@ -1,16 +1,33 @@
 import { RULES } from './rules';
-import { EvaluationResult, Dimension, RatingSymbol, DimensionScore, ConditionCard, NaikenItem } from './types';
+import { 
+  EvaluationResult, 
+  Dimension, 
+  RatingSymbol, 
+  DimensionScore, 
+  ConditionCard, 
+  NaikenItem,
+  StationItem,
+  LayoutAnalysis,
+  AreaImpression,
+  InitialCostEstimate
+} from './types';
 
-const DIMENSIONS: Array<{ key: Dimension; label: string }> = [
-  { key: "location", label: "立地" },
-  { key: "rent", label: "家賃" },
-  { key: "sunlight", label: "日当たり" },
-  { key: "building", label: "建物" },
-  { key: "security", label: "防犯" },
-  { key: "quietness", label: "静かさ" }
+const DIMENSIONS: Array<{ key: Dimension; label: { zh: string; ja: string } }> = [
+  { key: "location", label: { zh: "立地", ja: "立地" } },
+  { key: "rent", label: { zh: "家賃", ja: "家賃" } },
+  { key: "sunlight", label: { zh: "日当たり", ja: "日当たり" } },
+  { key: "building", label: { zh: "建物", ja: "建物" } },
+  { key: "security", label: { zh: "防犯", ja: "防犯" } },
+  { key: "quietness", label: { zh: "静かさ", ja: "静かさ" } }
 ];
 
-export function evaluateProperty(matchedIds: string[]): EvaluationResult {
+export function evaluateProperty(
+  matchedIds: string[],
+  stations: StationItem[] = [],
+  layoutAnalysis?: LayoutAnalysis,
+  areaImpression?: AreaImpression,
+  initialCost?: InitialCostEstimate
+): EvaluationResult {
   const dimScores: Record<Dimension, number> = {
     location: 0,
     rent: 0,
@@ -30,7 +47,7 @@ export function evaluateProperty(matchedIds: string[]): EvaluationResult {
     const r = ruleMap.get(id);
     if (!r) return;
 
-    // Dimension effects
+    // Accumulate effects
     Object.entries(r.effects).forEach(([d, val]) => {
       const dim = d as Dimension;
       if (dimScores[dim] !== undefined && val !== undefined) {
@@ -38,7 +55,6 @@ export function evaluateProperty(matchedIds: string[]): EvaluationResult {
       }
     });
 
-    // Grouped condition card
     conditions.push({
       id: r.id,
       name: r.name,
@@ -49,24 +65,53 @@ export function evaluateProperty(matchedIds: string[]): EvaluationResult {
       demerits: r.demerits
     });
 
-    // Naiken check
-    if (r.naiken && !seenNaiken.has(r.naiken)) {
-      seenNaiken.add(r.naiken);
+    if (r.naiken && !seenNaiken.has(r.naiken.zh)) {
+      seenNaiken.add(r.naiken.zh);
       naiken.push({ name: r.name, text: r.naiken });
     }
   });
 
-  // Calculate 6 Dimension Ratings
+  // Strict Thresholds & Reality Caps (嚴格校準，拒絕濫發雙圈◎)
   const tier1: DimensionScore[] = DIMENSIONS.map(({ key, label }) => {
-    const s = dimScores[key];
+    let s = dimScores[key];
     let symbol: RatingSymbol = '○';
-    if (s >= 1.5) symbol = '◎';
-    else if (s >= 0) symbol = '○';
-    else if (s >= -1.5) symbol = '△';
-    else symbol = '▲';
+
+    // Strict caps based on real estate reality
+    if (key === 'building' && matchedIds.includes('age_old_quake')) {
+      // 舊耐震48年老屋：建物評級嚴格封頂在 △ (普通/妥協)，絕對不給雙圈◎或單圈○
+      symbol = '△';
+    } else if (key === 'security' && matchedIds.includes('equip_no_autolock')) {
+      // 無門禁大門：防犯嚴格封頂在 ○，絕不給 ◎
+      symbol = s > 0 ? '○' : '△';
+    } else if (key === 'location') {
+      // 立地：必須有極大優勢（如徒步5分內 + 複数路線利用可）才給 ◎
+      if (s >= 3.0 || (matchedIds.includes('walk_5') && matchedIds.includes('walk_multi_station'))) {
+        symbol = '◎';
+      } else if (s >= 0.5) {
+        symbol = '○';
+      } else if (s >= -1.0) {
+        symbol = '△';
+      } else {
+        symbol = '▲';
+      }
+    } else {
+      // 標準嚴格計分門檻：必須 >= 2.0 才能拿 ◎
+      if (s >= 2.0) symbol = '◎';
+      else if (s >= 0.5) symbol = '○';
+      else if (s >= -1.0) symbol = '△';
+      else symbol = '▲';
+    }
 
     return { key, label, symbol, score: s };
   });
 
-  return { tier1, conditions, naiken };
+  return { 
+    tier1, 
+    conditions, 
+    stations, 
+    layoutAnalysis, 
+    areaImpression, 
+    initialCost, 
+    naiken 
+  };
 }
