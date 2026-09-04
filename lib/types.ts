@@ -24,7 +24,7 @@ export interface DimensionScore {
   label: LocalizedText;
   symbol: RatingSymbol;
   score: number;
-  reason: LocalizedText; // 評分理由（滑鼠移上去或點開顯示）
+  reason: LocalizedText;
 }
 
 export interface ConditionCard {
@@ -49,6 +49,7 @@ export interface StationDetail {
   fullText: string;
   destinations: LocalizedText;
   pitfalls: LocalizedText;
+  mapUrl?: string; // Google Maps walking route to station
 }
 
 export interface LifeAmenityItem {
@@ -61,6 +62,7 @@ export interface LifeAmenityItem {
   rating?: string;
   hours?: string;
   note: LocalizedText;
+  mapUrl?: string; // Google Maps walking route from property to place
 }
 
 export interface EvaluationResult {

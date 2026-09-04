@@ -29,22 +29,22 @@ export default function Home() {
       meritPrefix: "👍 優點：",
       cautionPrefix: "⚠️ 注意：",
       demeritPrefix: "👎 缺點：",
-      stationsTitle: "🚉 利用車站與交通路線（實用直達＆痛點）",
+      stationsTitle: "🚉 利用車站與交通路線（點擊查看徒步路線）",
       destLabel: "📍 直達：",
       pitfallLabel: "注意：",
-      amenitiesTitle: "🏪 生活機能速查（超市・超商・知名連鎖）",
+      amenitiesTitle: "🏪 生活機能速查（點擊任一店家查看 Google Maps 徒步導航）",
       superLabel: "🛒 主力超市（定位＆價格檔次）",
       cvsLabel: "🏪 超商定位與價格檔次",
       chainLabel: "🍽️ 周邊知名連鎖外食",
+      walkRouteHint: "🗺️ 徒步路線 ↗",
       tier3Title: "③ 內見時確認清單",
       copyChecklist: "📋 複製清單",
       copied: "✓ 已複製",
-      footer: "日本租房評分工具 • 繁中 / 日本語 雙語支援 • Google Maps 座標精準化",
+      footer: "日本租房評分工具 • 繁中 / 日本語 雙語支援 • Google Maps 徒步導航串接",
       vacantBadge: "🔴 目前滿室（無招租中 / N/A）",
       vacantBadgeJa: "🔴 現在満室（募集中なし / N/A）",
       mapsLiveBadge: "🟢 Google Maps API 即時地圖資料",
-      mapsLiveBadgeJa: "🟢 Google Maps API リアルタイム連携中",
-      reasonPrompt: "💡 點擊或懸停上方任一指標，查看具體評分依據"
+      mapsLiveBadgeJa: "🟢 Google Maps API リアルタイム連携中"
     },
     ja: {
       badge: "🏢 賃貸チェッカー",
@@ -59,22 +59,22 @@ export default function Home() {
       meritPrefix: "👍 メリット：",
       cautionPrefix: "⚠️ 注意点：",
       demeritPrefix: "👎 デメリット：",
-      stationsTitle: "🚉 利用可能駅・アクセスのリアル検証",
+      stationsTitle: "🚉 利用可能駅（タップで徒歩ルートを開く）",
       destLabel: "📍 直通：",
       pitfallLabel: "注意：",
-      amenitiesTitle: "🏪 生活インフラ速報（スーパー・コンビニ・有名外食）",
+      amenitiesTitle: "🏪 生活インフラ速報（タップでGoogleマップ徒歩ルート案内）",
       superLabel: "🛒 メインスーパー（位置づけ＆価格帯）",
       cvsLabel: "🏪 コンビニのポジショニング＆価格帯",
       chainLabel: "🍽️ 周辺の定番外食チェーン",
+      walkRouteHint: "🗺️ 徒歩ルート ↗",
       tier3Title: "③ 内見時のチェックリスト",
       copyChecklist: "📋 コピー",
       copied: "✓ コピー完了",
-      footer: "日本賃貸物件診断ツール • 日本語 / 繁体中文 対応 • 座標連動",
+      footer: "日本賃貸物件診断ツール • 日本語 / 繁体中文 対応 • 徒歩ナビ連携",
       vacantBadge: "🔴 目前滿室（無招租中 / N/A）",
       vacantBadgeJa: "🔴 現在満室（募集中なし / N/A）",
       mapsLiveBadge: "🟢 Google Maps API リアルタイム連携中",
-      mapsLiveBadgeJa: "🟢 Google Maps API リアルタイム連携中",
-      reasonPrompt: "💡 上記の指標をタップすると、採点理由が表示されます"
+      mapsLiveBadgeJa: "🟢 Google Maps API リアルタイム連携中"
     }
   }[lang];
 
@@ -249,7 +249,7 @@ export default function Home() {
               })}
             </div>
 
-            {/* Active Dimension Reason Box (點開 / 懸停理由展示區) */}
+            {/* Active Dimension Reason Box */}
             {activeDimension && (
               <div className="p-3.5 rounded-xl bg-slate-900 text-white text-xs space-y-1 animate-in fade-in duration-150">
                 <div className="flex justify-between items-center font-bold">
@@ -314,36 +314,53 @@ export default function Home() {
             </div>
           </div>
 
-          {/* 🚉 車站交通深度解析 */}
+          {/* 🚉 車站交通（點擊可查看 Google Maps 徒步導航） */}
           {evaluation.stations && evaluation.stations.length > 0 && (
             <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-xs space-y-2.5">
-              <div className="text-xs font-bold text-slate-400 uppercase tracking-wider text-[11px]">
-                {t.stationsTitle}
+              <div className="flex items-center justify-between text-xs">
+                <span className="font-bold text-slate-400 uppercase tracking-wider text-[11px]">
+                  {t.stationsTitle}
+                </span>
+                <span className="text-[10px] text-indigo-600 font-medium">點擊站點可開啟地圖</span>
               </div>
               <div className="space-y-2">
-                {evaluation.stations.map((st, idx) => (
-                  <div key={idx} className="p-3 rounded-xl border border-slate-150 bg-slate-50/60 space-y-1">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-1.5">
-                        <span className="text-sm">🚇</span>
-                        <span className="font-bold text-xs sm:text-sm text-slate-900">{st.station}</span>
-                        <span className="text-[11px] text-slate-500">（{st.line}）</span>
+                {evaluation.stations.map((st, idx) => {
+                  const CardWrapper = st.mapUrl ? 'a' : 'div';
+                  const extraProps = st.mapUrl ? { href: st.mapUrl, target: '_blank', rel: 'noopener noreferrer' } : {};
+
+                  return (
+                    <CardWrapper
+                      key={idx}
+                      {...extraProps}
+                      className="block p-3 rounded-xl border border-slate-150 bg-slate-50/60 hover:bg-slate-100/70 transition-all space-y-1 group"
+                    >
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-1.5">
+                          <span className="text-sm">🚇</span>
+                          <span className="font-bold text-xs sm:text-sm text-slate-900 group-hover:text-indigo-600 transition-colors">
+                            {st.station}
+                          </span>
+                          <span className="text-[11px] text-slate-500">（{st.line}）</span>
+                        </div>
+                        <div className="flex items-center gap-1.5">
+                          <span className="text-[11px] font-bold text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded border border-indigo-100">
+                            徒歩 {st.walkMin} 分
+                          </span>
+                          {st.mapUrl && <span className="text-[10px] text-indigo-600 opacity-80 group-hover:opacity-100">↗</span>}
+                        </div>
                       </div>
-                      <span className="text-[11px] font-bold text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded border border-indigo-100">
-                        徒歩 {st.walkMin} 分
-                      </span>
-                    </div>
-                    <div className="text-[11px] text-slate-700 space-y-0.5 pt-0.5">
-                      <div><strong className="text-slate-800">{t.destLabel}</strong> {st.destinations[lang]}</div>
-                      <div className="text-amber-900"><strong className="text-amber-800">{t.pitfallLabel}</strong> {st.pitfalls[lang]}</div>
-                    </div>
-                  </div>
-                ))}
+                      <div className="text-[11px] text-slate-700 space-y-0.5 pt-0.5">
+                        <div><strong className="text-slate-800">{t.destLabel}</strong> {st.destinations[lang]}</div>
+                        <div className="text-amber-900"><strong className="text-amber-800">{t.pitfallLabel}</strong> {st.pitfalls[lang]}</div>
+                      </div>
+                    </CardWrapper>
+                  );
+                })}
               </div>
             </div>
           )}
 
-          {/* 🏪 生活機能速查（超市・超商・知名外食） */}
+          {/* 🏪 生活機能速查（點擊卡片連至 Google Maps 徒步導航路線） */}
           {evaluation.amenities && (
             <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-xs space-y-3.5">
               <div className="flex items-center justify-between border-b border-slate-100 pb-2">
@@ -357,68 +374,98 @@ export default function Home() {
                 )}
               </div>
 
-              {/* 1. Supermarkets with Price Level & Positioning */}
+              {/* 1. Supermarkets (Clickable for Walking Route) */}
               <div className="space-y-1.5">
-                <div className="font-bold text-slate-700 text-xs">
-                  {t.superLabel}
+                <div className="flex items-center justify-between">
+                  <span className="font-bold text-slate-700 text-xs">{t.superLabel}</span>
+                  <span className="text-[10px] text-indigo-600">點擊店家開啓 Google Maps 徒步路線</span>
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
                   {evaluation.amenities.supermarkets.map((sm, idx) => (
-                    <div key={idx} className="p-2.5 rounded-xl bg-slate-50 border border-slate-150 space-y-1">
+                    <a
+                      key={idx}
+                      href={sm.mapUrl || `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(sm.name)}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="block p-2.5 rounded-xl bg-slate-50 border border-slate-150 hover:border-indigo-300 hover:bg-slate-100/70 transition-all space-y-1 group cursor-pointer"
+                    >
                       <div className="flex justify-between font-bold text-slate-900">
-                        <span className="leading-tight">{sm.name}</span>
+                        <span className="leading-tight group-hover:text-indigo-600 transition-colors">{sm.name}</span>
                         <span className="text-indigo-600 font-medium text-[11px] shrink-0 ml-1">{sm.walk}</span>
                       </div>
-                      <div className="flex items-center gap-1.5 text-[10px]">
-                        <span className="bg-indigo-50 text-indigo-700 px-1.5 py-0.5 rounded font-medium">{sm.tag[lang]}</span>
-                        {sm.priceLevel && <span className="text-amber-700 font-medium">{sm.priceLevel}</span>}
+                      <div className="flex items-center justify-between text-[10px]">
+                        <div className="flex items-center gap-1.5">
+                          <span className="bg-indigo-50 text-indigo-700 px-1.5 py-0.5 rounded font-medium">{sm.tag[lang]}</span>
+                          {sm.priceLevel && <span className="text-amber-700 font-medium">{sm.priceLevel}</span>}
+                        </div>
+                        <span className="text-indigo-600 font-medium opacity-80 group-hover:opacity-100">{t.walkRouteHint}</span>
                       </div>
                       <p className="text-[11px] text-slate-600 leading-snug">{sm.note[lang]}</p>
-                    </div>
+                    </a>
                   ))}
                 </div>
               </div>
 
-              {/* 2. Convenience Stores with Price Level & Positioning */}
+              {/* 2. Convenience Stores (Clickable for Walking Route) */}
               <div className="space-y-1.5 pt-1">
-                <div className="font-bold text-slate-700 text-xs">
-                  {t.cvsLabel}
+                <div className="flex items-center justify-between">
+                  <span className="font-bold text-slate-700 text-xs">{t.cvsLabel}</span>
+                  <span className="text-[10px] text-indigo-600">點擊超商查看徒步路線</span>
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
                   {evaluation.amenities.convenienceStores.map((cvs, idx) => (
-                    <div key={idx} className="p-2.5 rounded-xl bg-slate-50 border border-slate-150 space-y-1">
+                    <a
+                      key={idx}
+                      href={cvs.mapUrl || `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(cvs.name)}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="block p-2.5 rounded-xl bg-slate-50 border border-slate-150 hover:border-indigo-300 hover:bg-slate-100/70 transition-all space-y-1 group cursor-pointer"
+                    >
                       <div className="flex justify-between items-center">
-                        <span className="font-bold text-slate-900">{cvs.name}</span>
+                        <span className="font-bold text-slate-900 group-hover:text-indigo-600 transition-colors">{cvs.name}</span>
                         <span className="text-[10px] text-slate-500 font-medium">{cvs.walk}</span>
                       </div>
-                      <div className="flex items-center gap-1.5 text-[10px]">
-                        <span className="bg-indigo-50 text-indigo-700 px-1.5 py-0.5 rounded font-medium">{cvs.tag[lang]}</span>
-                        {cvs.priceLevel && <span className="text-amber-700 font-medium">{cvs.priceLevel}</span>}
+                      <div className="flex items-center justify-between text-[10px]">
+                        <div className="flex items-center gap-1.5">
+                          <span className="bg-indigo-50 text-indigo-700 px-1.5 py-0.5 rounded font-medium">{cvs.tag[lang]}</span>
+                          {cvs.priceLevel && <span className="text-amber-700 font-medium">{cvs.priceLevel}</span>}
+                        </div>
+                        <span className="text-indigo-600 font-medium opacity-80 group-hover:opacity-100">{t.walkRouteHint}</span>
                       </div>
                       <p className="text-[11px] text-slate-600 leading-snug">{cvs.note[lang]}</p>
-                    </div>
+                    </a>
                   ))}
                 </div>
               </div>
 
-              {/* 3. Famous Chains */}
+              {/* 3. Famous Chains (Clickable for Walking Route) */}
               <div className="space-y-1.5 pt-1">
-                <div className="font-bold text-slate-700 text-xs">
-                  {t.chainLabel}
+                <div className="flex items-center justify-between">
+                  <span className="font-bold text-slate-700 text-xs">{t.chainLabel}</span>
+                  <span className="text-[10px] text-indigo-600">點擊名店查看徒步路線</span>
                 </div>
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 text-xs">
                   {evaluation.amenities.famousChains.map((fc, idx) => (
-                    <div key={idx} className="p-2 rounded-xl bg-slate-50 border border-slate-150 space-y-0.5">
+                    <a
+                      key={idx}
+                      href={fc.mapUrl || `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(fc.name)}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="block p-2 rounded-xl bg-slate-50 border border-slate-150 hover:border-indigo-300 hover:bg-slate-100/70 transition-all space-y-0.5 group cursor-pointer"
+                    >
                       <div className="flex justify-between items-start">
-                        <span className="font-bold text-slate-900 text-xs leading-tight">{fc.name}</span>
+                        <span className="font-bold text-slate-900 text-xs leading-tight group-hover:text-indigo-600 transition-colors">{fc.name}</span>
                         <span className="text-[10px] text-indigo-600 font-medium shrink-0 ml-1">{fc.walk}</span>
                       </div>
-                      <div className="flex items-center gap-1 text-[10px] text-slate-500">
-                        <span>{fc.tag[lang]}</span>
-                        {fc.budget && <span>• {fc.budget}</span>}
+                      <div className="flex items-center justify-between text-[10px] text-slate-500">
+                        <div className="flex items-center gap-1">
+                          <span>{fc.tag[lang]}</span>
+                          {fc.budget && <span>• {fc.budget}</span>}
+                        </div>
+                        <span className="text-indigo-600 font-medium opacity-80 group-hover:opacity-100">↗</span>
                       </div>
                       <p className="text-[10px] text-slate-600 leading-tight pt-0.5">{fc.note[lang]}</p>
-                    </div>
+                    </a>
                   ))}
                 </div>
               </div>
