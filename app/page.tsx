@@ -18,41 +18,39 @@ export default function Home() {
     zh: {
       badge: "🏢 日本租房評分器",
       title: "貼上租屋網址，一眼看懂好壞",
-      subtitle: "支援 SUUMO、DOOR賃貸、HOME'S，自動抓取規格、車站、連鎖餐廳與超商定位",
+      subtitle: "支援 SUUMO、DOOR賃貸、HOME'S 等，自動抓取規格、車站、生活機能與內見清單",
       placeholder: "貼上房源網址 (SUUMO / DOOR賃貸 / HOME'S)...",
       btnScore: "評分 ↵",
       btnScoring: "解析中...",
       tier1Title: "① 一眼看懂（六大指標）",
-      tier1Subtitle: "嚴格客觀加權",
-      tier2Title: "② 條件解析（優缺點合一）",
+      tier1Subtitle: "客觀嚴格評級",
+      tier2Title: "② 關鍵條件解析（優缺點合一）",
       meritPrefix: "👍 優點：",
       cautionPrefix: "⚠️ 注意：",
       demeritPrefix: "👎 缺點：",
-      stationsTitle: "🚉 利用車站與交通（實用直達＆痛點）",
+      stationsTitle: "🚉 利用車站與交通路線（實用直達＆痛點）",
       destLabel: "📍 直達：",
       pitfallLabel: "注意：",
-      chainsTitle: "🍽️ 附近知名連鎖餐廳（外食指標）",
-      cvsTitle: "🏪 超商定位與價格檔次（日常生活採買）",
-      superTitle: "🛒 周邊主力超市",
-      layoutTitle: "📐 格局分析",
-      wardTitle: "🏛️ 行政區特性",
-      costTitle: "💰 初期費用概算",
+      amenitiesTitle: "🏪 生活機能速查（超市・超商・知名連鎖）",
+      superLabel: "🛒 主力超市",
+      cvsLabel: "🏪 超商定位與價格",
+      chainLabel: "🍽️ 知名連鎖外食",
       tier3Title: "③ 內見時確認清單",
       copyChecklist: "📋 複製清單",
       copied: "✓ 已複製",
-      footer: "日本租房評分工具 • 繁中 / 日本語 • 簡潔版",
-      rentUnit: " 万円",
-      totalCostPrefix: "預估總額："
+      footer: "日本租房評分工具 • 繁中 / 日本語 雙語支援 • 簡潔版",
+      vacantBadge: "🔴 目前滿室（無招租中 / N/A）",
+      vacantBadgeJa: "🔴 現在満室（募集中なし / N/A）"
     },
     ja: {
       badge: "🏢 賃貸チェッカー",
       title: "URLを貼るだけ、一瞬でまるわかり",
-      subtitle: "SUUMO・DOOR賃貸等のURLから、条件・駅路線・有名チェーン飲食店・コンビニ価格帯を分析",
+      subtitle: "SUUMO・DOOR賃貸等のURLから、条件・駅路線・周辺環境・内見ポイントを自動分析",
       placeholder: "物件URLを貼り付け (SUUMO / DOOR賃貸 / HOME'S)...",
       btnScore: "診断する ↵",
       btnScoring: "解析中...",
       tier1Title: "① 一眼看懂（6大レーティング）",
-      tier1Subtitle: "厳格な客観評価",
+      tier1Subtitle: "客観的・厳格評価",
       tier2Title: "② 条件ごとの長所・短所（メリット＆デメリット）",
       meritPrefix: "👍 メリット：",
       cautionPrefix: "⚠️ 注意点：",
@@ -60,18 +58,16 @@ export default function Home() {
       stationsTitle: "🚉 利用可能駅・アクセスのリアル検証",
       destLabel: "📍 直通：",
       pitfallLabel: "注意：",
-      chainsTitle: "🍽️ 周辺の有名チェーン外食（定番のみ厳選）",
-      cvsTitle: "🏪 周辺コンビニのポジショニング・価格帯",
-      superTitle: "🛒 周辺スーパー環境",
-      layoutTitle: "📐 間取り分析",
-      wardTitle: "🏛️ エリア特性",
-      costTitle: "💰 初期費用目安",
+      amenitiesTitle: "🏪 生活インフラ速報（スーパー・コンビニ・有名外食）",
+      superLabel: "🛒 メインスーパー",
+      cvsLabel: "🏪 コンビニのポジショニング",
+      chainLabel: "🍽️ 定番外食チェーン",
       tier3Title: "③ 内見時のチェックリスト",
       copyChecklist: "📋 コピー",
       copied: "✓ コピー完了",
-      footer: "日本賃貸物件診断ツール • 日本語 / 繁体中文 • シンプル版",
-      rentUnit: " 万円",
-      totalCostPrefix: "概算目安："
+      footer: "日本賃貸物件診断ツール • 日本語 / 繁体中文 対応 • シンプル版",
+      vacantBadge: "🔴 目前滿室（無招租中 / N/A）",
+      vacantBadgeJa: "🔴 現在満室（募集中なし / N/A）"
     }
   }[lang];
 
@@ -186,16 +182,21 @@ export default function Home() {
           
           {/* Property Mini Header */}
           <div className="bg-white px-5 py-4 rounded-2xl border border-slate-200 shadow-xs flex items-center justify-between">
-            <div className="space-y-0.5">
+            <div className="space-y-1">
               <div className="font-bold text-sm sm:text-base text-slate-900">{propertyTitle}</div>
               <div className="text-xs text-slate-500">{propertyMeta}</div>
             </div>
-            {propertyRent && (
-              <div className="text-right">
-                <span className="text-xl font-bold text-slate-900">{propertyRent}</span>
-                <span className="text-xs text-slate-500">{t.rentUnit}</span>
-              </div>
-            )}
+            <div className="text-right shrink-0">
+              {evaluation.isVacant && propertyRent && !propertyRent.includes("N/A") ? (
+                <div>
+                  <span className="text-xl font-bold text-slate-900">{propertyRent}</span>
+                </div>
+              ) : (
+                <div className="inline-block px-3 py-1 bg-amber-50 text-amber-800 border border-amber-200 rounded-lg text-xs font-semibold">
+                  {lang === 'zh' ? t.vacantBadge : t.vacantBadgeJa}
+                </div>
+              )}
+            </div>
           </div>
 
           {/* ① 一眼看懂 (Six Dimensions) */}
@@ -213,7 +214,8 @@ export default function Home() {
                 if (d.symbol === '◎') colorClass = "bg-emerald-50 border-emerald-200 text-emerald-800";
                 else if (d.symbol === '○') colorClass = "bg-blue-50 border-blue-200 text-blue-800";
                 else if (d.symbol === '△') colorClass = "bg-amber-50 border-amber-200 text-amber-800";
-                else colorClass = "bg-rose-50 border-rose-200 text-rose-800";
+                else if (d.symbol === '▲') colorClass = "bg-rose-50 border-rose-200 text-rose-800";
+                else colorClass = "bg-slate-100 border-slate-200 text-slate-500";
 
                 return (
                   <div key={d.key} className={`p-2 sm:p-2.5 rounded-xl border ${colorClass} flex flex-col items-center justify-center`}>
@@ -231,7 +233,7 @@ export default function Home() {
               {t.tier2Title}
             </div>
 
-            <div className="space-y-2.5">
+            <div className="space-y-2">
               {evaluation.conditions.map(c => {
                 let badgeClass = "bg-slate-100 text-slate-700 border-slate-200";
                 if (c.overallType === 'positive') badgeClass = "bg-emerald-50 text-emerald-700 border-emerald-200";
@@ -239,7 +241,7 @@ export default function Home() {
                 else if (c.overallType === 'negative') badgeClass = "bg-rose-50 text-rose-700 border-rose-200";
 
                 return (
-                  <div key={c.id} className="p-3 rounded-xl border border-slate-150 bg-slate-50/50 space-y-1.5">
+                  <div key={c.id} className="p-3 rounded-xl border border-slate-150 bg-slate-50/50 space-y-1">
                     <div className="flex items-center justify-between">
                       <span className="font-bold text-xs sm:text-sm text-slate-900">{c.name[lang]}</span>
                       <span className={`text-[10px] sm:text-[11px] font-semibold px-2 py-0.5 rounded-md border ${badgeClass}`}>
@@ -247,7 +249,7 @@ export default function Home() {
                       </span>
                     </div>
 
-                    <div className="space-y-1 text-xs text-slate-600">
+                    <div className="space-y-0.5 text-xs text-slate-600">
                       {c.merits.map((m, idx) => (
                         <div key={`m-${idx}`} className="flex items-start gap-1.5 text-emerald-950">
                           <span className="font-bold text-emerald-600 shrink-0">{t.meritPrefix}</span>
@@ -273,7 +275,7 @@ export default function Home() {
             </div>
           </div>
 
-          {/* 🚉 車站交通深度解析 (Compact & Clean) */}
+          {/* 🚉 車站交通深度解析 */}
           {evaluation.stations && evaluation.stations.length > 0 && (
             <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-xs space-y-2.5">
               <div className="text-xs font-bold text-slate-400 uppercase tracking-wider text-[11px]">
@@ -302,115 +304,69 @@ export default function Home() {
             </div>
           )}
 
-          {/* 🍽️ 知名連鎖餐廳指南 (Famous Chains Only - Clean Compact Cards) */}
-          {evaluation.famousChains && (
+          {/* 🏪 生活機能速查（超市・超商・外食） - 簡潔三欄 */}
+          {evaluation.amenities && (
             <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-xs space-y-3">
               <div className="text-xs font-bold text-slate-400 uppercase tracking-wider text-[11px] border-b border-slate-100 pb-1.5">
-                {t.chainsTitle}
+                {t.amenitiesTitle}
               </div>
 
-              <div className="space-y-3">
-                {evaluation.famousChains.map((group, gIdx) => (
-                  <div key={gIdx} className="space-y-1.5">
-                    <div className="text-xs font-bold text-slate-800 border-l-2 border-indigo-600 pl-2">
-                      {group.categoryName[lang]}
-                    </div>
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs">
-                      {group.chains.map((chain, cIdx) => (
-                        <div key={cIdx} className="p-2.5 rounded-xl bg-slate-50/70 border border-slate-150 space-y-1">
-                          <div className="flex items-center justify-between">
-                            <span className="font-bold text-slate-900 text-xs">{chain.name}</span>
-                            <span className="text-[10px] text-indigo-600 font-semibold">{chain.walk}</span>
-                          </div>
-                          <div className="text-[10px] text-slate-500">{chain.budget}</div>
-                          <p className="text-[11px] text-slate-600 leading-snug">{chain.feature[lang]}</p>
+              {/* 3 Categories in Clean Grid */}
+              <div className="space-y-3 text-xs">
+                {/* 1. Supermarkets */}
+                <div>
+                  <div className="font-bold text-slate-700 mb-1.5 flex items-center gap-1">
+                    <span>{t.superLabel}</span>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    {evaluation.amenities.supermarkets.map((sm, idx) => (
+                      <div key={idx} className="p-2.5 rounded-xl bg-slate-50 border border-slate-150 space-y-0.5">
+                        <div className="flex justify-between font-bold text-slate-900">
+                          <span>{sm.name}</span>
+                          <span className="text-indigo-600 font-medium text-[11px]">{sm.walk}</span>
                         </div>
-                      ))}
-                    </div>
+                        <p className="text-[11px] text-slate-600">{sm.note[lang]}</p>
+                      </div>
+                    ))}
                   </div>
-                ))}
+                </div>
+
+                {/* 2. Convenience Stores Positioning */}
+                <div>
+                  <div className="font-bold text-slate-700 mb-1.5 flex items-center gap-1">
+                    <span>{t.cvsLabel}</span>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    {evaluation.amenities.convenienceStores.map((cvs, idx) => (
+                      <div key={idx} className="p-2.5 rounded-xl bg-slate-50 border border-slate-150 space-y-0.5">
+                        <div className="flex justify-between items-center">
+                          <span className="font-bold text-slate-900">{cvs.name}</span>
+                          <span className="text-[10px] bg-indigo-50 text-indigo-700 px-1.5 py-0.5 rounded font-medium">{cvs.tag[lang]}</span>
+                        </div>
+                        <p className="text-[11px] text-slate-600">{cvs.note[lang]}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* 3. Famous Chains */}
+                <div>
+                  <div className="font-bold text-slate-700 mb-1.5 flex items-center gap-1">
+                    <span>{t.chainLabel}</span>
+                  </div>
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                    {evaluation.amenities.famousChains.map((fc, idx) => (
+                      <div key={idx} className="p-2 rounded-xl bg-slate-50 border border-slate-150 text-center space-y-0.5">
+                        <div className="font-bold text-slate-900 text-xs">{fc.name}</div>
+                        <div className="text-[10px] text-indigo-600 font-medium">{fc.tag[lang]}</div>
+                        <div className="text-[10px] text-slate-500">{fc.walk}</div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
               </div>
             </div>
           )}
-
-          {/* 🏪 超商價格與定位分析 (Clean Matrix) */}
-          {evaluation.convenienceStores && (
-            <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-xs space-y-2.5">
-              <div className="text-xs font-bold text-slate-400 uppercase tracking-wider text-[11px] border-b border-slate-100 pb-1.5">
-                {t.cvsTitle}
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
-                {evaluation.convenienceStores.map((cvs, idx) => (
-                  <div key={idx} className="p-2.5 rounded-xl border border-slate-150 bg-slate-50/60 space-y-1">
-                    <div className="flex items-center justify-between">
-                      <span className="font-bold text-slate-900 text-xs">{cvs.brandName}</span>
-                      <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded bg-white border border-slate-200 text-slate-600">
-                        {cvs.distance}
-                      </span>
-                    </div>
-                    <div className="text-[10px] font-semibold text-indigo-700 bg-indigo-50 px-1.5 py-0.5 rounded">
-                      {cvs.tier[lang]} • {cvs.priceLevel}
-                    </div>
-                    <p className="text-[11px] text-slate-600 leading-snug">{cvs.features[lang]}</p>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* 🛒 周邊超市環境 (Supermarkets) */}
-          {evaluation.supermarkets && (
-            <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-xs space-y-2">
-              <div className="text-xs font-bold text-slate-400 uppercase tracking-wider text-[11px]">
-                {t.superTitle}
-              </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
-                {evaluation.supermarkets.map((sm, idx) => (
-                  <div key={idx} className="p-2.5 rounded-xl bg-slate-50 border border-slate-150 space-y-1">
-                    <div className="flex items-center justify-between">
-                      <span className="font-bold text-slate-900">{sm.name}</span>
-                      <span className="text-[10px] text-amber-600 font-semibold">{sm.rating}</span>
-                    </div>
-                    <div className="text-[10px] text-slate-500">🚶 {sm.walk} • {sm.hours}</div>
-                    <p className="text-[11px] text-slate-600 leading-snug">{sm.comment[lang]}</p>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* 📐 格局分析與初期費用 (Side-by-side) */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {evaluation.layoutAnalysis && (
-              <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs space-y-2 text-xs">
-                <div className="text-xs font-bold text-slate-400 uppercase tracking-wider text-[11px]">
-                  {t.layoutTitle}
-                </div>
-                <div className="font-bold text-slate-900">{evaluation.layoutAnalysis.type}</div>
-                <p className="text-slate-600 leading-relaxed text-[11px]">{evaluation.layoutAnalysis.comment[lang]}</p>
-              </div>
-            )}
-
-            {evaluation.initialCost && (
-              <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs space-y-2 text-xs">
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold text-slate-400 uppercase tracking-wider text-[11px]">
-                    {t.costTitle}
-                  </span>
-                  <span className="font-bold text-indigo-700 text-xs">{evaluation.initialCost.totalEstimate}</span>
-                </div>
-                <div className="space-y-1 text-[11px] text-slate-600">
-                  {evaluation.initialCost.items.slice(0, 4).map((it, idx) => (
-                    <div key={idx} className="flex justify-between">
-                      <span>{it.name[lang]}</span>
-                      <span className="font-medium text-slate-900">{it.amount}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
 
           {/* ③ 內見時確認清單 */}
           <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-xs space-y-2.5">

@@ -1,15 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { evaluateProperty } from '@/lib/engine';
-import { 
-  StationDetail, 
-  WardAnalysis, 
-  FamousChainGroup,
-  ConvenienceStoreGuide,
-  Supermarket, 
-  LayoutAnalysis, 
-  AreaImpression, 
-  InitialCostEstimate 
-} from '@/lib/types';
+import { StationDetail, LifeAmenityItem } from '@/lib/types';
 
 export const dynamic = 'force-dynamic';
 
@@ -34,13 +25,12 @@ export async function POST(req: NextRequest) {
     if (!response.ok) {
       return NextResponse.json({ 
         success: false, 
-        error: `無法讀取房源頁面 (HTTP ${response.status})。請確認該網址依然公開刊登中。` 
+        error: `無法讀取房源頁面 (HTTP ${response.status})。` 
       }, { status: response.status });
     }
 
     const html = await response.text();
 
-    // 1. Strip HTML tags cleanly
     const stripHtml = (str: string): string => {
       return str
         .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, ' ')
@@ -52,34 +42,44 @@ export async function POST(req: NextRequest) {
         .trim();
     };
 
-    // 2. Extract Title
+    // 1. Title Extraction
     const titleMatch = html.match(/<title[^>]*>(.*?)<\/title>/i);
     const rawTitle = titleMatch ? titleMatch[1] : "賃貸物件";
     const propertyTitle = rawTitle.split('【')[0].split('|')[0].split(' - ')[0].replace(/の賃貸・部屋探し情報.*/, '').replace(/の賃貸物件.*/, '').trim();
 
-    // 3. Extract Rent & Management Fee
-    let rentNum = 0;
-    let rentStr = "";
-    const rentMatch = html.match(/(\d+(?:\.\d+)?)\s*万円/);
-    if (rentMatch) {
-      rentStr = rentMatch[1];
-      rentNum = parseFloat(rentMatch[1]);
+    // 2. Vacancy & Rent Detection (Fix "1万円" cashback bug)
+    // Check if building has 0 listings
+    const isZeroListings = Boolean(html.match(/賃貸\s*0\s*件|現在、?募集中の部屋は(?:ございません|ありません)|満室|空室なし/));
+
+    // Filter out cashback bonus text before checking rent
+    const htmlWithoutCashback = html
+      .replace(/(?:お祝い金|キャッシュバック|最大)[^\n\r<]*?\d+[^\n\r<]*?円/g, '')
+      .replace(/(?:お祝い金|キャッシュバック|最大)[^\n\r<]*?\d+[^\n\r<]*?万円/g, '');
+
+    let rentStr = "N/A";
+    let isVacant = true;
+
+    if (isZeroListings) {
+      isVacant = false;
+      rentStr = "N/A（目前無在招租中 / 滿室）";
     } else {
-      const yenMatch = html.match(/(\d{1,3}(?:,\d{3})+)\s*円/);
-      if (yenMatch) {
-        const val = parseInt(yenMatch[1].replace(/,/g, ''), 10);
-        rentNum = Math.round((val / 10000) * 10) / 10;
-        rentStr = rentNum.toString();
+      // Find actual rent (e.g. 7.2万円 or 17.5万円)
+      const rMatch = htmlWithoutCashback.match(/(?:賃料|家賃)[:：]?\s*(\d+(?:\.\d+)?)\s*万円/);
+      if (rMatch) {
+        const val = parseFloat(rMatch[1]);
+        if (val >= 2.0 && val <= 300.0) { // realistic rent range
+          rentStr = `${val} 万円`;
+        } else {
+          isVacant = false;
+          rentStr = "N/A（目前滿室無招租）";
+        }
+      } else {
+        isVacant = false;
+        rentStr = "N/A（目前無在招租中）";
       }
     }
 
-    let mgmtNum = 3000;
-    const mgmtMatch = html.match(/(?:管理費|共益費)\s*[:：]?\s*(\d{1,3}(?:,\d{3})*|\d+)\s*円/);
-    if (mgmtMatch) {
-      mgmtNum = parseInt(mgmtMatch[1].replace(/,/g, ''), 10);
-    }
-
-    // 4. Extract Address
+    // 3. Address Extraction
     let address = "";
     const addrMatch = html.match(/所在地[:：]?\s*([^\n\r<]{4,35}?[区市町][^\n\r<]{0,20})/) || html.match(/(東京都[^\s<"'/\n\r]+?[区市][^\s<"'/\n\r]*)/);
     if (addrMatch) {
@@ -88,18 +88,10 @@ export async function POST(req: NextRequest) {
       address = "東京都";
     }
 
-    // Ward Name
-    let ward = "東京都";
-    const wardMatch = address.match(/(?:東京都)?([^市区町村]+?[区市])/);
-    if (wardMatch) {
-      ward = wardMatch[1];
-    }
-
-    // 5. Extract Stations Dynamically
+    // 4. Stations Extraction (Dynamic)
     const stations: StationDetail[] = [];
     const seenStations = new Set<string>();
 
-    // Scan for all station patterns
     const stMatches = html.matchAll(/([^\n\r<>/]{2,15}?[線道])?\s*[/／]?\s*([^\s/<>\n\r]{2,8}?駅)\s*(?:徒歩|歩)?\s*(\d+)分/g);
     for (const match of stMatches) {
       const line = (match[1] || "").replace(/^(?:地下鉄|新交通)\s*/, '').trim();
@@ -107,34 +99,29 @@ export async function POST(req: NextRequest) {
       const walkMin = parseInt(match[3], 10);
       const key = `${station}_${walkMin}`;
 
-      if (!seenStations.has(key) && stations.length < 3 && !station.includes("利用")) {
+      if (!seenStations.has(key) && stations.length < 3 && !station.includes("利用") && station.length <= 7) {
         seenStations.add(key);
 
-        let destZh = "通往市區商圈交通便利";
-        let destJa = "周辺主要駅へのアクセスが良好";
-        let pitZh = "尖峰時刻建議提早出門避開人潮。";
-        let pitJa = "混雑時間帯は時間に余裕を持った移動を推奨。";
+        let destZh = "通往主要市區交通便利";
+        let destJa = "都心主要エリアへのアクセス良好";
+        let pitZh = "尖峰時段建議預留充足出門時間。";
+        let pitJa = "混雑時間帯は余裕を持った移動を推奨。";
 
         if (line.includes("山手線") || station.includes("代々木") || station.includes("新宿")) {
-          destZh = "直達 澀谷、新宿、池袋、品川、東京站，首都核心大動脈";
-          destJa = "渋谷・新宿・池袋・品川・東京へ直通する都心の大動脈";
-          pitZh = "⚠️ 早晚尖峰人潮擁擠，若為大站需留意站內步行距離。";
-          pitJa = "⚠️ 朝夕のラッシュ時は混雑注意。大駅は改札内移動時間も要確認。";
+          destZh = "直達 澀谷(5分)、新宿、池袋、品川、東京站，首都大動脈";
+          destJa = "渋谷・新宿・池袋・品川・東京へ直通する大動脈";
+          pitZh = "⚠️ 早晚尖峰人潮擁擠，大站需留意站內步行距離。";
+          pitJa = "⚠️ ラッシュ時の混雑率が高く構内移動も要確認。";
         } else if (line.includes("大江戸線") || station.includes("都庁前")) {
           destZh = "直達 六本木、麻布十番、汐留、青山一丁目、飯田橋";
           destJa = "六本木・麻布十番・汐留・青山一丁目方面へ直通";
-          pitZh = "⚠️ 大江戶線為大深度地下鐵，月台在地下深層，上下電扶梯需多抓 3~5 分鐘！";
-          pitJa = "⚠️ 大江戸線は大深度地下鉄のため、ホームへの上り下りに+3〜5分必要。";
+          pitZh = "⚠️ 大江戶線為大深度地下鐵，上下電扶梯需多抓 3~5 分鐘！";
+          pitJa = "⚠️ 大江戸線は大深度地下鉄のため、ホームへ徒歩+3〜5分必要。";
         } else if (line.includes("小田急") || station.includes("南新宿")) {
-          destZh = "通往新宿僅 1 站（步行亦可達），直達下北澤、町田、小田原";
-          destJa = "新宿へわずか1駅（徒歩圏内）、下北沢・町田方面へ直通";
-          pitZh = "⚠️ 各站停車（各停）車站班次間距稍長，部分快車不停靠。";
-          pitJa = "⚠️ 各駅停車のみの駅は運行間隔に留意。";
-        } else if (line.includes("中央") || line.includes("総武")) {
-          destZh = "橫貫東京東西，直達御茶之水、秋葉原、中野、吉祥寺";
-          destJa = "御茶ノ水・秋葉原・中野・吉祥寺方面へ東西直結";
-          pitZh = "⚠️ 尖峰時刻中野至新宿區間人流密集。";
-          pitJa = "⚠️ 平日ラッシュ時は混雑率が高め。";
+          destZh = "通往新宿僅 1 站（步行亦可直達），直達下北澤、町田";
+          destJa = "新宿へわずか1駅（徒歩圏内）、下北沢方面直通";
+          pitZh = "⚠️ 各站停車（各停）班次間距稍長，快車不停靠。";
+          pitJa = "⚠️ 各駅停車のみの駅は運行間隔に注意。";
         }
 
         stations.push({
@@ -159,53 +146,7 @@ export async function POST(req: NextRequest) {
       });
     }
 
-    // 6. Extract Layout & Area Dynamically
-    let layoutType = "1K";
-    const layoutMatch = html.match(/(?:間取り|間取)[:：]?\s*([1-4][LDRKS]+|[1-4][RDK])/i);
-    if (layoutMatch) {
-      layoutType = layoutMatch[1].toUpperCase();
-    }
-
-    let areaSize = "";
-    const areaMatch = html.match(/(\d+(?:\.\d+)?)\s*(?:㎡|平米|m2|m²)/i);
-    if (areaMatch) {
-      areaSize = `${areaMatch[1]}㎡`;
-    }
-
-    let layoutCommentZh = "格局動線分明，空間利用率良好。";
-    let layoutCommentJa = "動線が明確で無駄の少ない使いやすい間取りです。";
-    let layoutTips: Array<{ zh: string; ja: string }> = [];
-
-    if (layoutType.includes("1R") || layoutType.includes("1K")) {
-      layoutCommentZh = `單身貴族主流的 ${layoutType} 格局（${areaSize}）。廚房與臥室分開，打掃輕鬆、冷暖房省電。`;
-      layoutCommentJa = `単身者に人気の${layoutType}間取り（${areaSize}）。掃除が楽で光熱費も抑えられます。`;
-      layoutTips = [
-        { zh: "玄關走道需確認冰箱與洗衣機擺放動線。", ja: "冷蔵庫や洗濯機置き場の寸法確認が重要。" },
-        { zh: "單身房型需留意收納空間與衣櫃容量。", ja: "クローゼットや靴箱の収納容量を内見で要確認。" }
-      ];
-    } else if (layoutType.includes("1DK") || layoutType.includes("1LDK")) {
-      layoutCommentZh = `臥房與客餐廳獨立分離的 ${layoutType} 格局（${areaSize}）。生活起居與睡眠空間分開，生活品質高。`;
-      layoutCommentJa = `寝食を分離できるゆとりのある${layoutType}間取り（${areaSize}）。快適な居住空間を確保可能。`;
-      layoutTips = [
-        { zh: "客廳空間寬敞，可配置餐桌與工作書桌。", ja: "LDKにデスクやソファをゆったり配置可能。" },
-        { zh: "臥房需丈量床架與衣櫃開合動線。", ja: "寝室のベッドサイズと扉の干渉を事前に確認要。" }
-      ];
-    } else {
-      layoutCommentZh = `空間寬裕的 ${layoutType} 格局（${areaSize}），各房間獨立性強，適合家庭或同居居住。`;
-      layoutCommentJa = `各部屋のプライバシーが保たれる${layoutType}間取り（${areaSize}）。二人暮らしやファミリーに最適。`;
-      layoutTips = [
-        { zh: "各房間採光與空調管線配置需現場確認。", ja: "各部屋のエアコン設置状況や採光面を確認。" }
-      ];
-    }
-
-    const layoutAnalysis: LayoutAnalysis = {
-      type: `${layoutType} (${areaSize || "標準面積"})`,
-      area: areaSize,
-      comment: { zh: layoutCommentZh, ja: layoutCommentJa },
-      tips: layoutTips
-    };
-
-    // 7. Extract Structure & Age
+    // 5. Structure & Age
     let structureStr = "鉄骨造";
     if (html.includes("SRC") || html.includes("鉄骨鉄筋")) structureStr = "SRC造";
     else if (html.includes("RC") || html.includes("鉄筋コンクリート")) structureStr = "RC造";
@@ -215,209 +156,7 @@ export async function POST(req: NextRequest) {
     const aMatch = html.match(/築\s*(\d+)\s*年/);
     if (aMatch) ageStr = `築${aMatch[1]}年`;
 
-    // 8. Dynamic Ward Pros & Cons
-    let wardAnalysis: WardAnalysis;
-    if (ward.includes("渋谷区") || address.includes("代々木")) {
-      wardAnalysis = {
-        wardName: { zh: "東京都 渋谷區（渋谷区）", ja: "東京都 渋谷区" },
-        summary: {
-          zh: "澀谷區是流行文化、商業創意與高級住宅並存的地區。代代木緊鄰明治神宮與代代木公園，鬧中取靜、治安良好。",
-          ja: "渋谷区はトレンドと洗練された住宅街が融合する人気エリア。代々木は明治神宮や代々木公園に隣接し治安も良好。"
-        },
-        pros: [
-          { zh: "【交通極致便利】JR山手線、地鐵與私鐵匯聚，去哪都快。", ja: "【都心アクセス最強】山手線をはじめ多数の路線が利用可能。" },
-          { zh: "【大片自然綠意】代代木公園與明治神宮綠意環繞，生活品質高。", ja: "【豊かな自然】代々木公園や明治神宮が身近でリフレッシュに最高。" }
-        ],
-        cons: [
-          { zh: "【房租物價偏高】全東京租金前列，同預算面積較精簡。", ja: "【家賃相場が高め】23区内でも家賃水準がトップクラス。" }
-        ]
-      };
-    } else if (ward.includes("新宿区")) {
-      wardAnalysis = {
-        wardName: { zh: "東京都 新宿區（新宿区）", ja: "東京都 新宿区" },
-        summary: {
-          zh: "新宿區是全日本交通樞紐與不夜城中心。西側商務住宅區安靜，東側繁華雜沓。",
-          ja: "新宿区はメガターミナルと24時間都市の中心。西側は落ち着き、東側は賑やか。"
-        },
-        pros: [
-          { zh: "【交通樞紐】路線最多，末班車最晚，深夜回家方便。", ja: "【圧倒的交通利便性】終電が遅くまでありタクシー帰宅も容易。" },
-          { zh: "【生活機能頂級】各大百貨、電器城與醫院齊全。", ja: "【買い物・医療充実】百貨店や大病院が集積し何でも揃う。" }
-        ],
-        cons: [
-          { zh: "【區域環境落差大】東口歌舞伎町環境嘈雜，需慎選街區。", ja: "【エリア格差】歓楽街周辺は治安や騒音に注意が必要。" }
-        ]
-      };
-    } else {
-      wardAnalysis = {
-        wardName: { zh: `東京都 ${ward}`, ja: `東京都 ${ward}` },
-        summary: {
-          zh: `${ward}具備成熟的市區生活基盤，交通與日常機能均衡。`,
-          ja: `${ward}は生活基盤が整った暮らしやすいエリアです。`
-        },
-        pros: [
-          { zh: "主要車站通勤便捷，日常採買方便。", ja: "主要駅へのアクセスが良く、日々の買い物も便利。" }
-        ],
-        cons: [
-          { zh: "需留意尖峰通勤擁擠與大馬路車流聲音。", ja: "ラッシュ時の混雑や道路沿いの騒音を事前確認推奨。" }
-        ]
-      };
-    }
-
-    // 9. Famous Chains & Convenience Stores
-    const famousChains: FamousChainGroup[] = [
-      {
-        categoryName: { zh: "🥩 國民牛丼三大龍頭（平價外食）", ja: "🥩 牛丼御三家（お手軽・安価な定番）" },
-        chains: [
-          {
-            name: "すき家（Sukiya）",
-            brandType: { zh: "平價牛丼・咖哩", ja: "牛丼・カレー" },
-            walk: "徒歩 3〜5 分",
-            budget: "約 400〜650 円",
-            feature: { zh: "24小時營業，起司牛丼人氣最高，菜單最多最省錢。", ja: "24時間営業。チーズ牛丼など豊富なメニュー。" }
-          },
-          {
-            name: "松屋（Matsuya）",
-            brandType: { zh: "牛丼・和風定食", ja: "牛めし・定食" },
-            walk: "徒歩 4〜6 分",
-            budget: "約 450〜750 円",
-            feature: { zh: "內用一律免費附贈熱味噌湯！生薑燒肉與咖哩高CP值。", ja: "店内飲食はみそ汁無料。定食のコスパが高い。" }
-          },
-          {
-            name: "吉野家（Yoshinoya）",
-            brandType: { zh: "傳統牛肉丼飯", ja: "牛丼" },
-            walk: "徒歩 5〜8 分",
-            budget: "約 450〜700 円",
-            feature: { zh: "牛肉軟嫩入味，出餐速度全日本最快。", ja: "提供スピード最速。牛肉の旨味が自慢。" }
-          }
-        ]
-      },
-      {
-        categoryName: { zh: "🍔 平價速食 & 家庭餐廳", ja: "🍔 ファストフード＆ファミレス" },
-        chains: [
-          {
-            name: "マクドナルド（McDonald's）",
-            brandType: { zh: "美式速食", ja: "ファストフード" },
-            walk: "徒歩 4〜6 分",
-            budget: "約 400〜700 円",
-            feature: { zh: "百圓黑咖啡與早餐滿福堡，多有插座可辦公。", ja: "100円台コーヒー。コンセント席あり。" }
-          },
-          {
-            name: "サイゼリヤ（Saizeriya）",
-            brandType: { zh: "平價義式家常", ja: "激安ファミレス" },
-            walk: "徒歩 6〜10 分",
-            budget: "約 500〜900 円",
-            feature: { zh: "肉醬焗烤飯 300円、葡萄酒 100円，省錢聚餐天花板。", ja: "ミラノ風ドリア300円、ワイン100円の圧倒的安さ。" }
-          }
-        ]
-      },
-      {
-        categoryName: { zh: "🍜 國民平價拉麵 & 中華", ja: "🍜 ラーメン・中華チェーン" },
-        chains: [
-          {
-            name: "日高屋（Hidakaya）",
-            brandType: { zh: "平價熱炒拉麵", ja: "熱烈中華食堂" },
-            walk: "徒歩 5〜7 分",
-            budget: "約 390〜750 円",
-            feature: { zh: "醬油拉麵 390円、煎餃 250円，平價飽足首選。", ja: "中華そば390円、餃子250円の庶民派中華。" }
-          }
-        ]
-      }
-    ];
-
-    const convenienceStores: ConvenienceStoreGuide[] = [
-      {
-        brandName: "まいばすけっと（My Basket / AEON旗下）",
-        tier: { zh: "💰 平價省錢型（超商外表・超市價格）", ja: "💰 激安・都市型ミニスーパー" },
-        priceLevel: "★☆☆☆☆（比一般超商便宜 30%〜40%！）",
-        features: {
-          zh: "鮮奶 180 円、便當 350 円！賣的是 AEON 超市價，住處附近有它每月省數千日圓。",
-          ja: "見た目はコンビニ、価格はスーパー！牛乳・冷凍食品が3割以上安い。"
-        },
-        bestFor: { zh: "省錢租屋族、日常補買生鮮牛奶雞蛋", ja: "節約派の一人暮らし、自炊の買い足し" },
-        isNearby: true,
-        distance: "徒歩 3〜5 分"
-      },
-      {
-        brandName: "セブン-イレブン（7-Eleven）",
-        tier: { zh: "⚖️ 標準三大超商（便當熟食王者）", ja: "⚖️ 大手3社・クオリティ絶対王者" },
-        priceLevel: "★★★☆☆（公定標價，鮮少折扣）",
-        features: {
-          zh: "自有品牌 7-Premium 最好吃，炸雞（ななチキ）與便當品質最高，ATM 提款最順暢。",
-          ja: "お弁当・揚げ物の質が高く、ATMの利便性も抜群。"
-        },
-        bestFor: { zh: "追求便當品質、寄件與提款", ja: "味にこだわりたい時、ATM利用" },
-        isNearby: true,
-        distance: "徒歩 2〜3 分"
-      },
-      {
-        brandName: "ファミリーマート（FamilyMart）",
-        tier: { zh: "⚖️ 標準三大超商（炸雞甜點霸主）", ja: "⚖️ 大手3社・ファミチキ＆スイーツ" },
-        priceLevel: "★★★☆☆（常有折扣券）",
-        features: {
-          zh: "國民級美食「全家炸雞（ファミチキ）」多汁必吃，甜點泡芙種類多。",
-          ja: "ファミチキが看板商品。スイーツやアパレルも充実。"
-        },
-        bestFor: { zh: "宵夜吃多汁炸雞、甜點犒賞", ja: "ファミチキ、クーポンでお得に買い物" },
-        isNearby: true,
-        distance: "徒歩 2〜4 分"
-      },
-      {
-        brandName: "ナチュラルローソン（Natural Lawson）",
-        tier: { zh: "💎 高檔精品型（都會有機貴婦風）", ja: "💎 高級・オーガニックコンビニ" },
-        priceLevel: "★★★★☆（偏高，比普通超商貴 15%~20%）",
-        features: {
-          zh: "專開在都心精華區，主打有機蔬果、無添加熟食、進口紅白酒與起司。",
-          ja: "無添加・オーガニック食品や焼きたてパンを揃えた大人向け。"
-        },
-        bestFor: { zh: "注重健康飲食、講究生活品質的小資族", ja: "美容・健康志向、少し贅沢な夜食" },
-        isNearby: address.includes("代々木") || address.includes("新宿") || address.includes("渋谷"),
-        distance: "徒歩 5〜8 分"
-      }
-    ];
-
-    // 10. Supermarkets
-    let supermarkets: Supermarket[];
-    if (address.includes("代々木")) {
-      supermarkets = [
-        {
-          name: "マルマンストア（Maruman Store）南新宿店",
-          positioning: { zh: "主力大型綜合生鮮超市", ja: "地域主力・生鮮総合スーパー" },
-          rating: "4.0 ★★★★☆",
-          walk: "徒歩 3 分",
-          hours: "10:00 - 23:00",
-          comment: { zh: "生鮮蔬果、肉品與熟食便當齊全，自炊最核心基地。", ja: "生鮮・総菜が充実し自炊派の強い味方。" }
-        },
-        {
-          name: "まいばすけっと 代々木2丁目店",
-          positioning: { zh: "平價都會小型超市（AEON旗下）", ja: "イオングループ都市型ミニスーパー" },
-          rating: "3.8 ★★★☆☆",
-          walk: "徒歩 4 分",
-          hours: "07:00 - 24:00",
-          comment: { zh: "營業到午夜！牛奶、雞蛋、冷凍食品比超商便宜 30% 以上。", ja: "深夜24時まで営業。価格が手頃で買い足しに最高。" }
-        }
-      ];
-    } else {
-      supermarkets = [
-        {
-          name: "サミット / ライフ等 地域主力スーパー",
-          positioning: { zh: "主力大型生鮮超市", ja: "地域主力・大型総合スーパー" },
-          rating: "4.1 ★★★★☆",
-          walk: "徒歩 5〜7 分",
-          hours: "09:00 - 23:00",
-          comment: { zh: "肉品、海鮮最齊全，熟食便當多且價格公道，自炊首選。", ja: "生鮮食品・総菜が充実した自炊生活のメインスーパー。" }
-        },
-        {
-          name: "まいばすけっと / マルエツプチ（小型便利超市）",
-          positioning: { zh: "都會型平價便利超市", ja: "都市型ミニスーパー" },
-          rating: "3.8 ★★★☆☆",
-          walk: "徒歩 3〜5 分",
-          hours: "深夜まで営業",
-          comment: { zh: "營業時間長，半夜補買牛奶雞蛋蔬菜極為便捷。", ja: "深夜の急な買い出しに便利でコンビニより安価。" }
-        }
-      ];
-    }
-
-    // 11. Match Rules
+    // 6. Matched Rules
     const matchedRuleIds = new Set<string>();
 
     if (html.includes("南西")) matchedRuleIds.add("orientation_southwest");
@@ -455,42 +194,48 @@ export async function POST(req: NextRequest) {
     if (html.includes("室内洗濯機")) matchedRuleIds.add("equip_indoor_wash");
     if (html.includes("エレベーター")) matchedRuleIds.add("equip_elevator");
 
-    // Initial Cost
-    const totalLow = Math.round(rentNum * 4.2 + (mgmtNum / 10000));
-    const totalHigh = Math.round(rentNum * 5.0 + (mgmtNum / 10000));
-    const initialCost: InitialCostEstimate = {
-      rent: rentNum,
-      managementFee: mgmtNum,
-      totalEstimate: `約 ${totalLow}〜${totalHigh} 万円（約為月租金的 4〜5 倍）`,
-      items: [
-        { name: { zh: "前払賃料（第一個月租金）", ja: "前家賃（1ヶ月分）" }, amount: `${rentNum} 万円` },
-        { name: { zh: "敷金（押金 / 1個月）", ja: "敷金（1ヶ月）" }, amount: `${rentNum} 万円` },
-        { name: { zh: "礼金（禮金 / 1個月）", ja: "礼金（1ヶ月）" }, amount: `${rentNum} 万円` },
-        { name: { zh: "仲介手續費（約 0.5~1個月）", ja: "仲介手数料（0.5〜1ヶ月）" }, amount: `約 ${(rentNum * 0.55).toFixed(1)}〜${(rentNum * 1.1).toFixed(1)} 万円` },
-        { name: { zh: "保證公司初回料（約 50%）", ja: "保証会社利用料（初回約50%）" }, amount: `約 ${(rentNum * 0.5).toFixed(1)} 万円` },
-        { name: { zh: "火災保險＋換鎖費用", ja: "火災保険＋鍵交換費用" }, amount: "約 4.0 万円" }
-      ]
-    };
+    // 7. Concise Amenities (Supermarkets, CVS, Chains)
+    const isYoyogi = address.includes("代々木") || rawTitle.includes("代々木");
 
-    // Run Engine
+    const supermarkets: LifeAmenityItem[] = isYoyogi ? [
+      { name: "マルマンストア 南新宿店", tag: { zh: "主力生鮮", ja: "主力生鮮" }, walk: "徒歩3分", note: { zh: "肉品蔬果最齊全，自炊必備", ja: "品揃え豊富で自炊派のメイン" } },
+      { name: "まいばすけっと 代々木2丁目店", tag: { zh: "平價小型", ja: "格安小型" }, walk: "徒歩4分", note: { zh: "營業至24點，牛奶雞蛋比超商便宜30%", ja: "深夜24時まで営業、コンビニより安価" } }
+    ] : [
+      { name: "地域主力生鮮スーパー（サミット等）", tag: { zh: "主力生鮮", ja: "主力生鮮" }, walk: "徒歩5分", note: { zh: "生鮮便當齊全，日常自炊首選", ja: "日々の買い物に困らないメインスーパー" } },
+      { name: "まいばすけっと（都市型ミニスーパー）", tag: { zh: "平價便民", ja: "格安小型" }, walk: "徒歩4分", note: { zh: "牛奶蛋奶比超商便宜，開到深夜", ja: "深夜まで買える節約ミニスーパー" } }
+    ];
+
+    const convenienceStores: LifeAmenityItem[] = [
+      { name: "まいばすけっと", tag: { zh: "💰 平價省錢型", ja: "💰 格安スーパー価格" }, walk: "徒歩3〜4分", note: { zh: "超商外觀但賣超市特價！自炊省錢救星", ja: "コンビニ感覚でスーパーの安さを享受" } },
+      { name: "セブン-イレブン", tag: { zh: "⚖️ 標準品質第一", ja: "⚖️ クオリティ王者" }, walk: "徒歩2〜3分", note: { zh: "便當熟食最好吃、ATM支援最穩", ja: "お弁当とATMの使いやすさは業界一" } },
+      { name: "ファミリーマート", tag: { zh: "⚖️ 炸雞甜點霸主", ja: "⚖️ ファミチキ定番" }, walk: "徒歩3〜4分", note: { zh: "國民多汁炸雞、甜點泡芙優惠多", ja: "ファミチキやスイーツの定番人気" } },
+      { name: "ナチュラルローソン", tag: { zh: "💎 高級有機精品", ja: "💎 オーガニック" }, walk: "徒歩5〜7分", note: { zh: "都心限定，有機健康熟食與進口紅酒", ja: "無添加・健康志向の上品なコンビニ" } }
+    ];
+
+    const famousChains: LifeAmenityItem[] = [
+      { name: "すき家（Sukiya）", tag: { zh: "牛丼 400円起", ja: "牛丼" }, walk: "徒歩3〜5分", note: { zh: "24小時營業，省錢出餐快", ja: "24H営業、サクッと済ませる" } },
+      { name: "松屋（Matsuya）", tag: { zh: "定食 450円起", ja: "定食" }, walk: "徒歩4〜5分", note: { zh: "內用一律免費附贈熱味噌湯", ja: "店内みそ汁無料、定食充実" } },
+      { name: "マクドナルド（麥當勞）", tag: { zh: "速食・咖啡", ja: "マック" }, walk: "徒歩4〜6分", note: { zh: "百圓咖啡、多有插座充電", ja: "朝食や充電・PC作業に便利" } },
+      { name: "サイゼリヤ（薩莉亞）", tag: { zh: "義式 300円起", ja: "ファミレス" }, walk: "徒歩6〜8分", note: { zh: "日本平價西餐之神，省錢聚餐首選", ja: "ミラノ風ドリア300円の圧倒的安さ" } }
+    ];
+
     const evaluation = evaluateProperty(
       Array.from(matchedRuleIds),
       stations,
-      wardAnalysis,
-      famousChains,
-      convenienceStores,
-      supermarkets,
-      layoutAnalysis,
-      undefined, // Remove redundant area text to keep page concise
-      initialCost
+      {
+        supermarkets,
+        convenienceStores,
+        famousChains
+      },
+      isVacant
     );
 
-    const metaParts = [layoutType, areaSize, structureStr, ageStr, address].filter(Boolean);
+    const metaParts = [structureStr, ageStr, address].filter(Boolean);
 
     return NextResponse.json({
       success: true,
       title: propertyTitle,
-      rent: rentStr || "7.2",
+      rent: rentStr,
       meta: metaParts.join(' • '),
       evaluation
     });

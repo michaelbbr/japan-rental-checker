@@ -7,13 +7,7 @@ import {
   ConditionCard, 
   NaikenItem,
   StationDetail,
-  WardAnalysis,
-  FamousChainGroup,
-  ConvenienceStoreGuide,
-  Supermarket,
-  LayoutAnalysis,
-  AreaImpression,
-  InitialCostEstimate
+  LifeAmenityItem
 } from './types';
 
 const DIMENSIONS: Array<{ key: Dimension; label: { zh: string; ja: string } }> = [
@@ -28,13 +22,12 @@ const DIMENSIONS: Array<{ key: Dimension; label: { zh: string; ja: string } }> =
 export function evaluateProperty(
   matchedIds: string[],
   stations: StationDetail[],
-  wardAnalysis: WardAnalysis,
-  famousChains: FamousChainGroup[],
-  convenienceStores: ConvenienceStoreGuide[],
-  supermarkets: Supermarket[],
-  layoutAnalysis?: LayoutAnalysis,
-  areaImpression?: AreaImpression,
-  initialCost?: InitialCostEstimate
+  amenities: {
+    supermarkets: LifeAmenityItem[];
+    convenienceStores: LifeAmenityItem[];
+    famousChains: LifeAmenityItem[];
+  },
+  isVacant: boolean
 ): EvaluationResult {
   const dimScores: Record<Dimension, number> = {
     location: 0,
@@ -78,26 +71,25 @@ export function evaluateProperty(
     }
   });
 
-  // Strict Thresholds & Reality Caps
+  // Calculate 6 Dimension Ratings
   const tier1: DimensionScore[] = DIMENSIONS.map(({ key, label }) => {
     let s = dimScores[key];
     let symbol: RatingSymbol = '○';
 
-    if (key === 'building' && matchedIds.includes('age_old_quake')) {
-      // 舊耐震老屋嚴格封頂在 △
+    if (key === 'rent' && !isVacant) {
+      // 滿室無招租時，租金評級直接為 N/A
+      symbol = 'N/A';
+    } else if (key === 'building' && matchedIds.includes('age_old_quake')) {
       symbol = '△';
     } else if (key === 'security' && matchedIds.includes('equip_no_autolock')) {
-      // 無自動門禁嚴格封頂在 ○
       symbol = s > 0 ? '○' : '△';
     } else if (key === 'location') {
       if (s >= 3.0 || (matchedIds.includes('walk_5') && matchedIds.includes('walk_multi_station'))) {
         symbol = '◎';
       } else if (s >= 0.5) {
         symbol = '○';
-      } else if (s >= -1.0) {
-        symbol = '△';
       } else {
-        symbol = '▲';
+        symbol = '△';
       }
     } else {
       if (s >= 2.0) symbol = '◎';
@@ -113,13 +105,8 @@ export function evaluateProperty(
     tier1, 
     conditions, 
     stations, 
-    wardAnalysis,
-    famousChains,
-    convenienceStores,
-    supermarkets,
-    layoutAnalysis, 
-    areaImpression, 
-    initialCost, 
-    naiken 
+    amenities,
+    naiken,
+    isVacant
   };
 }
