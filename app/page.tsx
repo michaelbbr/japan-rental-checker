@@ -18,123 +18,123 @@ export default function Home() {
 
   const t = {
     ja: {
-      brandBadge: "TESLA CYBER DIAGNOSTICS // 日本賃貸 診断",
-      title: "日本の部屋を、データで解き明かす。",
-      subtitle: "SUUMO等のURLから、耐震性・駅動線・真の生活インフラをミリ秒単位でテレメトリ解析",
+      brandBadge: "日本賃貸 総合診断システム",
+      title: "日本の賃貸物件を、客観的に見抜く。",
+      subtitle: "SUUMO等のURLから、耐震性・駅動線・真の生活インフラを一瞬で高精度に診断",
       placeholder: "物件URLを入力 (SUUMO / DOOR賃貸 / HOME'S)...",
       btnScore: "診断実行 ↵",
       btnScoring: "解析中...",
-      tier1Title: "CORE TELEMETRY // 6大指標",
-      tier1Subtitle: "タップで診断根拠テレメトリを表示",
-      tier2Title: "VEHICLE DIAGNOSTICS // 条件別長所と課題",
-      meritPrefix: "優位性：",
-      cautionPrefix: "要留意：",
+      tier1Title: "① 総合レーティング（6大指標）",
+      tier1Subtitle: "タップで診断根拠を表示",
+      tier2Title: "② 条件別メリット・注意点（長所と短所）",
+      meritPrefix: "長所：",
+      cautionPrefix: "注意：",
       demeritPrefix: "短所：",
-      stationsTitle: "TRANSIT ACCESS // 駅アクセス・航路",
+      stationsTitle: "🚉 最寄り駅・アクセス（タップでGoogleマップ徒歩ルート案内）",
       destLabel: "直通方面：",
-      pitfallLabel: "留意事項：",
-      amenitiesTitle: "LOCAL INFRASTRUCTURE // 周辺生活インフラ",
-      superLabel: "スーパーマーケット（価格帯＆位置づけ）",
-      cvsLabel: "コンビニエンスストア",
-      chainLabel: "定番外食チェーン",
-      walkRouteHint: "航路ナビ ↗",
-      tier3Title: "PRE-FLIGHT CHECKLIST // 内見時確認リスト",
+      pitfallLabel: "留意点：",
+      amenitiesTitle: "🏪 生活インフラ速報（タップで店舗への徒歩ルート案内）",
+      superLabel: "🛒 周辺スーパーマーケット（位置づけ＆価格帯）",
+      cvsLabel: "🏪 コンビニエンスストア（価格帯＆特徴）",
+      chainLabel: "🍽️ 定番外食チェーン",
+      walkRouteHint: "徒歩ナビ ↗",
+      tier3Title: "③ 内見時のチェックリスト",
       copyChecklist: "［ リストをコピー ］",
       copied: "✓ コピー完了",
-      footer: "TESLA RENTAL CYBER DIAGNOSTICS • DARK MINIMALIST UI • GOOGLE MAPS リアルタイム連携",
+      footer: "日本賃貸 総合診断システム • ダークミニマルUI • Google Maps リアルタイム徒歩ナビ連携",
       vacantBadge: "満室（現在募集中なし / N/A）",
-      mapsLiveBadge: "● LIVE MAPS TELEMETRY",
-      reasonBoxHeader: "DIAGNOSTIC RATIONALE // 判定根拠",
+      mapsLiveBadge: "● Google Maps リアルタイム連動",
+      reasonBoxHeader: "判定理由・評価根拠",
       switchPrompt: "他の指標をタップして切替"
     },
     zh: {
-      brandBadge: "TESLA CYBER DIAGNOSTICS // 日本租房 診斷",
+      brandBadge: "日本租房 綜合診斷系統",
       title: "日本租房物件，數據化精準解析。",
       subtitle: "貼上 SUUMO 網址，瞬間透視房屋規格、耐震風險、車站動線與周邊真實生活機能",
       placeholder: "輸入房源網址 (SUUMO / DOOR賃貸 / HOME'S)...",
       btnScore: "開始診斷 ↵",
-      btnScoring: "解析中...",
-      tier1Title: "CORE TELEMETRY // 核心指標總評",
-      tier1Subtitle: "點擊查看客觀評分依據與遙測理由",
-      tier2Title: "VEHICLE DIAGNOSTICS // 關鍵條件優缺點解析",
+      btnScoring: "分析中...",
+      tier1Title: "① 核心指標總評（六大維度）",
+      tier1Subtitle: "點擊查看客觀評分依據與理由",
+      tier2Title: "② 關鍵條件解析（優缺點合一）",
       meritPrefix: "優點：",
       cautionPrefix: "注意：",
       demeritPrefix: "缺點：",
-      stationsTitle: "TRANSIT ACCESS // 車站交通動線",
+      stationsTitle: "🚉 利用車站與交通動線（點擊查看 Google Maps 徒步路線）",
       destLabel: "直達：",
       pitfallLabel: "注意：",
-      amenitiesTitle: "LOCAL INFRASTRUCTURE // 周邊生活機能速查",
-      superLabel: "周邊超市（定位＆價格檔次）",
-      cvsLabel: "超商定位與價格檔次",
-      chainLabel: "周邊知名連鎖外食",
+      amenitiesTitle: "🏪 生活機能速查（點擊店家開啟 Google Maps 徒步導航）",
+      superLabel: "🛒 主力超市（定位＆價格檔次）",
+      cvsLabel: "🏪 超商定位與價格檔次",
+      chainLabel: "🍽️ 周邊知名連鎖外食",
       walkRouteHint: "徒步導航 ↗",
-      tier3Title: "PRE-FLIGHT CHECKLIST // 現場內見確認清單",
+      tier3Title: "③ 現場內見確認清單",
       copyChecklist: "［ 複製清單 ］",
       copied: "✓ 已複製",
-      footer: "TESLA RENTAL CYBER DIAGNOSTICS • 特斯拉極簡設計 • GOOGLE MAPS 徒步導航串接",
+      footer: "日本租房 綜合診斷系統 • 特斯拉黑魂極簡UI • Google Maps 徒步導航串接",
       vacantBadge: "目前滿室（無招租中 / N/A）",
       mapsLiveBadge: "● 即時地圖連線",
-      reasonBoxHeader: "DIAGNOSTIC RATIONALE // 評分理由與依據",
+      reasonBoxHeader: "評分理由與依據",
       switchPrompt: "點擊上方指標切換"
     },
     zhCN: {
-      brandBadge: "TESLA CYBER DIAGNOSTICS // 日本租房 诊断",
+      brandBadge: "日本租房 综合诊断系统",
       title: "日本租房物件，数据化精准解析。",
       subtitle: "贴上 SUUMO 网址，瞬间透视房屋规格、耐震风险、车站路线与周边真实生活设施",
       placeholder: "输入房源网址 (SUUMO / DOOR租赁 / HOME'S)...",
       btnScore: "开始诊断 ↵",
       btnScoring: "解析中...",
-      tier1Title: "CORE TELEMETRY // 核心指标总评",
-      tier1Subtitle: "点击查看客观评分依据与遥测理由",
-      tier2Title: "VEHICLE DIAGNOSTICS // 关键条件优缺点解析",
+      tier1Title: "① 核心指标总评（六大维度）",
+      tier1Subtitle: "点击查看客观评分依据与理由",
+      tier2Title: "② 关键条件解析（优缺点合一）",
       meritPrefix: "优点：",
       cautionPrefix: "注意：",
       demeritPrefix: "缺点：",
-      stationsTitle: "TRANSIT ACCESS // 车站交通路线",
+      stationsTitle: "🚉 利用车站与交通路线（点击查看 Google Maps 步行路线）",
       destLabel: "直达：",
       pitfallLabel: "注意：",
-      amenitiesTitle: "LOCAL INFRASTRUCTURE // 周边生活设施速查",
-      superLabel: "周边超市（定位＆价格档次）",
-      cvsLabel: "便利店定位与价格档次",
-      chainLabel: "周边知名连锁餐饮",
+      amenitiesTitle: "🏪 生活设施速查（点击店铺开启 Google Maps 步行导航）",
+      superLabel: "🛒 主力超市（定位＆价格档次）",
+      cvsLabel: "🏪 便利店定位与价格档次",
+      chainLabel: "🍽️ 周边知名连锁餐饮",
       walkRouteHint: "步行导航 ↗",
-      tier3Title: "PRE-FLIGHT CHECKLIST // 现场看房确认清单",
+      tier3Title: "③ 现场看房确认清单",
       copyChecklist: "［ 复制清单 ］",
       copied: "✓ 已复制",
-      footer: "TESLA RENTAL CYBER DIAGNOSTICS • 特斯拉极简设计 • GOOGLE MAPS 步行导航联动",
+      footer: "日本租房 综合诊断系统 • 特斯拉黑魂极简UI • Google Maps 步行导航联动",
       vacantBadge: "目前满室（无招租中 / N/A）",
       mapsLiveBadge: "● 实时地图连接",
-      reasonBoxHeader: "DIAGNOSTIC RATIONALE // 评分理由与依据",
+      reasonBoxHeader: "评分理由与依据",
       switchPrompt: "点击上方指标切换"
     },
     en: {
-      brandBadge: "TESLA CYBER DIAGNOSTICS // JAPAN RENTAL",
-      title: "Decode Any Rental with Precision Data.",
+      brandBadge: "JAPAN RENTAL INTELLIGENCE",
+      title: "Objectively Understand Any Rental Property.",
       subtitle: "Paste a SUUMO link to reveal real earthquake safety, station commutes, and genuine local amenities",
       placeholder: "Paste property link (SUUMO / DOOR / HOME'S)...",
-      btnScore: "Execute ↵",
+      btnScore: "Analyze ↵",
       btnScoring: "Analyzing...",
-      tier1Title: "CORE TELEMETRY // 6 Dimensions",
-      tier1Subtitle: "Tap any pod to reveal detailed diagnostic rationale",
-      tier2Title: "VEHICLE DIAGNOSTICS // Property Conditions",
+      tier1Title: "① Core Ratings (6 Dimensions)",
+      tier1Subtitle: "Tap any badge to reveal diagnostic rationale",
+      tier2Title: "② Property Conditions (Pros & Cons)",
       meritPrefix: "Pros: ",
       cautionPrefix: "Caution: ",
       demeritPrefix: "Cons: ",
-      stationsTitle: "TRANSIT ACCESS // Station Access Routes",
+      stationsTitle: "🚉 Stations & Transit (Click for Google Maps Walking Route)",
       destLabel: "Direct lines: ",
       pitfallLabel: "Caution: ",
-      amenitiesTitle: "LOCAL INFRASTRUCTURE // Neighborhood Amenities",
-      superLabel: "Supermarkets (Price & Positioning)",
-      cvsLabel: "Convenience Stores",
-      chainLabel: "Famous Chain Restaurants",
-      walkRouteHint: "Navigate ↗",
-      tier3Title: "PRE-FLIGHT CHECKLIST // Viewing Checklist",
+      amenitiesTitle: "🏪 Local Amenities (Click place for Google Maps walking route)",
+      superLabel: "🛒 Supermarkets (Positioning & Price Level)",
+      cvsLabel: "🏪 Convenience Stores",
+      chainLabel: "🍽️ Famous Chain Restaurants",
+      walkRouteHint: "Walking Route ↗",
+      tier3Title: "③ Viewing Checklist",
       copyChecklist: "[ Copy Checklist ]",
       copied: "✓ Copied!",
-      footer: "TESLA RENTAL CYBER DIAGNOSTICS • TESLA MINIMALIST DARK UI • GOOGLE MAPS INTEGRATED",
+      footer: "Japan Rental Property Checker • Dark Minimalist UI • Google Maps Walking Route Integration",
       vacantBadge: "Fully Occupied (N/A)",
       mapsLiveBadge: "● LIVE MAPS TELEMETRY",
-      reasonBoxHeader: "DIAGNOSTIC RATIONALE",
+      reasonBoxHeader: "Scoring Rationale",
       switchPrompt: "Tap another badge to switch"
     }
   }[lang];
@@ -186,14 +186,14 @@ export default function Home() {
     <div className="min-h-screen bg-[#0B0C10] text-[#FFFFFF] font-sans antialiased py-8 px-4 flex flex-col items-center selection:bg-[#38BDF8] selection:text-black">
       <div className="w-full max-w-2xl flex-1 flex flex-col items-center">
         
-        {/* Tesla Cyber Top Bar */}
+        {/* Clean Sleek Header (NO "TESLA CYBER") */}
         <header className="w-full flex items-center justify-between mb-8 border-b border-white/[0.08] pb-4">
-          <div className="inline-flex items-center gap-2.5 px-3 py-1 rounded-full bg-[#16181D] border border-white/[0.12] text-xs font-bold tracking-widest text-[#E5E7EB]">
+          <div className="inline-flex items-center gap-2.5 px-3 py-1 rounded-full bg-[#16181D] border border-white/[0.12] text-xs font-bold tracking-wider text-[#E5E7EB]">
             <span className="w-2 h-2 rounded-full bg-[#38BDF8] shadow-[0_0_8px_#38BDF8] animate-pulse"></span>
             <span>{t.brandBadge}</span>
           </div>
 
-          {/* Tesla Carbon Segmented Language Picker */}
+          {/* Minimalist Dark Pill Language Switcher */}
           <div className="flex items-center bg-[#16181D] border border-white/[0.12] rounded-full p-1 text-xs font-bold">
             {[
               { id: 'ja', label: '日本語' },
@@ -216,7 +216,7 @@ export default function Home() {
           </div>
         </header>
 
-        {/* Hero Section (Tesla Clean Geometric Typography) */}
+        {/* Hero Section (Bold, High-Contrast Typography) */}
         <div className="text-center mb-8 space-y-2">
           <h1 className="text-3xl sm:text-4xl font-black tracking-tight text-white">
             {t.title}
@@ -226,12 +226,12 @@ export default function Home() {
           </p>
         </div>
 
-        {/* Tesla Cockpit Search Box */}
+        {/* Dark Minimalist Search Box */}
         <form 
           onSubmit={handleSubmit} 
           className="w-full bg-[#16181D] p-2 rounded-2xl border border-white/[0.15] focus-within:border-[#38BDF8] focus-within:ring-2 focus-within:ring-[#38BDF8]/20 transition-all flex items-center gap-2 mb-7 shadow-[0_4px_24px_rgba(0,0,0,0.5)]"
         >
-          <span className="pl-3.5 text-[#6B7280] text-base">⚡</span>
+          <span className="pl-3.5 text-[#6B7280] text-base">🔍</span>
           <input
             type="url"
             required
@@ -263,11 +263,11 @@ export default function Home() {
           </div>
         )}
 
-        {/* Results Container (Tesla Dashboard Cards) */}
+        {/* Main Results Container */}
         {evaluation && (
           <div className="w-full space-y-4 animate-in fade-in duration-200">
             
-            {/* Property Summary Header Pod */}
+            {/* Property Summary Header Card */}
             <div className="bg-[#16181D] px-6 py-5 rounded-2xl border border-white/[0.08] shadow-[0_4px_20px_rgba(0,0,0,0.4)] flex items-center justify-between">
               <div className="space-y-1">
                 <h2 className="font-black text-base sm:text-lg text-white tracking-tight">{propertyTitle}</h2>
@@ -286,13 +286,13 @@ export default function Home() {
               </div>
             </div>
 
-            {/* ① Core Telemetry (Tesla Instrument Gauges) */}
+            {/* ① Core Ratings (High Contrast, Bold Labels) */}
             <div className="bg-[#16181D] p-5 sm:p-6 rounded-2xl border border-white/[0.08] shadow-[0_4px_20px_rgba(0,0,0,0.4)] space-y-4">
               <div className="flex items-center justify-between">
-                <span className="text-xs font-black tracking-widest text-[#9CA3AF] uppercase">
+                <span className="text-xs sm:text-sm font-black tracking-wider text-[#D1D5DB] uppercase">
                   {t.tier1Title}
                 </span>
-                <span className="text-xs text-[#6B7280] font-semibold">{t.tier1Subtitle}</span>
+                <span className="text-xs text-[#9CA3AF] font-medium">{t.tier1Subtitle}</span>
               </div>
 
               {/* 6 Dimension Pods */}
@@ -325,7 +325,7 @@ export default function Home() {
                 })}
               </div>
 
-              {/* Tesla Cockpit Inset Telemetry Diagnostics Drawer */}
+              {/* Deep Diagnostic Rationale Drawer */}
               {activeDimension && (
                 <div className="p-4 rounded-xl bg-[#0D0E12] border border-white/[0.12] text-sm space-y-1.5 animate-in fade-in duration-150">
                   <div className="flex justify-between items-center font-bold">
@@ -344,7 +344,7 @@ export default function Home() {
 
             {/* ② Conditions Diagnostics */}
             <div className="bg-[#16181D] p-5 sm:p-6 rounded-2xl border border-white/[0.08] shadow-[0_4px_20px_rgba(0,0,0,0.4)] space-y-3">
-              <div className="text-xs font-black tracking-widest text-[#9CA3AF] uppercase border-b border-white/[0.08] pb-3">
+              <div className="text-xs sm:text-sm font-black tracking-wider text-[#D1D5DB] uppercase border-b border-white/[0.08] pb-3">
                 {t.tier2Title}
               </div>
 
@@ -393,7 +393,7 @@ export default function Home() {
             {/* 🚉 Station Transit Routes */}
             {evaluation.stations && evaluation.stations.length > 0 && (
               <div className="bg-[#16181D] p-5 sm:p-6 rounded-2xl border border-white/[0.08] shadow-[0_4px_20px_rgba(0,0,0,0.4)] space-y-3">
-                <div className="text-xs font-black tracking-widest text-[#9CA3AF] uppercase">
+                <div className="text-xs sm:text-sm font-black tracking-wider text-[#D1D5DB] uppercase">
                   {t.stationsTitle}
                 </div>
                 <div className="space-y-2">
@@ -434,7 +434,7 @@ export default function Home() {
             {evaluation.amenities && (
               <div className="bg-[#16181D] p-5 sm:p-6 rounded-2xl border border-white/[0.08] shadow-[0_4px_20px_rgba(0,0,0,0.4)] space-y-4">
                 <div className="flex items-center justify-between border-b border-white/[0.08] pb-3">
-                  <span className="text-xs font-black tracking-widest text-[#9CA3AF] uppercase">
+                  <span className="text-xs sm:text-sm font-black tracking-wider text-[#D1D5DB] uppercase">
                     {t.amenitiesTitle}
                   </span>
                   {evaluation.amenities.isGoogleMapsLive && (
@@ -542,7 +542,7 @@ export default function Home() {
             {/* ③ Viewing Checklist */}
             <div className="bg-[#16181D] p-5 sm:p-6 rounded-2xl border border-white/[0.08] shadow-[0_4px_20px_rgba(0,0,0,0.4)] space-y-3">
               <div className="flex items-center justify-between border-b border-white/[0.08] pb-3">
-                <span className="text-xs font-black tracking-widest text-[#9CA3AF] uppercase">
+                <span className="text-xs sm:text-sm font-black tracking-wider text-[#D1D5DB] uppercase">
                   {t.tier3Title}
                 </span>
                 <button
@@ -568,7 +568,7 @@ export default function Home() {
           </div>
         )}
 
-        {/* Tesla Minimalist Footer */}
+        {/* Minimalist Footer */}
         <footer className="w-full text-center mt-12 text-xs font-bold tracking-wider text-[#6B7280]">
           {t.footer}
         </footer>

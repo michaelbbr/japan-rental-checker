@@ -15,7 +15,6 @@ function haversineMeters(lat1: number, lon1: number, lat2: number, lon2: number)
   return R * c;
 }
 
-// Generates walking directions URL displaying the REAL store name and address
 function makeWalkingMapUrl(
   originAddr: string, 
   destName: string, 
@@ -25,44 +24,110 @@ function makeWalkingMapUrl(
   return `https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(originAddr)}&destination=${encodeURIComponent(cleanDest)}&travelmode=walking`;
 }
 
-// STRICT EXCLUSION: REAL ESTATE, CLINICS, INSURANCE, LOCKERS, APPLIANCES
-const NON_SUPERMARKET_TERMS = [
-  // Housing / Real estate / Appliance / Smart life
-  "スマートライフ", "ライフパートナー", "ライフスタイル", "ライフサポート", "ライフステージ", 
-  "カーライフ", "不動産", "リアルティ", "住宅", "ハウス", "ホーム", "リフォーム", 
-  "インテリア", "住まい", "家電", "スマート",
-  // Medical / Clinics / Hospitals
-  "クリニック", "clinic", "医院", "病院", "内科", "歯科", "デンタル", "皮膚科", 
-  "外科", "眼科", "薬局", "調剤", "処方", "耳鼻", "小児科", "整骨", "整体", "接骨", 
-  "鍼灸", "マッサージ", "リハビリ",
-  // Corporate / Insurance / Consulting
-  "amazon", "ロッカー", "locker", "ｆｐ", "fp", "パートナー", "事務所", "相談", 
-  "保険", "コインランドリー", "クリーニング", "駐車場", "自販機", "ステーション", 
-  "受取", "便", "営業所", "オフィス", "税理士", "行政書士", "コンサル", "株式会社", "合同会社"
+// -----------------------------------------------------------------------------
+// STRICT WHITELIST ARCHITECTURE (REPLACES VULNERABLE BLACKLIST)
+// -----------------------------------------------------------------------------
+
+// 1. Supermarket Whitelist Brands
+const SUPERMARKET_WHITELIST_BRANDS = [
+  "マルエツ", "maruetsu", "まいばすけっと", "my basket", "サミット", "summit",
+  "成城石井", "seijo ishii", "オーケー", "okストア", "業務スーパー", "西友", "seiyu",
+  "イオン", "aeon", "マックスバリュ", "いなげや", "東急ストア", "ダイエー", "daiei",
+  "オオゼキ", "クイーンズ伊勢丹", "ヨークフーズ", "ヨークベニマル", "コープ", "coop",
+  "文化堂", "ライフ", "リコス", "ベンガベンガ", "紀ノ国屋", "明治屋", "ハナマサ"
 ];
 
-const INVALID_GOOGLE_TYPES = [
-  "real_estate_agency", "insurance_agency", "finance", "health", 
-  "dentist", "doctor", "hospital", "pharmacy", "physiotherapist",
-  "car_repair", "laundry", "accounting", "lawyer", "storage"
+// 2. Convenience Store Whitelist Brands
+const CVS_WHITELIST_BRANDS = [
+  "セブン-イレブン", "セブンイレブン", "7-eleven", "7‐eleven",
+  "ファミリーマート", "familymart", "ファミマ",
+  "ローソン", "lawson", "ナチュラルローソン", "ローソンストア100",
+  "ミニストップ", "ministop", "デイリーヤマザキ", "daily yamazaki",
+  "まいばすけっと"
 ];
 
-function isGenuineSupermarket(p: any): boolean {
-  const name = (p.name || "").toLowerCase();
+// 3. Famous Chain Restaurant Whitelist Brands
+const CHAIN_WHITELIST_BRANDS = [
+  "すき家", "sukiya", "松屋", "matsuya", "吉野家", "yoshinoya", "なか卯",
+  "マクドナルド", "mcdonald", "マック", "モスバーガー", "mos burger",
+  "ケンタッキー", "kfc", "バーガーキング", "burger king",
+  "サイゼリヤ", "saizeriya", "ガスト", "gusto", "ジョナサン", "デニーズ", "denny",
+  "やよい軒", "大戸屋", "かつや", "松のや", "てんや", "天丼てんや",
+  "日高屋", "hidakaya", "餃子の王将", "大阪王将", "一蘭", "一風堂", "油組総本店", "風雲児",
+  "丸亀製麺", "はなまるうどん", "富士そば", "小諸そば", "ゆで太郎",
+  "ドトール", "doutor", "スターバックス", "starbucks", "コメダ珈琲", "タリーズ", "tullys"
+];
+
+// Noise and Building Patterns: Postal codes (〒), Building/Tower names, Clinics, Lockers
+const REJECT_PATTERNS = [
+  /^〒/, /^\d{3}-\d{4}/, /クリニック/i, /clinic/i, /医院/, /病院/, /歯科/, /内科/, /皮膚科/,
+  /ロッカー/, /locker/, /amazon/i, /fp/i, /パートナー/, /スマートライフ/, /ライフスタイル/,
+  /ライフサポート/, /事務所/, /コインランドリー/, /駐車場/, /駐輪場/,
+  /オープンレジデンシア/, /サザンタワー/, /住友ビル/, /タワー$/, /ビル$/, /レジデンス$/, /マンション$/
+];
+
+function isVerifiedSupermarket(p: any): boolean {
+  const name = (p.name || "").trim();
+  const lower = name.toLowerCase();
+
+  // Rule 1: Immediate rejection of postal addresses, building names, clinics
+  for (const pat of REJECT_PATTERNS) {
+    if (pat.test(name)) return false;
+  }
+
+  // Rule 2: Google Place Types check
   const types: string[] = p.types || [];
+  if (types.some(t => ["real_estate_agency", "health", "dentist", "doctor", "hospital", "pharmacy"].includes(t))) {
+    return false;
+  }
 
-  if (types.some(t => INVALID_GOOGLE_TYPES.includes(t))) return false;
-  if (NON_SUPERMARKET_TERMS.some(term => name.includes(term))) return false;
-  return true;
+  // Rule 3: Must match a recognized Japanese Supermarket Brand
+  for (const brand of SUPERMARKET_WHITELIST_BRANDS) {
+    if (lower.includes(brand.toLowerCase())) {
+      // Avoid false matches for "ライフ"
+      if (brand === "ライフ" && (lower.includes("スマート") || lower.includes("スタイル") || lower.includes("サポート"))) {
+        return false;
+      }
+      return true;
+    }
+  }
+
+  // Fallback: Generic supermarket ending with "店"
+  if ((lower.includes("スーパーマーケット") || lower.includes("食品館")) && lower.includes("店")) {
+    return true;
+  }
+
+  return false;
 }
 
-function isGenuineConvenienceStore(p: any): boolean {
-  const name = (p.name || "").toLowerCase();
-  const types: string[] = p.types || [];
+function isVerifiedConvenienceStore(p: any): boolean {
+  const name = (p.name || "").trim();
+  const lower = name.toLowerCase();
 
-  if (types.some(t => INVALID_GOOGLE_TYPES.includes(t))) return false;
-  if (NON_SUPERMARKET_TERMS.some(term => name.includes(term))) return false;
-  return true;
+  for (const pat of REJECT_PATTERNS) {
+    if (pat.test(name)) return false;
+  }
+
+  for (const brand of CVS_WHITELIST_BRANDS) {
+    if (lower.includes(brand.toLowerCase())) return true;
+  }
+
+  return false;
+}
+
+function isVerifiedFamousChain(p: any): boolean {
+  const name = (p.name || "").trim();
+  const lower = name.toLowerCase();
+
+  for (const pat of REJECT_PATTERNS) {
+    if (pat.test(name)) return false;
+  }
+
+  for (const brand of CHAIN_WHITELIST_BRANDS) {
+    if (lower.includes(brand.toLowerCase())) return true;
+  }
+
+  return false;
 }
 
 export async function POST(req: NextRequest) {
@@ -309,7 +374,7 @@ export async function POST(req: NextRequest) {
       matchedRuleIds.add("env_main_road");
     }
 
-    // 7. GOOGLE MAPS API: WIDER 1000m RADIUS + STRICT NOISE FILTERING
+    // 7. GOOGLE MAPS API: POSITIVE WHITELIST MATCHING
     const apiKey = process.env.GOOGLE_MAPS_API_KEY;
     let isGoogleMapsLive = false;
     let propCoordinates: { lat: number; lng: number } | undefined = undefined;
@@ -329,14 +394,14 @@ export async function POST(req: NextRequest) {
           propCoordinates = { lat, lng };
           isGoogleMapsLive = true;
 
-          // Search Supermarkets (Radius 1000m to include Maruetsu 6-chome & Summit)
+          // A. Search Supermarkets (Radius 1000m)
           const spKeyword = encodeURIComponent('スーパー|マルエツ|まいばすけっと|サミット|成城石井|ライフ|オーケー');
           const spUrl = `https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=${lat},${lng}&radius=1000&keyword=${spKeyword}&language=ja&key=${apiKey}`;
           const spRes = await fetch(spUrl);
           const spData = await spRes.json();
           if (spData.results?.length) {
             const rawSupers = spData.results
-              .filter((p: any) => isGenuineSupermarket(p))
+              .filter((p: any) => isVerifiedSupermarket(p))
               .map((p: any) => {
                 const pLat = p.geometry?.location?.lat ?? lat;
                 const pLng = p.geometry?.location?.lng ?? lng;
@@ -385,13 +450,13 @@ export async function POST(req: NextRequest) {
             });
           }
 
-          // Search Convenience Stores
+          // B. Search Convenience Stores
           const cvsUrl = `https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=${lat},${lng}&radius=600&type=convenience_store&language=ja&key=${apiKey}`;
           const cvsRes = await fetch(cvsUrl);
           const cvsData = await cvsRes.json();
           if (cvsData.results?.length) {
             const rawCvs = cvsData.results
-              .filter((p: any) => isGenuineConvenienceStore(p))
+              .filter((p: any) => isVerifiedConvenienceStore(p))
               .map((p: any) => {
                 const pLat = p.geometry?.location?.lat ?? lat;
                 const pLng = p.geometry?.location?.lng ?? lng;
@@ -443,13 +508,13 @@ export async function POST(req: NextRequest) {
             });
           }
 
-          // Search Famous Chains
+          // C. Search Famous Chains
           const chainUrl = `https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=${lat},${lng}&radius=900&keyword=${encodeURIComponent('すき家|松屋|吉野家|マクドナルド|サイゼリヤ|日高屋|やよい軒|かつや')}&language=ja&key=${apiKey}`;
           const chainRes = await fetch(chainUrl);
           const chainData = await chainRes.json();
           if (chainData.results?.length) {
             const rawChains = chainData.results
-              .filter((p: any) => isGenuineConvenienceStore(p))
+              .filter((p: any) => isVerifiedFamousChain(p))
               .map((p: any) => {
                 const pLat = p.geometry?.location?.lat ?? lat;
                 const pLng = p.geometry?.location?.lng ?? lng;
@@ -536,18 +601,18 @@ export async function POST(req: NextRequest) {
           mapUrl: makeWalkingMapUrl(geocodeTarget, "成城石井 オペラシティ店", "東京都新宿区西新宿3-20-2")
         },
         {
-          name: "マルエツプチ 西新宿6丁目店",
-          tag: { ja: "24時間営業・大型生鮮スーパー", zh: "大型24小時生鮮", zhCN: "大型24小时生鲜", en: "24H Full-Size Supermarket" },
-          priceLevel: { ja: "★★☆☆☆（庶民派生鮮）", zh: "★★☆☆☆（平價生鮮）", zhCN: "★★☆☆☆（平价生鲜）", en: "★★☆☆☆ (Standard Supermarket)" },
-          walk: "徒歩 5 分 (420m)",
+          name: "サミットストア 渋谷本町店",
+          tag: { ja: "地域最大級・総合生鮮スーパー", zh: "區域大型綜合生鮮", zhCN: "区域大型综合生鲜", en: "Large Full-Service Supermarket" },
+          priceLevel: { ja: "★★☆☆☆（地域最安級）", zh: "★★☆☆☆（平價生鮮）", zhCN: "★★☆☆☆（平价生鲜）", en: "★★☆☆☆ (Standard Supermarket)" },
+          walk: "徒歩 7 分 (550m)",
           rating: "3.8 ★★★★☆",
           note: { 
-            ja: "中央公園北側。門市較大、生鮮蔬果肉品與熟食便當最齊全（795件口コミ）", 
-            zh: "中央公園北側門市較大、生鮮蔬果肉品與熟食便當最齊全，主力採買廚房（795則評論）",
-            zhCN: "中央公园北侧。生鲜蔬果肉品与便当最齐全，主力厨房（795条评价）",
-            en: "Spacious store with comprehensive produce, meat, and bento selection (795 reviews)"
+            ja: "渋谷本町エリア最大級。生鮮食品・総菜・ベーカリーの品揃え抜群（900件超の口コミ）", 
+            zh: "區域最大型超市！生鮮蔬果、肉品與熟食便當最齊全，大型採買首選（900多則評論）",
+            zhCN: "区域最大型超市！生鲜肉类蔬菜与便当最齐全，大采购首选（900多条评价）",
+            en: "Largest supermarket in the area; extensive fresh produce, butchery, and deli (900+ reviews)"
           },
-          mapUrl: makeWalkingMapUrl(geocodeTarget, "マルエツプチ 西新宿6丁目店", "東京都新宿区西新宿6-15-1")
+          mapUrl: makeWalkingMapUrl(geocodeTarget, "サミットストア 渋谷本町店", "東京都渋谷区本町3-47-7")
         }
       ];
     }
