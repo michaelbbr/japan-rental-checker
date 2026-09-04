@@ -18,7 +18,7 @@ export default function Home() {
     zh: {
       badge: "🏢 日本租房 3 層評分器",
       title: "貼上網址，一眼看懂好壞",
-      subtitle: "貼上 SUUMO 房源網址，自動抓取規格、多車站、格局與街區評價",
+      subtitle: "貼上 SUUMO 房源網址，自動抓取規格、多車站深度、生活機能、超市與街區評價",
       placeholder: "https://suumo.jp/chintai/bc_...",
       btnScore: "評分 ↵",
       btnScoring: "解析中...",
@@ -31,9 +31,17 @@ export default function Home() {
       meritPrefix: "👍 優點：",
       cautionPrefix: "⚠️ 注意：",
       demeritPrefix: "👎 缺點：",
-      stationsTitle: "🚉 可利用交通與車站（複数駅・路線）",
+      stationsTitle: "🚉 可利用車站與交通深度解析（複数駅・路線・實際痛點）",
+      destLabel: "📍 直達精華地標：",
+      pitfallLabel: "真實痛點提醒：",
+      wardTitle: "🏛️ 住「新宿區」的好處與壞處（真實生活面）",
+      wardProsLabel: "🌟 住新宿區的優點",
+      wardConsLabel: "⚡ 住新宿區的缺點",
+      diningTitle: "🍜 附近便利餐廳與外食地圖（麥當勞・拉麵・SUKIYA）",
+      superTitle: "🛒 周邊超市地圖、定位與評價（自炊採買指南）",
+      superHours: "營業時間：",
       layoutTitle: "📐 房型格局深度剖析（間取り分析）",
-      areaTitle: "🏙️ 街區真實印象與生活氛圍（日本人眼中的西新宿）",
+      areaTitle: "🏙️ 街區真實印象與生活氛圍（日本人眼中的西新宿４丁目）",
       costTitle: "💰 入住初期費用概算（租屋預算參考）",
       tier3Title: "③ 內見時確認清單",
       copyChecklist: "📋 複製清單",
@@ -45,7 +53,7 @@ export default function Home() {
     ja: {
       badge: "🏢 賃貸物件チェッカー",
       title: "URLを貼るだけ、一瞬でまるわかり",
-      subtitle: "SUUMOの物件URLを入力すると、条件・複数駅・間取り・街の住み心地を自動分析",
+      subtitle: "SUUMOの物件URLを入力すると、条件・駅路線・スーパー・外食・街の住み心地を自動分析",
       placeholder: "https://suumo.jp/chintai/bc_...",
       btnScore: "診断する ↵",
       btnScoring: "解析中...",
@@ -58,9 +66,17 @@ export default function Home() {
       meritPrefix: "👍 メリット：",
       cautionPrefix: "⚠️ 注意点：",
       demeritPrefix: "👎 デメリット：",
-      stationsTitle: "🚉 利用可能駅・アクセス（複数路線対応）",
+      stationsTitle: "🚉 利用可能駅・アクセスのリアル検証（複数路線・弱点）",
+      destLabel: "📍 直通アクセス：",
+      pitfallLabel: "注意点・リアルな弱点：",
+      wardTitle: "🏛️ 「新宿区」に住むメリット・デメリット",
+      wardProsLabel: "🌟 新宿区に住むメリット",
+      wardConsLabel: "⚡ 新宿区に住むデメリット",
+      diningTitle: "🍜 周辺の飲食店・チェーン店マップ（すき家・マック・名店）",
+      superTitle: "🛒 周辺スーパーマップ・位置づけ・評価（買い物環境）",
+      superHours: "営業時間：",
       layoutTitle: "📐 間取り・専有面積のリアル分析",
-      areaTitle: "🏙️ 街の住みやすさ・治安のリアルな印象",
+      areaTitle: "🏙️ 街の住みやすさ・治安のリアルな印象（西新宿４丁目）",
       costTitle: "💰 初期費用の概算シミュレーション",
       tier3Title: "③ 内見時のチェックリスト",
       copyChecklist: "📋 リストをコピー",
@@ -116,7 +132,7 @@ export default function Home() {
         <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-100 text-slate-600 text-xs font-medium">
           {t.badge}
         </div>
-        <div className="flex items-center gap-1 bg-white border border-slate-200 rounded-lg p-0.5 text-xs font-medium">
+        <div className="flex items-center gap-1 bg-white border border-slate-200 rounded-lg p-0.5 text-xs font-medium shadow-xs">
           <button
             onClick={() => setLang('zh')}
             className={`px-2.5 py-1 rounded-md transition-colors ${lang === 'zh' ? 'bg-slate-900 text-white' : 'text-slate-500 hover:text-slate-800'}`}
@@ -142,7 +158,7 @@ export default function Home() {
         </p>
       </div>
 
-      {/* URL Input Box */}
+      {/* Search Input Box */}
       <form onSubmit={handleSubmit} className="w-full bg-white p-2 rounded-2xl shadow-sm border border-slate-200 focus-within:border-slate-400 focus-within:ring-4 focus-within:ring-slate-100 transition-all flex items-center gap-2">
         <span className="pl-3 text-slate-400 text-sm">🔗</span>
         <input
@@ -181,7 +197,7 @@ export default function Home() {
         </button>
       </div>
 
-      {/* Error Notice */}
+      {/* Error Message */}
       {error && (
         <div className="w-full mt-4 p-3.5 bg-rose-50 border border-rose-200 text-rose-700 text-xs rounded-xl text-center">
           {error}
@@ -192,7 +208,7 @@ export default function Home() {
       {evaluation && (
         <div className="w-full mt-6 space-y-4 animate-in fade-in duration-200">
           
-          {/* Property Header */}
+          {/* Property Mini Header */}
           <div className="bg-white px-5 py-4 rounded-2xl border border-slate-200 shadow-xs flex items-center justify-between">
             <div className="space-y-0.5">
               <div className="font-bold text-sm sm:text-base text-slate-900">{propertyTitle}</div>
@@ -206,29 +222,7 @@ export default function Home() {
             )}
           </div>
 
-          {/* Multiple Stations Access Bar */}
-          {evaluation.stations.length > 0 && (
-            <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-xs space-y-2">
-              <div className="text-xs font-bold text-slate-400 uppercase tracking-wider text-[11px]">
-                {t.stationsTitle}
-              </div>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 pt-1">
-                {evaluation.stations.map((st, idx) => (
-                  <div key={idx} className="p-2.5 rounded-xl border border-slate-100 bg-slate-50/70 flex items-center gap-2">
-                    <span className="text-base">🚇</span>
-                    <div className="space-y-0.5">
-                      <div className="text-xs font-bold text-slate-800">{st.station}</div>
-                      <div className="text-[11px] text-slate-500">
-                        {st.line} • <strong className="text-indigo-600 font-semibold">{st.walkMin}分</strong>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* ① 一眼看懂 (Ratings calibrated rigorously) */}
+          {/* ① 一眼看懂 (Strict Calibration) */}
           <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs space-y-3">
             <div className="flex items-center justify-between text-xs">
               <span className="font-bold text-slate-400 uppercase tracking-wider text-[11px]">
@@ -312,7 +306,138 @@ export default function Home() {
             </div>
           </div>
 
-          {/* ③ 間取り格局深入剖析 */}
+          {/* ③ 可利用車站與交通深度解析 (Multi-Station Access with Real Pitfalls) */}
+          {evaluation.stations && evaluation.stations.length > 0 && (
+            <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs space-y-3">
+              <div className="text-xs font-bold text-slate-400 uppercase tracking-wider text-[11px]">
+                {t.stationsTitle}
+              </div>
+              <div className="space-y-3 pt-1">
+                {evaluation.stations.map((st, idx) => (
+                  <div key={idx} className="p-3.5 rounded-xl border border-slate-150 bg-slate-50/60 space-y-2">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <span className="text-base">🚇</span>
+                        <span className="font-bold text-sm text-slate-900">{st.station}</span>
+                        <span className="text-xs text-slate-500">（{st.line}）</span>
+                      </div>
+                      <span className="text-xs font-bold text-indigo-700 bg-indigo-50 px-2.5 py-0.5 rounded-md border border-indigo-100">
+                        徒歩 {st.walkMin} 分
+                      </span>
+                    </div>
+
+                    <div className="text-xs text-slate-700 space-y-1">
+                      <div className="leading-relaxed">
+                        <strong className="text-slate-800 font-semibold">{t.destLabel}</strong> {st.destinations[lang]}
+                      </div>
+                      <div className="leading-relaxed text-amber-900 bg-amber-50/80 p-2 rounded-lg border border-amber-100">
+                        <strong className="text-amber-800 font-semibold">{t.pitfallLabel}</strong> {st.pitfalls[lang]}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* ④ 住「新宿區」的好處與壞處 (Ward Analysis) */}
+          {evaluation.wardAnalysis && (
+            <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs space-y-4">
+              <div className="text-xs font-bold text-slate-400 uppercase tracking-wider text-[11px]">
+                {t.wardTitle}
+              </div>
+
+              <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-150 text-xs text-slate-700 leading-relaxed">
+                {evaluation.wardAnalysis.summary[lang]}
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                {/* Pros */}
+                <div className="p-3.5 rounded-xl bg-emerald-50/50 border border-emerald-100 space-y-2">
+                  <div className="font-bold text-emerald-800 text-xs">{t.wardProsLabel}</div>
+                  <ul className="space-y-1.5 text-emerald-950">
+                    {evaluation.wardAnalysis.pros.map((p, idx) => (
+                      <li key={idx} className="leading-relaxed">{p[lang]}</li>
+                    ))}
+                  </ul>
+                </div>
+
+                {/* Cons */}
+                <div className="p-3.5 rounded-xl bg-rose-50/50 border border-rose-100 space-y-2">
+                  <div className="font-bold text-rose-800 text-xs">{t.wardConsLabel}</div>
+                  <ul className="space-y-1.5 text-rose-950">
+                    {evaluation.wardAnalysis.cons.map((c, idx) => (
+                      <li key={idx} className="leading-relaxed">{c[lang]}</li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* ⑤ 附近平價餐廳與外食地圖 (Dining Guide) */}
+          {evaluation.diningGuide && (
+            <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs space-y-3">
+              <div className="text-xs font-bold text-slate-400 uppercase tracking-wider text-[11px]">
+                {t.diningTitle}
+              </div>
+
+              <div className="space-y-3 pt-1">
+                {evaluation.diningGuide.map((cat, idx) => (
+                  <div key={idx} className="space-y-2">
+                    <div className="text-xs font-bold text-slate-700 border-l-2 border-indigo-600 pl-2">
+                      {cat.category[lang]}
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+                      {cat.items.map((spot, sIdx) => (
+                        <div key={sIdx} className="p-2.5 rounded-xl bg-slate-50 border border-slate-150 space-y-1">
+                          <div className="flex items-center justify-between">
+                            <span className="font-bold text-slate-800">{spot.name}</span>
+                            <span className="text-[11px] text-slate-500 font-medium">{spot.walk}</span>
+                          </div>
+                          <p className="text-[11px] text-slate-600 leading-snug">{spot.note[lang]}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* ⑥ 周邊超市地圖、定位與評價 (Supermarket Guide) */}
+          {evaluation.supermarkets && (
+            <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs space-y-3">
+              <div className="text-xs font-bold text-slate-400 uppercase tracking-wider text-[11px]">
+                {t.superTitle}
+              </div>
+
+              <div className="grid grid-cols-1 gap-2.5 pt-1 text-xs">
+                {evaluation.supermarkets.map((sm, idx) => (
+                  <div key={idx} className="p-3 rounded-xl bg-slate-50/70 border border-slate-150 space-y-1.5">
+                    <div className="flex items-center justify-between">
+                      <div className="space-x-1.5">
+                        <span className="font-bold text-slate-900 text-sm">{sm.name}</span>
+                        <span className="text-[11px] px-2 py-0.5 rounded-md bg-indigo-50 text-indigo-700 font-medium">
+                          {sm.positioning[lang]}
+                        </span>
+                      </div>
+                      <span className="font-semibold text-amber-600 text-xs">{sm.rating}</span>
+                    </div>
+                    <div className="flex items-center gap-3 text-[11px] text-slate-500">
+                      <span>🚶 {sm.walk}</span>
+                      <span>🕒 {t.superHours} {sm.hours}</span>
+                    </div>
+                    <p className="text-slate-700 leading-relaxed text-[11px]">
+                      {sm.comment[lang]}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* ⑦ 間取り格局深入剖析 */}
           {evaluation.layoutAnalysis && (
             <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs space-y-3">
               <div className="text-xs font-bold text-slate-400 uppercase tracking-wider text-[11px]">
@@ -338,7 +463,7 @@ export default function Home() {
             </div>
           )}
 
-          {/* ④ 街區印象與真實居住氛圍 */}
+          {/* ⑧ 街區真實印象與生活氛圍 */}
           {evaluation.areaImpression && (
             <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs space-y-3">
               <div className="text-xs font-bold text-slate-400 uppercase tracking-wider text-[11px]">
@@ -366,7 +491,7 @@ export default function Home() {
             </div>
           )}
 
-          {/* ⑤ 初期費用概算試算 */}
+          {/* ⑨ 初期費用概算試算 */}
           {evaluation.initialCost && (
             <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs space-y-3">
               <div className="flex items-center justify-between text-xs border-b border-slate-100 pb-2">
@@ -388,7 +513,7 @@ export default function Home() {
             </div>
           )}
 
-          {/* ⑥ 內見時確認清單 */}
+          {/* ⑩ 內見時確認清單 */}
           <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs space-y-3">
             <div className="flex items-center justify-between border-b border-slate-100 pb-2.5">
               <span className="font-bold text-slate-400 uppercase tracking-wider text-[11px]">

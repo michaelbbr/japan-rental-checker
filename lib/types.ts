@@ -46,11 +46,39 @@ export interface NaikenItem {
   text: LocalizedText;
 }
 
-export interface StationItem {
+export interface StationDetail {
   line: string;
   station: string;
   walkMin: number;
   fullText: string;
+  destinations: LocalizedText; // 能去哪
+  pitfalls: LocalizedText;    // 真實痛點（如大江戶線地下超深）
+}
+
+export interface WardAnalysis {
+  wardName: LocalizedText;
+  summary: LocalizedText;
+  pros: LocalizedText[];
+  cons: LocalizedText[];
+}
+
+export interface DiningSpot {
+  category: LocalizedText;
+  items: Array<{
+    name: string;
+    type: LocalizedText;
+    walk: string;
+    note: LocalizedText;
+  }>;
+}
+
+export interface Supermarket {
+  name: string;
+  positioning: LocalizedText;
+  rating: string;
+  walk: string;
+  hours: string;
+  comment: LocalizedText;
 }
 
 export interface LayoutAnalysis {
@@ -78,7 +106,10 @@ export interface InitialCostEstimate {
 export interface EvaluationResult {
   tier1: DimensionScore[];
   conditions: ConditionCard[];
-  stations: StationItem[];
+  stations: StationDetail[];
+  wardAnalysis: WardAnalysis;
+  diningGuide: DiningSpot[];
+  supermarkets: Supermarket[];
   layoutAnalysis?: LayoutAnalysis;
   areaImpression?: AreaImpression;
   initialCost?: InitialCostEstimate;

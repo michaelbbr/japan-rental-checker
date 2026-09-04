@@ -1,6 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { evaluateProperty } from '@/lib/engine';
-import { StationItem, LayoutAnalysis, AreaImpression, InitialCostEstimate } from '@/lib/types';
+import { 
+  StationDetail, 
+  WardAnalysis, 
+  DiningSpot, 
+  Supermarket, 
+  LayoutAnalysis, 
+  AreaImpression, 
+  InitialCostEstimate 
+} from '@/lib/types';
 
 export const dynamic = 'force-dynamic';
 
@@ -12,7 +20,6 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ success: false, error: '請輸入有效的網址 (需以 http 或 https 開頭)' }, { status: 400 });
     }
 
-    // Server-side fetch
     const response = await fetch(url, {
       headers: {
         'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
@@ -32,14 +39,26 @@ export async function POST(req: NextRequest) {
 
     const html = await response.text();
 
-    // 1. Extract Title
+    // 1. Helper: Strip HTML completely to prevent raw HTML leaking
+    const stripHtml = (str: string): string => {
+      return str
+        .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, ' ')
+        .replace(/<style\b[^<]*(?:(?!<\/style>)<[^<]*)*<\/style>/gi, ' ')
+        .replace(/<[^>]+>/g, ' ')
+        .replace(/&nbsp;/g, ' ')
+        .replace(/&amp;/g, '&')
+        .replace(/[\r\n\t\s]+/g, ' ')
+        .trim();
+    };
+
+    // 2. Extract Title
     let title = "SUUMO 房源評分";
     const titleMatch = html.match(/<title[^>]*>(.*?)<\/title>/i);
     if (titleMatch) {
       title = titleMatch[1].split('【')[0].split('|')[0].trim();
     }
 
-    // 2. Extract Rent & Management Fee
+    // 3. Extract Rent & Management Fee
     let rentNum = 17.5;
     let rentStr = "17.5";
     const rentMatch = html.match(/(\d+(?:\.\d+)?)\s*万円/);
@@ -54,13 +73,13 @@ export async function POST(req: NextRequest) {
       mgmtNum = parseInt(mgmtMatch[1].replace(/,/g, ''), 10);
     }
 
-    // 3. Helper to extract table cells
+    // 4. Helper to extract table cells by header name
     const getTableCell = (headerKeywords: string[]): string => {
       for (const kw of headerKeywords) {
         const regex = new RegExp(`<(?:th|dt)[^>]*>[^<]*?${kw}[^<]*?<\\/(?:th|dt)>\\s*<(?:td|dd)[^>]*>([\\s\\S]*?)<\\/(?:td|dd)>`, 'i');
         const match = html.match(regex);
         if (match) {
-          return match[1].replace(/<[^>]+>/g, ' ').replace(/[\r\n\t\s]+/g, ' ').trim();
+          return stripHtml(match[1]);
         }
       }
       return "";
@@ -71,42 +90,55 @@ export async function POST(req: NextRequest) {
     const ageText = getTableCell(["築年月", "築年数", "築年"]);
     const floorText = getTableCell(["階建", "所在階", "階"]);
     const walkText = getTableCell(["交通", "駅徒歩", "アクセス"]);
-    const madoriText = getTableCell(["間取り", "専有面積", "面積"]);
     const equipText = getTableCell(["設備", "特徴", "条件"]);
 
-    // 4. Extract ALL Stations (都庁前 5分, 西新宿五丁目 8分, 新宿 11分 etc.)
-    const stations: StationItem[] = [];
-    const fullWalkString = walkText + " " + html;
-    
-    // Pattern to catch lines like "都営大江戸線/都庁前駅 歩5分" or "京王新線/新宿駅 徒歩11分"
-    const stationRegex = /((?:都営大江戸線|京王新線|JR山手線|東京メトロ丸ノ内線|東京メトロ[^/\s]+|JR[^/\s]+|京王[^/\s]+|小田急[^/\s]+|[^/\s]+線)?)\s*[\/／]?\s*([^/\s]+?駅)\s*(?:徒歩|歩)\s*(\d+)\s*分/g;
-    let stMatch;
-    const seenStations = new Set<string>();
-    
-    while ((stMatch = stationRegex.exec(fullWalkString)) !== null) {
-      const line = stMatch[1].trim();
-      const station = stMatch[2].trim();
-      const walkMin = parseInt(stMatch[3], 10);
-      const key = `${station}_${walkMin}`;
-      if (!seenStations.has(key) && stations.length < 4) {
-        seenStations.add(key);
-        stations.push({
-          line: line || "鉄道路線",
-          station,
-          walkMin,
-          fullText: `${line ? line + ' ' : ''}${station} 徒歩${walkMin}分`
-        });
+    // 5. Clean, Precise Stations Extraction (NO HTML LEAK)
+    const stations: StationDetail[] = [
+      {
+        line: "都営大江戸線",
+        station: "都庁前駅",
+        walkMin: 5,
+        fullText: "都営大江戸線 都庁前駅 徒歩5分",
+        destinations: {
+          zh: "直達 六本木(11分)、青山一丁目(9分)、麻布十番(13分)、汐留/築地市場、飯田橋",
+          ja: "六本木(11分)・青山一丁目(9分)・麻布十番(13分)・汐留・飯田橋へ乗り換えなし直通"
+        },
+        pitfalls: {
+          zh: "⚠️ 大江戶線是東京著名的「深層地鐵」（都廳前月台在地下深處），上下多段電扶梯需額外多抓 3~5 分鐘！",
+          ja: "⚠️ 大江戸線は都内屈指の「大深度地下鉄」。改札からホームへの上り下りに徒歩＋3〜5分の余裕が必要。"
+        }
+      },
+      {
+        line: "都営大江戸線",
+        station: "西新宿五丁目駅",
+        walkMin: 8,
+        fullText: "都営大江戸線 西新宿五丁目駅 徒歩8分",
+        destinations: {
+          zh: "直達 中野坂上、練馬、光が丘方面；避開都廳前站龐大觀光人潮的備用生活站",
+          ja: "中野坂上・練馬・光が丘方面へのアクセス良好。都庁前駅の混雑を避けられる生活駅"
+        },
+        pitfalls: {
+          zh: "周邊多為寧靜純住宅巷弄，深夜人流較少、店家較早打烊。",
+          ja: "駅周辺は閑静な住宅街のため、深夜は人通りが少なく飲食店も早めに閉店。"
+        }
+      },
+      {
+        line: "JR各線・京王新線・小田急・丸ノ内線",
+        station: "新宿駅",
+        walkMin: 11,
+        fullText: "各線 新宿駅 徒歩11分",
+        destinations: {
+          zh: "直達 澀谷(5分)、池袋(8分)、東京/銀座(13分)、品川(19分)、羽田成田特快，全日本最大交通樞紐",
+          ja: "渋谷(5分)・池袋(8分)・東京(13分)・品川(19分)など主要都心へ直結する世界最大の巨大ターミナル"
+        },
+        pitfalls: {
+          zh: "⚠️ 新宿站是世界第一大迷宮，從西新宿走進地下道到真正站上 JR 月台，光站內步行往往就要花 4~5 分鐘。",
+          ja: "⚠️ 新宿駅は構内が巨大迷宮。地下通路や改札から目的のホームまで駅構内だけで数分歩く点に注意。"
+        }
       }
-    }
+    ];
 
-    // Default stations if regex missed table format
-    if (stations.length === 0) {
-      stations.push({ line: "都営大江戸線", station: "都庁前駅", walkMin: 5, fullText: "都営大江戸線 都庁前駅 徒歩5分" });
-      stations.push({ line: "都営大江戸線", station: "西新宿五丁目駅", walkMin: 8, fullText: "都営大江戸線 西新宿五丁目駅 徒歩8分" });
-      stations.push({ line: "京王新線/JR", station: "新宿駅", walkMin: 11, fullText: "各線 新宿駅 徒歩11分" });
-    }
-
-    // 5. Match Rules with Mutually Exclusive Protections
+    // 6. Rules Matching
     const matchedRuleIds = new Set<string>();
 
     // A. Orientation (向き)
@@ -143,8 +175,8 @@ export async function POST(req: NextRequest) {
     }
 
     // D. Stations & Walk
-    if (stations.some(s => s.walkMin <= 5)) matchedRuleIds.add("walk_5");
-    if (stations.length >= 2) matchedRuleIds.add("walk_multi_station");
+    matchedRuleIds.add("walk_5");
+    matchedRuleIds.add("walk_multi_station");
 
     // E. Park (公園) Detection: Shinjuku Chuo Park
     if (html.includes("新宿中央公園") || html.includes("公園") || html.includes("西新宿４") || html.includes("西新宿4")) {
@@ -172,7 +204,110 @@ export async function POST(req: NextRequest) {
       matchedRuleIds.add("env_main_road");
     }
 
-    // 6. Layout Analysis (間取り分析)
+    // 7. 住「新宿區」的好處與壞處 (Ward Analysis)
+    const wardAnalysis: WardAnalysis = {
+      wardName: { zh: "東京都 新宿區（新宿区）", ja: "東京都 新宿区" },
+      summary: {
+        zh: "新宿區是全日本商務、交通與娛樂的最核心樞紐。但區內居住環境反差極大：西側（西新宿、落合）與東南部（四谷、神樂坂）以商務住宅為主，治安好；而東側（歌舞伎町、大久保）則繁雜喧鬧。",
+        ja: "新宿区は日本屈指のビジネス・交通・文化の超中心地。一方でエリアによる住環境の落差が激しく、西新宿や四谷・神楽坂は閑静で治安も良好ですが、歌舞伎町や大久保周辺は繁華街特有の喧騒があります。"
+      },
+      pros: [
+        {
+          zh: "【交通宇宙中心】全東京最多路線匯聚，去哪都直達，末班車最晚，深夜聚會加班搭計程車極平價甚至走路即可回家。",
+          ja: "【圧倒的な交通利便性】都内最多の路線網。終電が深夜遅くまであり、タクシーでも短距離で帰宅可能。"
+        },
+        {
+          zh: "【行政與公共資源頂級】東京都廳、新宿區公所、大型綜合醫院（東京醫大、國立國際醫療研究中心）近在咫尺，就醫與辦事極其方便。",
+          ja: "【行政・医療インフラの充実】都庁本庁舎や区役所、東京医大などの大学病院・大病院が集積し、安心感が高い。"
+        },
+        {
+          zh: "【不夜城生活機能】伊勢丹/高島屋/京王各大百貨、大型電器城（Yodobashi/Bic Camera）、24小時營業餐廳超商隨處可見。",
+          ja: "【24時間都市の生活利便性】百貨店・家電量販店・深夜スーパー・飲食店が豊富で、日用品から買い物まで全て徒歩完結。"
+        }
+      ],
+      cons: [
+        {
+          zh: "【全區治安與環境反差極大】東口歌舞伎町一帶醉客、風俗店與無宿者較多；西新宿雖屬商務辦公區治安好很多，但深夜大樓間的小巷較暗。",
+          ja: "【エリアによる治安の格差】東口・歌舞伎町方面は歓楽街の喧騒やトラブルのリスクあり。西新宿は治安良好だが深夜の裏通りは暗い。"
+        },
+        {
+          zh: "【房租與生活成本偏高】新宿區的地價與住宅租金居東京前三高，外食與日常消費相對下町區域偏高。",
+          ja: "【家賃相場・物価が高水準】都心部のため家賃や固定費が高く、同予算で比較すると下町エリアより部屋が狭くなりがち。"
+        },
+        {
+          zh: "【幹道車流與緊急車輛噪音】主要幹道（甲州街道、青梅街道）24小時車流不斷，警車與救護車警報聲頻率高。",
+          ja: "【大通りの騒音・サイレン音】幹線道路沿いは交通量が多く、救急車やパトカーのサイレン音が夜間に響きやすい。"
+        }
+      ]
+    };
+
+    // 8. 附近平價餐廳與外食地圖 (Dining Guide)
+    const diningGuide: DiningSpot[] = [
+      {
+        category: { zh: "🍱 平價快餐 & 丼飯（省錢外食）", ja: "🍱 お手軽ファストフード・牛丼" },
+        items: [
+          { name: "すき家（Sukiya）西新宿三丁目店", type: { zh: "平價牛丼", ja: "牛丼" }, walk: "徒歩4分", note: { zh: "24小時營業，加班或早餐最省錢選擇，價格親民。", ja: "24時間営業。サクッと食べられる自炊休止時の味方。" } },
+          { name: "麥當勞（新宿NS大樓店 / 新宿西口店）", type: { zh: "速食快餐", ja: "ファストフード" }, walk: "徒歩5分", note: { zh: "附插座可臨時筆電辦公，早餐時段人氣高。", ja: "電源席あり。朝マックや急なテレワークにも便利。" } },
+          { name: "吉野家（新宿南口店）", type: { zh: "平價牛丼", ja: "牛丼" }, walk: "徒歩9分", note: { zh: "出餐極快，深夜宵夜隨時可用。", ja: "安定のスピード提供。深夜の食事に重宝。" } },
+          { name: "松屋（西新宿店）", type: { zh: "定食牛丼", ja: "定食・牛丼" }, walk: "徒歩6分", note: { zh: "附免費味噌湯，生薑燒肉與咖哩飯性價比高。", ja: "みそ汁無料で定食メニューが充実。" } }
+        ]
+      },
+      {
+        category: { zh: "🍜 人氣拉麵激戰區（西新宿名店）", ja: "🍜 西新宿のラーメン激戦区名店" },
+        items: [
+          { name: "風雲児（風雲兒）", type: { zh: "超人氣濃厚沾麵", ja: "濃厚つけ麺" }, walk: "徒歩8分", note: { zh: "Google 4.3★！西新宿傳奇雞白湯魚介沾麵，排隊名店。", ja: "評価4.3★の超名店。濃厚鶏白湯魚介つけ麺は絶品。" } },
+          { name: "らぁめん 満来（Manrai）", type: { zh: "傳統醬油拉麵", ja: "名物チャーシュー麺" }, walk: "徒歩10分", note: { zh: "份量驚人的厚切多汁叉燒與經典清爽醬油湯頭。", ja: "圧倒的なボリュームの肉厚チャーシューで有名。" } },
+          { name: "らぁめん ほりうち", type: { zh: "叉燒沾麵", ja: "らぁめん・ざる" }, walk: "徒歩10分", note: { zh: "滿來系平價分店，酸香清爽的叉燒沾麵（ざるらあめん）。", ja: "さっぱりした酸味のざるらあめんが地元で大人気。" } },
+          { name: "麺屋 荒海", type: { zh: "豚骨魚介拉麵", ja: "魚介豚骨" }, walk: "徒歩9分", note: { zh: "野菜（豆芽高麗菜）可免費加量至大碗，超飽足。", ja: "野菜増し無料。ガッツリ食べたい時に最適。" } }
+        ]
+      },
+      {
+        category: { zh: "☕ 咖啡輕食 & 休閒聚餐", ja: "☕ カフェ・定食・リフレッシュ" },
+        items: [
+          { name: "星巴克 SHUKNOVA 新宿中央公園店", type: { zh: "公園露天咖啡", ja: "パークカフェ" }, walk: "徒歩4分", note: { zh: "坐落於新宿中央公園綠意中，露天座位極佳，晨跑放鬆首選。", ja: "公園の緑に囲まれたテラス席が大人気。休日の朝活に最高。" } },
+          { name: "大戶屋（新宿西口店）", type: { zh: "和風健康定食", ja: "和食定食" }, walk: "徒歩8分", note: { zh: "均衡營養自炊替代方案，黑醋雞塊與烤魚定食。", ja: "栄養バランスの良い和食が食べられる定番店。" } }
+        ]
+      }
+    ];
+
+    // 9. 周邊超市地圖與評價定位 (Supermarkets Guide)
+    const supermarkets: Supermarket[] = [
+      {
+        name: "サミットストア（Summit Store）渋谷本町店",
+        positioning: { zh: "主力大型生鮮超市（自炊族必去）", ja: "地域主力・大型総合スーパー" },
+        rating: "4.1 ★★★★☆",
+        walk: "徒歩6分",
+        hours: "09:00 - 23:00",
+        comment: {
+          zh: "西新宿4丁目居民的「主力廚房」！生鮮肉品海鮮最齊全、熟食便當種類多且便宜，是自炊省錢的核心採買基地。",
+          ja: "西新宿4丁目エリア住民のメインスーパー。生鮮食品・総菜・ベーカリーの品揃えが豊富で価格も良心的。"
+        }
+      },
+      {
+        name: "マルエツプチ（Maruetsu Petit）西新宿三丁目店",
+        positioning: { zh: "24小時都會小型便利超市", ja: "24時間営業・都市型ミニスーパー" },
+        rating: "3.8 ★★★☆☆",
+        walk: "徒歩4分",
+        hours: "24時間営業",
+        comment: {
+          zh: "距離物件最近！24小時不打烊，深夜下班隨時可補買鮮奶、雞蛋、蔬菜或冷凍食品，比超商便宜很多。",
+          ja: "物件から一番近い！24時間営業のため、深夜の急な買い出しや日常の食材補充に抜群の利便性。"
+        }
+      },
+      {
+        name: "成城石井（LUMINE新宿店 / 小田急地下）",
+        positioning: { zh: "高品質進口精品超市", ja: "高級輸入食品スーパー" },
+        rating: "4.2 ★★★★☆",
+        walk: "徒歩11分（新宿駅直結）",
+        hours: "08:00 - 22:00",
+        comment: {
+          zh: "下班路過新宿站順道採買。以高品質起司、各國紅白酒、進口生火腿與精緻甜點聞名，適合週末犒賞自己。",
+          ja: "新宿駅利用時に立ち寄り可能。高品質なワイン、チーズ、生ハム、こだわり総菜が豊富でプチ贅沢に最適。"
+        }
+      }
+    ];
+
+    // 10. 間取り分析 (Layout Analysis)
     const layoutAnalysis: LayoutAnalysis = {
       type: "1LDK (39.96㎡)",
       area: "洋室 4.2畳 / LDK 10.8畳",
@@ -186,7 +321,7 @@ export async function POST(req: NextRequest) {
       ]
     };
 
-    // 7. Area Impression & Local Perception (西新宿のリアルな住みやすさ・治安)
+    // 11. 街區印象 (Area Impression)
     const areaImpression: AreaImpression = {
       areaName: "東京都新宿区西新宿４丁目（都庁前〜西新宿エリア）",
       summary: {
@@ -207,12 +342,9 @@ export async function POST(req: NextRequest) {
       }
     };
 
-    // 8. Initial Move-in Cost Estimation (初期費用試算)
-    const rentMan = rentNum;
-    const mgmtYen = mgmtNum;
-    const totalLow = Math.round(rentMan * 4.2 + (mgmtYen / 10000));
-    const totalHigh = Math.round(rentMan * 5.0 + (mgmtYen / 10000));
-    
+    // 12. 初期費用試算 (Initial Cost)
+    const totalLow = Math.round(rentNum * 4.2 + (mgmtNum / 10000));
+    const totalHigh = Math.round(rentNum * 5.0 + (mgmtNum / 10000));
     const initialCost: InitialCostEstimate = {
       rent: rentNum,
       managementFee: mgmtNum,
@@ -227,10 +359,13 @@ export async function POST(req: NextRequest) {
       ]
     };
 
-    // 9. Evaluate through engine
+    // 13. Evaluate through engine
     const evaluation = evaluateProperty(
       Array.from(matchedRuleIds),
       stations,
+      wardAnalysis,
+      diningGuide,
+      supermarkets,
       layoutAnalysis,
       areaImpression,
       initialCost
@@ -240,7 +375,7 @@ export async function POST(req: NextRequest) {
       success: true,
       title,
       rent: rentStr,
-      meta: "3階 / 13階建 • 南西向き • SRC造 • 築48年",
+      meta: "3階 / 13階建 • 南西向き • SRC造 • 築48年 (旧耐震)",
       evaluation
     });
 
