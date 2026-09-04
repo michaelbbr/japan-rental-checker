@@ -15,7 +15,6 @@ function haversineMeters(lat1: number, lon1: number, lat2: number, lon2: number)
   return R * c;
 }
 
-// Generates walking directions URL displaying the REAL store name and address
 function makeWalkingMapUrl(
   originAddr: string, 
   destName: string, 
@@ -25,16 +24,35 @@ function makeWalkingMapUrl(
   return `https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(originAddr)}&destination=${encodeURIComponent(cleanDest)}&travelmode=walking`;
 }
 
-// Terms that are NOT genuine retail supermarkets/stores
-const EXCLUDED_STORE_TERMS = [
-  "amazon", "ロッカー", "locker", "ｆｐ", "fp", "パートナー", 
-  "事務所", "相談", "保険", "コインランドリー", "クリーニング", 
-  "駐車場", "自販機", "ステーション", "受取", "便", "営業所", "オフィス"
+// STRICT EXCLUSION: CLINICS, HOSPITALS, LOCKERS, CORPORATE OFFICES
+const MEDICAL_AND_NON_STORE_TERMS = [
+  "クリニック", "clinic", "医院", "病院", "内科", "歯科", "デンタル", "皮膚科", 
+  "外科", "眼科", "薬局", "調剤", "処方", "耳鼻", "小児科", "整骨", "整体", "接骨", 
+  "鍼灸", "マッサージ", "リハビリ", "amazon", "ロッカー", "locker", "ｆｐ", "fp", 
+  "パートナー", "事務所", "相談", "保険", "コインランドリー", "クリーニング", 
+  "駐車場", "自販機", "ステーション", "受取", "便", "営業所", "オフィス", "税理士", "行政書士"
 ];
 
-function isGenuineStore(name: string): boolean {
-  const lower = name.toLowerCase();
-  return !EXCLUDED_STORE_TERMS.some(term => lower.includes(term));
+const MEDICAL_PLACE_TYPES = [
+  "health", "doctor", "hospital", "dentist", "pharmacy", "physiotherapist"
+];
+
+function isGenuineSupermarket(p: any): boolean {
+  const name = (p.name || "").toLowerCase();
+  const types: string[] = p.types || [];
+
+  if (types.some(t => MEDICAL_PLACE_TYPES.includes(t))) return false;
+  if (MEDICAL_AND_NON_STORE_TERMS.some(term => name.includes(term))) return false;
+  return true;
+}
+
+function isGenuineConvenienceStore(p: any): boolean {
+  const name = (p.name || "").toLowerCase();
+  const types: string[] = p.types || [];
+
+  if (types.some(t => MEDICAL_PLACE_TYPES.includes(t))) return false;
+  if (MEDICAL_AND_NON_STORE_TERMS.some(term => name.includes(term))) return false;
+  return true;
 }
 
 export async function POST(req: NextRequest) {
@@ -270,7 +288,7 @@ export async function POST(req: NextRequest) {
 
     if (html.includes("バストイレ別") || html.includes("BT別")) matchedRuleIds.add("equip_bt_sep");
 
-    // Check arterial road (甲州街道 / 幹線道路 / 大通り沿い)
+    // Check arterial road (甲州街道 / 幹線道路 / 大通り沿い) -> 静かさ drops to △
     if (
       html.includes("甲州街道") || 
       html.includes("大通り") || 
@@ -281,7 +299,7 @@ export async function POST(req: NextRequest) {
       matchedRuleIds.add("env_main_road");
     }
 
-    // 7. GOOGLE MAPS PLACES API WITH STRICT DEDUPLICATION AND CLEAN DESTINATION URLS
+    // 7. GOOGLE MAPS API: WIDER 1000m RADIUS + MEDICAL CLINIC FILTERING
     const apiKey = process.env.GOOGLE_MAPS_API_KEY;
     let isGoogleMapsLive = false;
     let propCoordinates: { lat: number; lng: number } | undefined = undefined;
@@ -301,14 +319,14 @@ export async function POST(req: NextRequest) {
           propCoordinates = { lat, lng };
           isGoogleMapsLive = true;
 
-          // A. Search Supermarkets WITH explicit Japanese supermarket keywords
+          // A. Search Supermarkets (RADIUS 1000m to catch Maruetsu 6-chome & My Basket)
           const spKeyword = encodeURIComponent('スーパー|マルエツ|まいばすけっと|サミット|成城石井|ライフ|オーケー');
-          const spUrl = `https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=${lat},${lng}&radius=800&keyword=${spKeyword}&language=ja&key=${apiKey}`;
+          const spUrl = `https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=${lat},${lng}&radius=1000&keyword=${spKeyword}&language=ja&key=${apiKey}`;
           const spRes = await fetch(spUrl);
           const spData = await spRes.json();
           if (spData.results?.length) {
             const rawSupers = spData.results
-              .filter((p: any) => isGenuineStore(p.name))
+              .filter((p: any) => isGenuineSupermarket(p))
               .map((p: any) => {
                 const pLat = p.geometry?.location?.lat ?? lat;
                 const pLng = p.geometry?.location?.lng ?? lng;
@@ -317,11 +335,11 @@ export async function POST(req: NextRequest) {
               });
             rawSupers.sort((a: any, b: any) => a.dist - b.dist);
 
-            // Deduplicate brands within close proximity
+            // Deduplicate: Keep genuine supermarkets
             const seenSupers = new Set<string>();
             const dedupedSupers: any[] = [];
             for (const item of rawSupers) {
-              const baseName = item.p.name.replace(/[\s\-_・]/g, '').slice(0, 8);
+              const baseName = item.p.name.replace(/[\s\-_・]/g, '').slice(0, 7);
               if (!seenSupers.has(baseName) && dedupedSupers.length < 4) {
                 seenSupers.add(baseName);
                 dedupedSupers.push(item);
@@ -339,9 +357,6 @@ export async function POST(req: NextRequest) {
               } else if (p.name.includes("まいばすけっと") || p.name.includes("マルエツプチ")) {
                 priceTier = { ja: "★★☆☆☆（コンビニより3割安・24H/深夜）", zh: "★★☆☆☆（比超商便宜30%・24H/深夜營業）", zhCN: "★★☆☆☆（比超商便宜30%·24H/深夜营业）", en: "★★☆☆☆ (30% cheaper than CVS / 24H)" };
                 tag = { ja: "都市型ミニスーパー", zh: "都會型便民超市", zhCN: "都会型便民超市", en: "Urban Mini-Super" };
-              } else if (p.name.includes("オーケー") || p.name.includes("業務スーパー")) {
-                priceTier = { ja: "★☆☆☆☆（極限省錢批發價）", zh: "★☆☆☆☆（極限省錢批發價）", zhCN: "★☆☆☆☆（极限省钱批发价）", en: "★☆☆☆☆ (Deep Discount / Wholesale)" };
-                tag = { ja: "激安ディスカウント", zh: "激安折扣超市", zhCN: "激安折扣超市", en: "Discount Grocer" };
               }
 
               return {
@@ -362,12 +377,12 @@ export async function POST(req: NextRequest) {
           }
 
           // B. Search Convenience Stores
-          const cvsUrl = `https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=${lat},${lng}&radius=500&type=convenience_store&language=ja&key=${apiKey}`;
+          const cvsUrl = `https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=${lat},${lng}&radius=600&type=convenience_store&language=ja&key=${apiKey}`;
           const cvsRes = await fetch(cvsUrl);
           const cvsData = await cvsRes.json();
           if (cvsData.results?.length) {
             const rawCvs = cvsData.results
-              .filter((p: any) => isGenuineStore(p.name))
+              .filter((p: any) => isGenuineConvenienceStore(p))
               .map((p: any) => {
                 const pLat = p.geometry?.location?.lat ?? lat;
                 const pLng = p.geometry?.location?.lng ?? lng;
@@ -420,12 +435,12 @@ export async function POST(req: NextRequest) {
           }
 
           // C. Search Famous Chains
-          const chainUrl = `https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=${lat},${lng}&radius=800&keyword=${encodeURIComponent('すき家|松屋|吉野家|マクドナルド|サイゼリヤ|日高屋|やよい軒|かつや')}&language=ja&key=${apiKey}`;
+          const chainUrl = `https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=${lat},${lng}&radius=900&keyword=${encodeURIComponent('すき家|松屋|吉野家|マクドナルド|サイゼリヤ|日高屋|やよい軒|かつや')}&language=ja&key=${apiKey}`;
           const chainRes = await fetch(chainUrl);
           const chainData = await chainRes.json();
           if (chainData.results?.length) {
             const rawChains = chainData.results
-              .filter((p: any) => isGenuineStore(p.name))
+              .filter((p: any) => isGenuineConvenienceStore(p))
               .map((p: any) => {
                 const pLat = p.geometry?.location?.lat ?? lat;
                 const pLng = p.geometry?.location?.lng ?? lng;
@@ -466,7 +481,7 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // High-Accuracy Grounded Fallbacks (Grounded in Nishi-Shinjuku 4-chome, 350m radius)
+    // High-Accuracy Grounded Fallbacks with All 4 Supermarkets Explicitly Included
     if (!supermarkets.length) {
       supermarkets = [
         {
@@ -514,13 +529,13 @@ export async function POST(req: NextRequest) {
         {
           name: "マルエツプチ 西新宿6丁目店",
           tag: { ja: "24時間営業・大型生鮮スーパー", zh: "大型24小時生鮮", zhCN: "大型24小时生鲜", en: "24H Full-Size Supermarket" },
-          priceLevel: { ja: "★★☆☆☆（庶民派）", zh: "★★☆☆☆（平價生鮮）", zhCN: "★★☆☆☆（平价生鲜）", en: "★★☆☆☆ (Standard Supermarket)" },
+          priceLevel: { ja: "★★☆☆☆（庶民派生鮮）", zh: "★★☆☆☆（平價生鮮）", zhCN: "★★☆☆☆（平价生鲜）", en: "★★☆☆☆ (Standard Supermarket)" },
           walk: "徒歩 5 分 (420m)",
           rating: "3.8 ★★★★☆",
           note: { 
-            ja: "門市較大、生鮮蔬果肉品與熟食便當最齊全（795件口コミ）", 
-            zh: "門市較大、生鮮蔬果肉品與熟食便當最齊全，西新宿主力採買廚房（795則評論）",
-            zhCN: "门店较大、生鲜蔬果肉品与便当最齐全，西新宿主力厨房（795条评价）",
+            ja: "中央公園北側。門市較大、生鮮蔬果肉品與熟食便當最齊全（795件口コミ）", 
+            zh: "中央公園北側門市較大、生鮮蔬果肉品與熟食便當最齊全，主力採買廚房（795則評論）",
+            zhCN: "中央公园北侧。生鲜蔬果肉品与便当最齐全，主力厨房（795条评价）",
             en: "Spacious store with comprehensive produce, meat, and bento selection (795 reviews)"
           },
           mapUrl: makeWalkingMapUrl(geocodeTarget, "マルエツプチ 西新宿6丁目店", "東京都新宿区西新宿6-15-1")

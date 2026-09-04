@@ -18,122 +18,122 @@ export default function Home() {
 
   const t = {
     ja: {
-      badge: "Japan Rental Intelligence",
-      title: "日本の部屋探しを、スマートに診断。",
-      subtitle: "SUUMOなどのURLを貼るだけで、物件の耐震性・駅動線・真の生活インフラを一瞬で可視化",
+      sealBadge: "日本賃貸 総合診断所",
+      title: "日本の賃貸物件を、客観的に見抜く。",
+      subtitle: "URLを貼るだけで、耐震構造・駅動線・真の生活インフラを一瞬で高精度に診断",
       placeholder: "物件URLを入力 (SUUMO / DOOR賃貸 / HOME'S)...",
-      btnScore: "診断する",
-      btnScoring: "分析中...",
-      tier1Title: "総合レーティング",
-      tier1Subtitle: "タップして詳細な判定根拠を確認",
-      tier2Title: "条件別メリット・注意点",
-      meritPrefix: "メリット：",
-      cautionPrefix: "注意点：",
-      demeritPrefix: "デメリット：",
-      stationsTitle: "最寄り駅・アクセス",
+      btnScore: "診断を開始 ↵",
+      btnScoring: "診断中...",
+      tier1Title: "① 総合レーティング（6大指標）",
+      tier1Subtitle: "※各指標をタップすると判定根拠が表示されます",
+      tier2Title: "② 条件別メリット・注意点（長所と短所）",
+      meritPrefix: "長所：",
+      cautionPrefix: "注意：",
+      demeritPrefix: "短所：",
+      stationsTitle: "🚉 最寄り駅・アクセス（タップでGoogleマップ徒歩ルート案内）",
       destLabel: "直通方面：",
       pitfallLabel: "留意点：",
-      amenitiesTitle: "周辺生活インフラ",
-      superLabel: "スーパーマーケット（位置づけ＆価格帯）",
-      cvsLabel: "コンビニエンスストア",
-      chainLabel: "定番外食チェーン",
-      walkRouteHint: "徒歩ルート案内 ↗",
-      tier3Title: "内見時チェックリスト",
-      copyChecklist: "リストをコピー",
-      copied: "コピー完了",
-      footer: "Japan Rental Analyzer • Apple HIG Design • Google Maps 徒歩ナビ連携",
+      amenitiesTitle: "🏪 生活インフラ速報（タップで店舗への徒歩ルート案内）",
+      superLabel: "🛒 周辺スーパーマーケット（位置づけ＆価格帯）",
+      cvsLabel: "🏪 コンビニエンスストア（価格帯＆特徴）",
+      chainLabel: "🍽️ 周辺の定番外食チェーン",
+      walkRouteHint: "徒歩ナビ ↗",
+      tier3Title: "③ 内見時のチェックリスト",
+      copyChecklist: "［ リストをコピー ］",
+      copied: "✓ コピー完了",
+      footer: "日本賃貸物件診断所 • 和モダンデザイン • Google Maps リアルタイム徒歩ナビ連携",
       vacantBadge: "現在満室（募集中なし / N/A）",
-      mapsLiveBadge: "Google Maps 連携",
-      reasonBoxHeader: "判定理由",
+      mapsLiveBadge: "Google Maps リアルタイム連動",
+      reasonBoxHeader: "評価理由・判定根拠",
       switchPrompt: "他の指標をタップして切替"
     },
     zh: {
-      badge: "日本租房智慧評估",
-      title: "日本租房，一鍵智慧診斷。",
+      sealBadge: "日本賃貸 総合診斷所",
+      title: "日本租房物件，一鍵客觀診斷。",
       subtitle: "貼上 SUUMO 網址，瞬間透視房屋規格、耐震風險、車站動線與周邊真實生活機能",
       placeholder: "輸入房源網址 (SUUMO / DOOR賃貸 / HOME'S)...",
-      btnScore: "開始診斷",
+      btnScore: "開始診斷 ↵",
       btnScoring: "分析中...",
-      tier1Title: "核心指標總評",
-      tier1Subtitle: "點擊或懸停指標查看客觀評分理由",
-      tier2Title: "條件優缺點深度解析",
+      tier1Title: "① 核心指標總評（六大維度）",
+      tier1Subtitle: "※點擊或懸停指標即可查看客觀評分理由",
+      tier2Title: "② 關鍵條件解析（優缺點合一）",
       meritPrefix: "優點：",
       cautionPrefix: "注意：",
       demeritPrefix: "缺點：",
-      stationsTitle: "利用車站與交通動線",
+      stationsTitle: "🚉 利用車站與交通動線（點擊查看 Google Maps 徒步路線）",
       destLabel: "直達：",
       pitfallLabel: "注意：",
-      amenitiesTitle: "周邊生活機能速查",
-      superLabel: "周邊超市（定位＆價格檔次）",
-      cvsLabel: "超商定位與價格檔次",
-      chainLabel: "周邊知名連鎖外食",
+      amenitiesTitle: "🏪 生活機能速查（點擊店家開啟 Google Maps 徒步導航）",
+      superLabel: "🛒 主力超市（定位＆價格檔次）",
+      cvsLabel: "🏪 超商定位與價格檔次",
+      chainLabel: "🍽️ 周邊知名連鎖外食",
       walkRouteHint: "徒步導航 ↗",
-      tier3Title: "現場內見確認清單",
-      copyChecklist: "複製清單",
-      copied: "已複製",
-      footer: "Japan Rental Analyzer • Apple HIG Design • Google Maps 徒步導航串接",
+      tier3Title: "③ 現場內見確認清單",
+      copyChecklist: "［ 複製清單 ］",
+      copied: "✓ 已複製",
+      footer: "日本租房物件診斷所 • 和風現代設計 • Google Maps 徒步導航串接",
       vacantBadge: "目前滿室（無招租中 / N/A）",
       mapsLiveBadge: "Google Maps 即時連線",
       reasonBoxHeader: "評分理由與依據",
       switchPrompt: "點擊上方指標切換"
     },
     zhCN: {
-      badge: "日本租房智慧评估",
-      title: "日本租房，一键智慧诊断。",
-      subtitle: "贴上 SUUMO 网址，瞬间透视房屋规格、耐震风险、车站动线与周边真实生活设施",
+      sealBadge: "日本租赁 综合诊断所",
+      title: "日本租房物件，一键客观诊断。",
+      subtitle: "贴上 SUUMO 网址，瞬间透视房屋规格、耐震风险、车站路线与周边真实生活设施",
       placeholder: "输入房源网址 (SUUMO / DOOR租赁 / HOME'S)...",
-      btnScore: "开始诊断",
+      btnScore: "开始诊断 ↵",
       btnScoring: "分析中...",
-      tier1Title: "核心指标总评",
-      tier1Subtitle: "点击或悬停指标查看客观评分理由",
-      tier2Title: "条件优缺点深度解析",
+      tier1Title: "① 核心指标总评（六大维度）",
+      tier1Subtitle: "※点击或悬停指标即可查看客观评分理由",
+      tier2Title: "② 关键条件解析（优缺点合一）",
       meritPrefix: "优点：",
       cautionPrefix: "注意：",
       demeritPrefix: "缺点：",
-      stationsTitle: "利用车站与交通路线",
+      stationsTitle: "🚉 利用车站与交通路线（点击查看 Google Maps 步行路线）",
       destLabel: "直达：",
       pitfallLabel: "注意：",
-      amenitiesTitle: "周边生活设施速查",
-      superLabel: "周边超市（定位＆价格档次）",
-      cvsLabel: "便利店定位与价格档次",
-      chainLabel: "周边知名连锁餐饮",
+      amenitiesTitle: "🏪 生活设施速查（点击店铺开启 Google Maps 步行导航）",
+      superLabel: "🛒 主力超市（定位＆价格档次）",
+      cvsLabel: "🏪 便利店定位与价格档次",
+      chainLabel: "🍽️ 周边知名连锁餐饮",
       walkRouteHint: "步行导航 ↗",
-      tier3Title: "现场看房确认清单",
-      copyChecklist: "复制清单",
-      copied: "已复制",
-      footer: "Japan Rental Analyzer • Apple HIG Design • Google Maps 步行导航联动",
+      tier3Title: "③ 现场看房确认清单",
+      copyChecklist: "［ 复制清单 ］",
+      copied: "✓ 已复制",
+      footer: "日本租房物件诊断所 • 和风现代设计 • Google Maps 步行导航联动",
       vacantBadge: "目前满室（无招租中 / N/A）",
       mapsLiveBadge: "Google Maps 实时连接",
       reasonBoxHeader: "评分理由与依据",
       switchPrompt: "点击上方指标切换"
     },
     en: {
-      badge: "Japan Rental Intelligence",
-      title: "Understand Any Rental in Seconds.",
+      sealBadge: "Japan Rental Intelligence",
+      title: "Objectively Understand Any Rental.",
       subtitle: "Paste a SUUMO link to reveal real earthquake safety, station commutes, and genuine local amenities",
       placeholder: "Paste property link (SUUMO / DOOR / HOME'S)...",
-      btnScore: "Diagnose",
+      btnScore: "Analyze ↵",
       btnScoring: "Analyzing...",
-      tier1Title: "Overall Ratings",
-      tier1Subtitle: "Tap any badge to see detailed evaluation rationale",
-      tier2Title: "Condition Analysis (Pros & Cons)",
+      tier1Title: "① Core Ratings (6 Dimensions)",
+      tier1Subtitle: "※Click or tap any badge to view scoring rationale",
+      tier2Title: "② Condition Breakdown (Pros & Cons)",
       meritPrefix: "Pros: ",
       cautionPrefix: "Caution: ",
       demeritPrefix: "Cons: ",
-      stationsTitle: "Stations & Transit",
+      stationsTitle: "🚉 Stations & Transit (Click for Google Maps Walking Route)",
       destLabel: "Direct lines: ",
       pitfallLabel: "Caution: ",
-      amenitiesTitle: "Local Amenities",
-      superLabel: "Supermarkets (Price & Positioning)",
-      cvsLabel: "Convenience Stores",
-      chainLabel: "Famous Chain Restaurants",
+      amenitiesTitle: "🏪 Local Amenities (Click place for Google Maps walking route)",
+      superLabel: "🛒 Supermarkets (Positioning & Price Level)",
+      cvsLabel: "🏪 Convenience Stores",
+      chainLabel: "🍽️ Famous Chain Restaurants",
       walkRouteHint: "Walking Route ↗",
-      tier3Title: "Viewing Checklist",
-      copyChecklist: "Copy Checklist",
-      copied: "Copied!",
-      footer: "Japan Rental Analyzer • Apple HIG Design • Google Maps Walking Route Integration",
-      vacantBadge: "Fully Occupied (N/A)",
-      mapsLiveBadge: "Google Maps Live",
+      tier3Title: "③ Viewing Checklist",
+      copyChecklist: "[ Copy Checklist ]",
+      copied: "✓ Copied!",
+      footer: "Japan Rental Property Checker • Japanese Modern UI • Google Maps Walking Route Integration",
+      vacantBadge: "Currently Fully Occupied (N/A)",
+      mapsLiveBadge: "Google Maps Live Data",
       reasonBoxHeader: "Scoring Rationale",
       switchPrompt: "Tap another badge to switch"
     }
@@ -155,7 +155,7 @@ export default function Home() {
 
       const data = await res.json();
       if (!data.success) {
-        throw new Error(data.error || '診断に失敗しました。URLをご確認ください。');
+        throw new Error(data.error || '解析に失敗しました。URLをご確認ください。');
       }
 
       setPropertyTitle(data.title);
@@ -183,31 +183,31 @@ export default function Home() {
   const activeDimension = evaluation?.tier1.find(d => d.key === selectedDimensionKey) || evaluation?.tier1[0];
 
   return (
-    <div className="min-h-screen bg-[#F5F5F7] text-[#1D1D1F] font-sans antialiased selection:bg-[#0071E3] selection:text-white py-8 px-4 flex flex-col items-center">
+    <div className="min-h-screen bg-[#FAF8F5] text-[#1C1917] font-sans antialiased py-8 px-4 flex flex-col items-center">
       <div className="w-full max-w-2xl flex-1 flex flex-col items-center">
         
-        {/* Apple Segmented Header */}
-        <header className="w-full flex items-center justify-between mb-8">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white shadow-[0_1px_4px_rgba(0,0,0,0.04)] border border-black/[0.04] text-[11px] font-semibold text-[#86868B] tracking-wide">
-            <span className="w-1.5 h-1.5 rounded-full bg-[#0071E3]"></span>
-            {t.badge}
+        {/* Japanese Hanko Style Header */}
+        <header className="w-full flex items-center justify-between mb-6">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-md bg-white border border-[#D6D3D1] text-xs font-bold text-[#44403C] shadow-2xs">
+            <span className="w-2 h-2 rounded-xs bg-[#B91C1C]"></span>
+            <span>{t.sealBadge}</span>
           </div>
 
-          {/* Apple Segmented Language Picker */}
-          <div className="bg-[#E5E5EA]/80 backdrop-blur-md p-1 rounded-full flex items-center shadow-inner">
+          {/* 4-Language Japanese Wood Pill Switcher */}
+          <div className="flex items-center bg-white border border-[#D6D3D1] rounded-lg p-1 text-xs font-bold shadow-2xs">
             {[
               { id: 'ja', label: '日本語' },
-              { id: 'zh', label: '繁體' },
-              { id: 'zhCN', label: '简体' },
-              { id: 'en', label: 'EN' }
+              { id: 'zh', label: '繁體中文' },
+              { id: 'zhCN', label: '简体中文' },
+              { id: 'en', label: 'English' }
             ].map(item => (
               <button
                 key={item.id}
                 onClick={() => setLang(item.id as Language)}
-                className={`px-3 py-1 rounded-full text-xs transition-all duration-200 cursor-pointer ${
+                className={`px-3 py-1 rounded-md transition-all cursor-pointer ${
                   lang === item.id 
-                    ? 'bg-white text-[#1D1D1F] font-semibold shadow-[0_2px_6px_rgba(0,0,0,0.08)]' 
-                    : 'text-[#86868B] hover:text-[#1D1D1F]'
+                    ? 'bg-[#1C1917] text-white shadow-xs font-black' 
+                    : 'text-[#78716C] hover:text-[#1C1917]'
                 }`}
               >
                 {item.label}
@@ -216,34 +216,34 @@ export default function Home() {
           </div>
         </header>
 
-        {/* Hero Section (Apple.com Typography) */}
-        <div className="text-center mb-7 space-y-2">
-          <h1 className="text-3xl sm:text-4xl font-bold tracking-tight text-[#1D1D1F]">
+        {/* Hero Section (Clear Japanese Typography) */}
+        <div className="text-center mb-6 space-y-2">
+          <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-[#1C1917]">
             {t.title}
           </h1>
-          <p className="text-sm sm:text-base text-[#86868B] max-w-lg mx-auto leading-relaxed">
+          <p className="text-sm sm:text-base text-[#78716C] font-medium max-w-lg mx-auto leading-relaxed">
             {t.subtitle}
           </p>
         </div>
 
-        {/* Apple Style Search Capsule */}
+        {/* Japanese Clean Search Input Box */}
         <form 
           onSubmit={handleSubmit} 
-          className="w-full bg-white p-2 rounded-[22px] shadow-[0_4px_20px_rgba(0,0,0,0.04)] border border-black/[0.06] focus-within:border-[#0071E3] focus-within:ring-4 focus-within:ring-[#0071E3]/15 transition-all duration-200 flex items-center gap-2 mb-6"
+          className="w-full bg-white p-2 rounded-xl shadow-xs border-2 border-[#D6D3D1] focus-within:border-[#1C1917] transition-all flex items-center gap-2 mb-6"
         >
-          <span className="pl-3.5 text-[#86868B] text-base">🔗</span>
+          <span className="pl-3 text-[#A8A29E] text-base">🔗</span>
           <input
             type="url"
             required
             value={url}
             onChange={e => setUrl(e.target.value)}
             placeholder={t.placeholder}
-            className="flex-1 text-sm bg-transparent outline-none text-[#1D1D1F] placeholder:text-[#86868B] py-2"
+            className="flex-1 text-sm sm:text-base font-medium bg-transparent outline-none text-[#1C1917] placeholder:text-[#A8A29E] py-2"
           />
           <button
             type="submit"
             disabled={loading}
-            className="px-6 py-2.5 bg-[#0071E3] hover:bg-[#0077ED] active:scale-[0.98] disabled:bg-[#A1A1A6] text-white text-xs sm:text-sm font-semibold rounded-full transition-all shadow-[0_2px_8px_rgba(0,113,227,0.25)] flex items-center gap-1.5 shrink-0 cursor-pointer"
+            className="px-6 py-2.5 bg-[#1C1917] hover:bg-[#292524] disabled:bg-[#A8A29E] text-white text-sm font-bold rounded-lg transition-all shadow-xs flex items-center gap-1.5 shrink-0 cursor-pointer"
           >
             {loading ? (
               <span className="flex items-center gap-1.5">
@@ -258,52 +258,52 @@ export default function Home() {
 
         {/* Error Alert */}
         {error && (
-          <div className="w-full mb-6 p-4 bg-[#FFF2F2] border border-[#FFD8D8] text-[#D70015] text-xs sm:text-sm rounded-[18px] text-center font-medium">
+          <div className="w-full mb-6 p-4 bg-[#FEF2F2] border border-[#FCA5A5] text-[#991B1B] text-sm rounded-xl text-center font-bold">
             {error}
           </div>
         )}
 
-        {/* Results Container (Apple Bento Card Style) */}
+        {/* Main Results (Japanese Modern Paper Card Style) */}
         {evaluation && (
-          <div className="w-full space-y-4 animate-in fade-in duration-300">
+          <div className="w-full space-y-4 animate-in fade-in duration-200">
             
-            {/* Property Header Bento Card */}
-            <div className="bg-white px-6 py-5 rounded-[24px] border border-black/[0.04] shadow-[0_2px_12px_rgba(0,0,0,0.03)] flex items-center justify-between">
+            {/* Property Summary Header */}
+            <div className="bg-white px-6 py-5 rounded-xl border border-[#E7E5E4] shadow-xs flex items-center justify-between">
               <div className="space-y-1">
-                <h2 className="font-bold text-base sm:text-lg text-[#1D1D1F] tracking-tight">{propertyTitle}</h2>
-                <p className="text-xs text-[#86868B] font-medium">{propertyMeta}</p>
+                <h2 className="font-black text-base sm:text-lg text-[#1C1917] tracking-tight">{propertyTitle}</h2>
+                <p className="text-xs sm:text-sm text-[#78716C] font-semibold">{propertyMeta}</p>
               </div>
               <div className="text-right shrink-0">
                 {evaluation.isVacant && propertyRent && !propertyRent.includes("N/A") ? (
-                  <div className="text-2xl font-bold text-[#1D1D1F] tracking-tight">
+                  <div className="text-xl sm:text-2xl font-black text-[#1C1917]">
                     {propertyRent}
                   </div>
                 ) : (
-                  <div className="inline-flex items-center px-3 py-1 bg-[#FFF4E5] text-[#B25E00] border border-[#FFE2BF] rounded-full text-xs font-semibold">
+                  <div className="inline-flex items-center px-3 py-1.5 bg-[#FEF3C7] text-[#92400E] border border-[#FDE68A] rounded-lg text-xs sm:text-sm font-bold">
                     {t.vacantBadge}
                   </div>
                 )}
               </div>
             </div>
 
-            {/* ① Core Ratings (Apple Health Ring / Widget Style) */}
-            <div className="bg-white p-5 sm:p-6 rounded-[24px] border border-black/[0.04] shadow-[0_2px_12px_rgba(0,0,0,0.03)] space-y-4">
+            {/* ① Core Ratings (Japanese Evaluation Seals with Clear Font) */}
+            <div className="bg-white p-5 sm:p-6 rounded-xl border border-[#E7E5E4] shadow-xs space-y-3.5">
               <div className="flex items-center justify-between">
-                <span className="text-xs font-semibold tracking-wider text-[#86868B] uppercase">
+                <span className="text-xs sm:text-sm font-black tracking-wider text-[#78716C] uppercase">
                   {t.tier1Title}
                 </span>
-                <span className="text-[11px] text-[#86868B]">{t.tier1Subtitle}</span>
+                <span className="text-xs text-[#A8A29E] font-medium">{t.tier1Subtitle}</span>
               </div>
 
-              {/* 6 Dimension Badges */}
+              {/* 6 Dimension Badges (Bold & High Contrast) */}
               <div className="grid grid-cols-6 gap-2 text-center">
                 {evaluation.tier1.map(d => {
                   const isSelected = activeDimension?.key === d.key;
-                  let colorClass = "bg-[#F5F5F7] text-[#1D1D1F] border-transparent";
-                  if (d.symbol === '◎') colorClass = "bg-[#E8F8EE] text-[#1E7E34] border-[#D1F2DC]";
-                  else if (d.symbol === '○') colorClass = "bg-[#EBF3FE] text-[#0064D2] border-[#D0E2FD]";
-                  else if (d.symbol === '△') colorClass = "bg-[#FFF4E5] text-[#B25E00] border-[#FFE2BF]";
-                  else if (d.symbol === '▲') colorClass = "bg-[#FEECEB] text-[#C9251D] border-[#FCD2CF]";
+                  let colorClass = "bg-[#F5F5F4] text-[#44403C] border-[#E7E5E4]";
+                  if (d.symbol === '◎') colorClass = "bg-[#F0FDF4] text-[#15803D] border-[#86EFAC]";
+                  else if (d.symbol === '○') colorClass = "bg-[#EFF6FF] text-[#1D4ED8] border-[#93C5FD]";
+                  else if (d.symbol === '△') colorClass = "bg-[#FEF3C7] text-[#B45309] border-[#FDE68A]";
+                  else if (d.symbol === '▲') colorClass = "bg-[#FEE2E2] text-[#B91C1C] border-[#FCA5A5]";
 
                   return (
                     <button
@@ -311,76 +311,76 @@ export default function Home() {
                       type="button"
                       onClick={() => setSelectedDimensionKey(d.key)}
                       onMouseEnter={() => setSelectedDimensionKey(d.key)}
-                      className={`p-3 rounded-[18px] border transition-all duration-200 cursor-pointer flex flex-col items-center justify-center ${colorClass} ${
+                      className={`p-3 rounded-lg border-2 transition-all cursor-pointer flex flex-col items-center justify-center ${colorClass} ${
                         isSelected 
-                          ? 'ring-2 ring-[#0071E3] shadow-sm scale-[1.03]' 
+                          ? 'ring-2 ring-[#1C1917] shadow-sm scale-[1.03]' 
                           : 'hover:opacity-90 active:scale-95'
                       }`}
                     >
-                      <span className="text-[11px] font-medium opacity-80">{d.label[lang]}</span>
-                      <span className="text-lg sm:text-xl font-bold my-0.5">{d.symbol}</span>
-                      <span className="text-[9px] opacity-70 underline">理由 ▾</span>
+                      <span className="text-xs sm:text-sm font-bold">{d.label[lang]}</span>
+                      <span className="text-2xl sm:text-3xl font-black my-0.5">{d.symbol}</span>
+                      <span className="text-[11px] font-bold opacity-80 underline">理由 ▾</span>
                     </button>
                   );
                 })}
               </div>
 
-              {/* Apple Inset Rationale Panel */}
+              {/* Deep Sumi-Ink Japanese Rationale Box (High Contrast, Large Readable Font) */}
               {activeDimension && (
-                <div className="p-4 rounded-[18px] bg-[#F5F5F7] border border-black/[0.04] text-xs space-y-1.5 animate-in fade-in duration-150">
-                  <div className="flex justify-between items-center font-semibold text-[#1D1D1F]">
-                    <span className="flex items-center gap-1.5">
-                      <span className="w-2 h-2 rounded-full bg-[#0071E3]"></span>
-                      <span>{activeDimension.label[lang]}【{activeDimension.symbol}】{t.reasonBoxHeader}</span>
+                <div className="p-4 rounded-xl bg-[#1C1917] text-white text-sm space-y-1.5 animate-in fade-in duration-150">
+                  <div className="flex justify-between items-center font-bold">
+                    <span className="flex items-center gap-2">
+                      <span className="w-2 h-2 rounded-full bg-[#38BDF8]"></span>
+                      <span className="text-sm sm:text-base font-black">{activeDimension.label[lang]}【{activeDimension.symbol}】{t.reasonBoxHeader}</span>
                     </span>
-                    <span className="text-[11px] text-[#86868B] font-normal">{t.switchPrompt}</span>
+                    <span className="text-xs text-[#A8A29E] font-medium">{t.switchPrompt}</span>
                   </div>
-                  <p className="text-[#424245] leading-relaxed pt-0.5 font-normal">
+                  <p className="text-sm sm:text-base text-[#F5F5F4] leading-relaxed pt-1 font-normal">
                     {activeDimension.reason[lang]}
                   </p>
                 </div>
               )}
             </div>
 
-            {/* ② Condition Breakdown (Apple List Style) */}
-            <div className="bg-white p-5 sm:p-6 rounded-[24px] border border-black/[0.04] shadow-[0_2px_12px_rgba(0,0,0,0.03)] space-y-3">
-              <div className="text-xs font-semibold tracking-wider text-[#86868B] uppercase border-b border-black/[0.04] pb-2.5">
+            {/* ② Conditions Breakdown */}
+            <div className="bg-white p-5 sm:p-6 rounded-xl border border-[#E7E5E4] shadow-xs space-y-3">
+              <div className="text-xs sm:text-sm font-black tracking-wider text-[#78716C] uppercase border-b border-[#F5F5F4] pb-2.5">
                 {t.tier2Title}
               </div>
 
               <div className="space-y-2.5">
                 {evaluation.conditions.map(c => {
-                  let badgeClass = "bg-[#F5F5F7] text-[#1D1D1F]";
-                  if (c.overallType === 'positive') badgeClass = "bg-[#E8F8EE] text-[#1E7E34]";
-                  else if (c.overallType === 'neutral') badgeClass = "bg-[#FFF4E5] text-[#B25E00]";
-                  else if (c.overallType === 'negative') badgeClass = "bg-[#FEECEB] text-[#C9251D]";
+                  let badgeClass = "bg-[#F5F5F4] text-[#44403C] border-[#E7E5E4]";
+                  if (c.overallType === 'positive') badgeClass = "bg-[#F0FDF4] text-[#15803D] border-[#86EFAC]";
+                  else if (c.overallType === 'neutral') badgeClass = "bg-[#FEF3C7] text-[#B45309] border-[#FDE68A]";
+                  else if (c.overallType === 'negative') badgeClass = "bg-[#FEE2E2] text-[#B91C1C] border-[#FCA5A5]";
 
                   return (
-                    <div key={c.id} className="p-3.5 rounded-[18px] bg-[#F5F5F7]/70 border border-black/[0.02] space-y-1.5">
+                    <div key={c.id} className="p-3.5 rounded-lg border border-[#E7E5E4] bg-[#FAF8F5] space-y-1.5">
                       <div className="flex items-center justify-between">
-                        <span className="font-semibold text-xs sm:text-sm text-[#1D1D1F]">{c.name[lang]}</span>
-                        <span className={`text-[10px] sm:text-[11px] font-semibold px-2.5 py-0.5 rounded-full ${badgeClass}`}>
+                        <span className="font-bold text-sm sm:text-base text-[#1C1917]">{c.name[lang]}</span>
+                        <span className={`text-xs font-bold px-2.5 py-0.5 rounded border ${badgeClass}`}>
                           {c.overall[lang]}
                         </span>
                       </div>
 
-                      <div className="space-y-1 text-xs text-[#424245]">
+                      <div className="space-y-1 text-xs sm:text-sm font-medium text-[#44403C]">
                         {c.merits.map((m, idx) => (
-                          <div key={`m-${idx}`} className="flex items-start gap-1.5 text-[#1E7E34]">
-                            <span className="font-bold shrink-0">{t.meritPrefix}</span>
-                            <span>{m[lang]}</span>
+                          <div key={`m-${idx}`} className="flex items-start gap-1.5 text-[#15803D]">
+                            <span className="font-black shrink-0">{t.meritPrefix}</span>
+                            <span className="leading-relaxed">{m[lang]}</span>
                           </div>
                         ))}
                         {c.cautions.map((caution, idx) => (
-                          <div key={`c-${idx}`} className="flex items-start gap-1.5 text-[#B25E00]">
-                            <span className="font-bold shrink-0">{t.cautionPrefix}</span>
-                            <span>{caution[lang]}</span>
+                          <div key={`c-${idx}`} className="flex items-start gap-1.5 text-[#B45309]">
+                            <span className="font-black shrink-0">{t.cautionPrefix}</span>
+                            <span className="leading-relaxed">{caution[lang]}</span>
                           </div>
                         ))}
                         {c.demerits.map((d, idx) => (
-                          <div key={`d-${idx}`} className="flex items-start gap-1.5 text-[#C9251D]">
-                            <span className="font-bold shrink-0">{t.demeritPrefix}</span>
-                            <span>{d[lang]}</span>
+                          <div key={`d-${idx}`} className="flex items-start gap-1.5 text-[#B91C1C]">
+                            <span className="font-black shrink-0">{t.demeritPrefix}</span>
+                            <span className="leading-relaxed">{d[lang]}</span>
                           </div>
                         ))}
                       </div>
@@ -390,10 +390,10 @@ export default function Home() {
               </div>
             </div>
 
-            {/* 🚉 Transit & Stations */}
+            {/* 🚉 Station Transit & Access */}
             {evaluation.stations && evaluation.stations.length > 0 && (
-              <div className="bg-white p-5 sm:p-6 rounded-[24px] border border-black/[0.04] shadow-[0_2px_12px_rgba(0,0,0,0.03)] space-y-3">
-                <div className="text-xs font-semibold tracking-wider text-[#86868B] uppercase">
+              <div className="bg-white p-5 sm:p-6 rounded-xl border border-[#E7E5E4] shadow-xs space-y-3">
+                <div className="text-xs sm:text-sm font-black tracking-wider text-[#78716C] uppercase">
                   {t.stationsTitle}
                 </div>
                 <div className="space-y-2">
@@ -403,26 +403,26 @@ export default function Home() {
                       href={st.mapUrl || `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(st.station)}`}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="block p-3.5 rounded-[18px] bg-[#F5F5F7]/80 hover:bg-[#EBEBF0] transition-all duration-200 space-y-1 group"
+                      className="block p-3.5 rounded-lg border border-[#E7E5E4] bg-[#FAF8F5] hover:border-[#1C1917] hover:bg-white transition-all space-y-1 group"
                     >
                       <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-1.5">
-                          <span className="text-sm">🚇</span>
-                          <span className="font-semibold text-xs sm:text-sm text-[#1D1D1F] group-hover:text-[#0071E3] transition-colors">
+                        <div className="flex items-center gap-2">
+                          <span className="text-base">🚇</span>
+                          <span className="font-black text-sm sm:text-base text-[#1C1917] group-hover:text-[#1D4ED8] transition-colors">
                             {st.station}
                           </span>
-                          <span className="text-[11px] text-[#86868B]">（{st.line}）</span>
+                          <span className="text-xs font-semibold text-[#78716C]">（{st.line}）</span>
                         </div>
                         <div className="flex items-center gap-1.5">
-                          <span className="text-[11px] font-semibold text-[#0071E3] bg-[#EBF3FE] px-2.5 py-0.5 rounded-full">
+                          <span className="text-xs font-black text-[#1D4ED8] bg-[#EFF6FF] px-2.5 py-0.5 rounded border border-[#BFDBFE]">
                             徒歩 {st.walkMin} 分
                           </span>
-                          <span className="text-[10px] text-[#0071E3] opacity-80 group-hover:opacity-100">{t.walkRouteHint}</span>
+                          <span className="text-xs text-[#1D4ED8] font-bold group-hover:underline">{t.walkRouteHint}</span>
                         </div>
                       </div>
-                      <div className="text-[11px] text-[#424245] space-y-0.5 pt-0.5">
-                        <div><strong className="text-[#1D1D1F]">{t.destLabel}</strong> {st.destinations[lang]}</div>
-                        <div className="text-[#B25E00]"><strong className="font-semibold">{t.pitfallLabel}</strong> {st.pitfalls[lang]}</div>
+                      <div className="text-xs sm:text-sm text-[#57534E] space-y-0.5 pt-1">
+                        <div><strong className="text-[#1C1917] font-bold">{t.destLabel}</strong> {st.destinations[lang]}</div>
+                        <div className="text-[#B45309] font-medium"><strong className="font-bold">{t.pitfallLabel}</strong> {st.pitfalls[lang]}</div>
                       </div>
                     </a>
                   ))}
@@ -430,46 +430,46 @@ export default function Home() {
               </div>
             )}
 
-            {/* 🏪 Real Neighborhood Amenities (Deduplicated Real Stores Only) */}
+            {/* 🏪 Local Amenities (Strictly Genuine Supermarkets & Stores) */}
             {evaluation.amenities && (
-              <div className="bg-white p-5 sm:p-6 rounded-[24px] border border-black/[0.04] shadow-[0_2px_12px_rgba(0,0,0,0.03)] space-y-4">
-                <div className="flex items-center justify-between border-b border-black/[0.04] pb-2.5">
-                  <span className="text-xs font-semibold tracking-wider text-[#86868B] uppercase">
+              <div className="bg-white p-5 sm:p-6 rounded-xl border border-[#E7E5E4] shadow-xs space-y-4">
+                <div className="flex items-center justify-between border-b border-[#F5F5F4] pb-2.5">
+                  <span className="text-xs sm:text-sm font-black tracking-wider text-[#78716C] uppercase">
                     {t.amenitiesTitle}
                   </span>
                   {evaluation.amenities.isGoogleMapsLive && (
-                    <span className="text-[10px] text-[#0071E3] bg-[#EBF3FE] px-2.5 py-0.5 rounded-full font-semibold">
+                    <span className="text-xs font-bold text-[#15803D] bg-[#F0FDF4] border border-[#86EFAC] px-2.5 py-0.5 rounded">
                       {t.mapsLiveBadge}
                     </span>
                   )}
                 </div>
 
-                {/* 1. Supermarkets (Real Stores Only) */}
+                {/* 1. Supermarkets (Genuine Stores Only, 4 Closest Included) */}
                 <div className="space-y-2">
-                  <div className="font-semibold text-[#1D1D1F] text-xs">
+                  <div className="font-black text-[#1C1917] text-sm">
                     {t.superLabel}
                   </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 text-xs sm:text-sm">
                     {evaluation.amenities.supermarkets.map((sm, idx) => (
                       <a
                         key={idx}
                         href={sm.mapUrl || `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(sm.name)}`}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="block p-3.5 rounded-[18px] bg-[#F5F5F7] hover:bg-white hover:shadow-[0_4px_16px_rgba(0,0,0,0.06)] hover:border-[#0071E3]/30 border border-transparent transition-all duration-200 space-y-1 group cursor-pointer"
+                        className="block p-3.5 rounded-lg bg-[#FAF8F5] border border-[#E7E5E4] hover:border-[#1C1917] hover:bg-white transition-all space-y-1.5 group cursor-pointer"
                       >
-                        <div className="flex justify-between font-bold text-[#1D1D1F]">
-                          <span className="leading-tight group-hover:text-[#0071E3] transition-colors">{sm.name}</span>
-                          <span className="text-[#0071E3] font-semibold text-[11px] shrink-0 ml-1">{sm.walk}</span>
+                        <div className="flex justify-between items-start font-black text-[#1C1917]">
+                          <span className="leading-snug text-sm sm:text-base group-hover:text-[#1D4ED8] transition-colors">{sm.name}</span>
+                          <span className="text-[#1D4ED8] font-bold text-xs shrink-0 ml-1 bg-[#EFF6FF] px-2 py-0.5 rounded border border-[#BFDBFE]">{sm.walk}</span>
                         </div>
-                        <div className="flex items-center justify-between text-[10px]">
+                        <div className="flex items-center justify-between text-xs">
                           <div className="flex items-center gap-1.5">
-                            <span className="bg-[#EBF3FE] text-[#0071E3] px-2 py-0.5 rounded-full font-medium">{sm.tag[lang]}</span>
-                            {sm.priceLevel && <span className="text-[#B25E00] font-medium">{sm.priceLevel[lang]}</span>}
+                            <span className="bg-[#E7E5E4] text-[#44403C] px-2 py-0.5 rounded font-bold">{sm.tag[lang]}</span>
+                            {sm.priceLevel && <span className="text-[#B45309] font-bold">{sm.priceLevel[lang]}</span>}
                           </div>
-                          <span className="text-[#0071E3] font-medium opacity-80 group-hover:opacity-100">{t.walkRouteHint}</span>
+                          <span className="text-[#1D4ED8] font-bold text-xs">{t.walkRouteHint}</span>
                         </div>
-                        <p className="text-[11px] text-[#6E6E73] leading-snug">{sm.note[lang]}</p>
+                        <p className="text-xs sm:text-sm text-[#57534E] leading-relaxed pt-0.5">{sm.note[lang]}</p>
                       </a>
                     ))}
                   </div>
@@ -477,30 +477,30 @@ export default function Home() {
 
                 {/* 2. Convenience Stores */}
                 <div className="space-y-2 pt-2">
-                  <div className="font-semibold text-[#1D1D1F] text-xs">
+                  <div className="font-black text-[#1C1917] text-sm">
                     {t.cvsLabel}
                   </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 text-xs sm:text-sm">
                     {evaluation.amenities.convenienceStores.map((cvs, idx) => (
                       <a
                         key={idx}
                         href={cvs.mapUrl || `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(cvs.name)}`}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="block p-3.5 rounded-[18px] bg-[#F5F5F7] hover:bg-white hover:shadow-[0_4px_16px_rgba(0,0,0,0.06)] hover:border-[#0071E3]/30 border border-transparent transition-all duration-200 space-y-1 group cursor-pointer"
+                        className="block p-3.5 rounded-lg bg-[#FAF8F5] border border-[#E7E5E4] hover:border-[#1C1917] hover:bg-white transition-all space-y-1.5 group cursor-pointer"
                       >
                         <div className="flex justify-between items-center">
-                          <span className="font-bold text-[#1D1D1F] group-hover:text-[#0071E3] transition-colors">{cvs.name}</span>
-                          <span className="text-[10px] text-[#86868B] font-medium">{cvs.walk}</span>
+                          <span className="font-black text-sm sm:text-base text-[#1C1917] group-hover:text-[#1D4ED8] transition-colors">{cvs.name}</span>
+                          <span className="text-xs text-[#78716C] font-bold">{cvs.walk}</span>
                         </div>
-                        <div className="flex items-center justify-between text-[10px]">
+                        <div className="flex items-center justify-between text-xs">
                           <div className="flex items-center gap-1.5">
-                            <span className="bg-[#EBF3FE] text-[#0071E3] px-2 py-0.5 rounded-full font-medium">{cvs.tag[lang]}</span>
-                            {cvs.priceLevel && <span className="text-[#B25E00] font-medium">{cvs.priceLevel[lang]}</span>}
+                            <span className="bg-[#E7E5E4] text-[#44403C] px-2 py-0.5 rounded font-bold">{cvs.tag[lang]}</span>
+                            {cvs.priceLevel && <span className="text-[#B45309] font-bold">{cvs.priceLevel[lang]}</span>}
                           </div>
-                          <span className="text-[#0071E3] font-medium opacity-80 group-hover:opacity-100">{t.walkRouteHint}</span>
+                          <span className="text-[#1D4ED8] font-bold text-xs">{t.walkRouteHint}</span>
                         </div>
-                        <p className="text-[11px] text-[#6E6E73] leading-snug">{cvs.note[lang]}</p>
+                        <p className="text-xs sm:text-sm text-[#57534E] leading-relaxed pt-0.5">{cvs.note[lang]}</p>
                       </a>
                     ))}
                   </div>
@@ -508,30 +508,30 @@ export default function Home() {
 
                 {/* 3. Famous Chains */}
                 <div className="space-y-2 pt-2">
-                  <div className="font-semibold text-[#1D1D1F] text-xs">
+                  <div className="font-black text-[#1C1917] text-sm">
                     {t.chainLabel}
                   </div>
-                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 text-xs">
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 text-xs sm:text-sm">
                     {evaluation.amenities.famousChains.map((fc, idx) => (
                       <a
                         key={idx}
                         href={fc.mapUrl || `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(fc.name)}`}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="block p-3 rounded-[18px] bg-[#F5F5F7] hover:bg-white hover:shadow-[0_4px_16px_rgba(0,0,0,0.06)] hover:border-[#0071E3]/30 border border-transparent transition-all duration-200 space-y-0.5 group cursor-pointer"
+                        className="block p-3 rounded-lg bg-[#FAF8F5] border border-[#E7E5E4] hover:border-[#1C1917] hover:bg-white transition-all space-y-1 group cursor-pointer"
                       >
                         <div className="flex justify-between items-start">
-                          <span className="font-bold text-[#1D1D1F] text-xs leading-tight group-hover:text-[#0071E3] transition-colors">{fc.name}</span>
-                          <span className="text-[10px] text-[#0071E3] font-semibold shrink-0 ml-1">{fc.walk}</span>
+                          <span className="font-black text-xs sm:text-sm text-[#1C1917] leading-tight group-hover:text-[#1D4ED8] transition-colors">{fc.name}</span>
+                          <span className="text-[11px] text-[#1D4ED8] font-bold shrink-0 ml-1">{fc.walk}</span>
                         </div>
-                        <div className="flex items-center justify-between text-[10px] text-[#86868B]">
+                        <div className="flex items-center justify-between text-xs text-[#78716C] font-medium">
                           <div className="flex items-center gap-1">
                             <span>{fc.tag[lang]}</span>
                             {fc.budget && <span>• {fc.budget}</span>}
                           </div>
-                          <span className="text-[#0071E3] font-medium opacity-80 group-hover:opacity-100">↗</span>
+                          <span className="text-[#1D4ED8] font-bold">↗</span>
                         </div>
-                        <p className="text-[10px] text-[#6E6E73] leading-tight pt-0.5">{fc.note[lang]}</p>
+                        <p className="text-xs text-[#57534E] leading-snug pt-0.5">{fc.note[lang]}</p>
                       </a>
                     ))}
                   </div>
@@ -540,25 +540,25 @@ export default function Home() {
             )}
 
             {/* ③ Viewing Checklist */}
-            <div className="bg-white p-5 sm:p-6 rounded-[24px] border border-black/[0.04] shadow-[0_2px_12px_rgba(0,0,0,0.03)] space-y-3">
-              <div className="flex items-center justify-between border-b border-black/[0.04] pb-2.5">
-                <span className="text-xs font-semibold tracking-wider text-[#86868B] uppercase">
+            <div className="bg-white p-5 sm:p-6 rounded-xl border border-[#E7E5E4] shadow-xs space-y-3">
+              <div className="flex items-center justify-between border-b border-[#F5F5F4] pb-2.5">
+                <span className="text-xs sm:text-sm font-black tracking-wider text-[#78716C] uppercase">
                   {t.tier3Title}
                 </span>
                 <button
                   onClick={handleCopyChecklist}
-                  className="text-xs text-[#0071E3] hover:underline font-semibold cursor-pointer"
+                  className="text-xs sm:text-sm text-[#1D4ED8] hover:underline font-bold cursor-pointer"
                 >
                   {copied ? t.copied : t.copyChecklist}
                 </button>
               </div>
               
-              <div className="space-y-2 text-xs">
+              <div className="space-y-2 text-xs sm:text-sm font-medium">
                 {evaluation.naiken.map((item, idx) => (
-                  <label key={idx} className="flex items-start gap-2.5 p-1 rounded-lg hover:bg-[#F5F5F7] cursor-pointer transition-colors">
-                    <input type="checkbox" className="mt-0.5 rounded text-[#0071E3] focus:ring-0 cursor-pointer" />
-                    <span className="text-[#424245] leading-relaxed">
-                      <strong className="font-semibold text-[#1D1D1F]">[{item.name[lang]}]</strong> {item.text[lang]}
+                  <label key={idx} className="flex items-start gap-2.5 p-1.5 rounded-lg hover:bg-[#FAF8F5] cursor-pointer transition-colors">
+                    <input type="checkbox" className="mt-1 rounded text-[#1C1917] focus:ring-0 cursor-pointer" />
+                    <span className="text-[#44403C] leading-relaxed">
+                      <strong className="font-black text-[#1C1917]">[{item.name[lang]}]</strong> {item.text[lang]}
                     </span>
                   </label>
                 ))}
@@ -568,8 +568,8 @@ export default function Home() {
           </div>
         )}
 
-        {/* Apple Style Minimalist Footer */}
-        <footer className="w-full text-center mt-12 text-xs text-[#86868B]">
+        {/* Japanese Hanko Style Footer */}
+        <footer className="w-full text-center mt-12 text-xs font-semibold text-[#A8A29E]">
           {t.footer}
         </footer>
       </div>
