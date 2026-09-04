@@ -17,9 +17,7 @@ function haversineMeters(lat1: number, lon1: number, lat2: number, lon2: number)
 
 // Tokyo calibrated pedestrian calculation when Distance Matrix API is not yet enabled
 function calculateTokyoWalkTime(straightMeters: number): { distanceMeters: number; minutes: number } {
-  // 1.38x pedestrian network detour coefficient in Tokyo grid
   const streetDist = Math.round(straightMeters * 1.38);
-  // 75m/min walking speed + 1 minute traffic signal wait per 350m
   const baseMin = Math.ceil(streetDist / 75);
   const signalWaitMin = Math.floor(streetDist / 350);
   const minutes = Math.max(1, baseMin + signalWaitMin);
@@ -36,9 +34,29 @@ function makeWalkingMapUrl(
 }
 
 // -----------------------------------------------------------------------------
-// STRICT POSITIVE WHITELIST (ZERO NOISE LEAKS)
+// STRICT GOOGLE PLACES CATEGORY AND BRAND VALIDATION (NO FALSE CLASSIFICATION)
 // -----------------------------------------------------------------------------
 
+// 1. Valid Supermarket Categories
+const VALID_SUPERMARKET_TYPES = new Set([
+  "supermarket", "grocery_or_supermarket", "grocery_store"
+]);
+
+// 2. Strict Exclude Types (Meal delivery like ライフデリ, Takeout, Restaurants, Medical, Offices)
+const STRICT_EXCLUDE_TYPES = new Set([
+  "meal_delivery", "meal_takeaway", "restaurant", "cafe", "bar", 
+  "health", "doctor", "dentist", "hospital", "pharmacy", "physiotherapist",
+  "real_estate_agency", "insurance_agency", "finance", "car_repair", "laundry"
+]);
+
+// 3. Known Non-Supermarket Brands that contain words like ライフ or スーパー
+const EXCLUDED_NON_SUPERMARKET_NAMES = [
+  "ライフデリ", "スマートライフ", "ライフパートナー", "ライフスタイル", "ライフサポート",
+  "カーライフ", "デリバリー", "配食", "弁当", "宅配", "ロッカー", "クリニック", 
+  "医院", "歯科", "内科", "皮膚科", "薬局", "調剤", "不動産", "住まい", "リフォーム"
+];
+
+// 4. Recognized Supermarket Brands
 const SUPERMARKET_WHITELIST_BRANDS = [
   "マルエツ", "maruetsu", "まいばすけっと", "my basket", "サミット", "summit",
   "成城石井", "seijo ishii", "オーケー", "okストア", "業務スーパー", "西友", "seiyu",
@@ -60,7 +78,7 @@ const CHAIN_WHITELIST_BRANDS = [
   "マクドナルド", "mcdonald", "マック", "モスバーガー", "mos burger",
   "ケンタッキー", "kfc", "バーガーキング", "burger king",
   "サイゼリヤ", "saizeriya", "ガスト", "gusto", "ジョナサン", "デニーズ", "denny",
-  "やよい軒", "大戸屋", "かつや", "松のや", "てんや", "天丼てんや",
+  "やよい軒", "大戸屋", "大戶屋", "ootoya", "かつや", "松のや", "てんや", "天丼てんや",
   "日高屋", "hidakaya", "餃子の王将", "大阪王将", "一蘭", "一風堂", "油組総本店", "風雲児",
   "丸亀製麺", "はなまるうどん", "富士そば", "小諸そば", "ゆで太郎",
   "ドトール", "doutor", "スターバックス", "starbucks", "コメダ珈琲", "タリーズ", "tullys"
@@ -69,28 +87,39 @@ const CHAIN_WHITELIST_BRANDS = [
 const REJECT_PATTERNS = [
   /^〒/, /^\d{3}-\d{4}/, /クリニック/i, /clinic/i, /医院/, /病院/, /歯科/, /内科/, /皮膚科/,
   /ロッカー/, /locker/, /amazon/i, /fp/i, /パートナー/, /スマートライフ/, /ライフスタイル/,
-  /ライフサポート/, /事務所/, /コインランドリー/, /駐車場/, /駐輪場/,
+  /ライフサポート/, /ライフデリ/, /事務所/, /コインランドリー/, /駐車場/, /駐輪場/,
   /オープンレジデンシア/, /サザンタワー/, /住友ビル/, /タワー$/, /ビル$/, /レジデンス$/, /マンション$/
 ];
 
 function isVerifiedSupermarket(p: any): boolean {
   const name = (p.name || "").trim();
   const lower = name.toLowerCase();
+  const types: string[] = p.types || [];
 
+  // Check 1: Must NOT have any invalid categories (like meal_delivery for ライフデリ)
+  if (types.some(t => STRICT_EXCLUDE_TYPES.has(t))) {
+    return false;
+  }
+
+  // Check 2: Must NOT match any reject patterns or non-supermarket names
+  for (const bad of EXCLUDED_NON_SUPERMARKET_NAMES) {
+    if (name.includes(bad)) return false;
+  }
   for (const pat of REJECT_PATTERNS) {
     if (pat.test(name)) return false;
   }
 
-  const types: string[] = p.types || [];
-  if (types.some(t => ["real_estate_agency", "health", "dentist", "doctor", "hospital", "pharmacy"].includes(t))) {
+  // Check 3: MUST have supermarket / grocery category
+  const hasSupermarketType = types.some(t => VALID_SUPERMARKET_TYPES.has(t));
+  const isRecognizedMiniSuper = name.includes("まいばすけっと") || name.includes("マルエツプチ");
+
+  if (!hasSupermarketType && !isRecognizedMiniSuper) {
     return false;
   }
 
+  // Check 4: Must match recognized supermarket chain or explicit supermarket format
   for (const brand of SUPERMARKET_WHITELIST_BRANDS) {
     if (lower.includes(brand.toLowerCase())) {
-      if (brand === "ライフ" && (lower.includes("スマート") || lower.includes("スタイル") || lower.includes("サポート"))) {
-        return false;
-      }
       return true;
     }
   }
@@ -105,6 +134,9 @@ function isVerifiedSupermarket(p: any): boolean {
 function isVerifiedConvenienceStore(p: any): boolean {
   const name = (p.name || "").trim();
   const lower = name.toLowerCase();
+  const types: string[] = p.types || [];
+
+  if (types.some(t => STRICT_EXCLUDE_TYPES.has(t))) return false;
 
   for (const pat of REJECT_PATTERNS) {
     if (pat.test(name)) return false;
@@ -211,7 +243,7 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // 3. BULLETPROOF ADDRESS EXTRACTION
+    // 3. BULLETPROOF ADDRESS EXTRACTION: STRIP <head> COMPLETELY
     const bodyOnlyHtml = html.replace(/<head\b[^<]*(?:(?!<\/head>)<[^<]*)*<\/head>/gi, '');
 
     const cleanAddressText = (raw: string): string => {
@@ -375,7 +407,7 @@ export async function POST(req: NextRequest) {
       matchedRuleIds.add("env_main_road");
     }
 
-    // 7. GOOGLE PLACES API & EXACT WALKING TIME EXTRACTION
+    // 7. GOOGLE PLACES API: STRICT CATEGORY ENFORCEMENT
     const apiKey = process.env.GOOGLE_MAPS_API_KEY;
     let isGoogleMapsLive = false;
     let propCoordinates: { lat: number; lng: number } | undefined = undefined;
@@ -395,7 +427,7 @@ export async function POST(req: NextRequest) {
           propCoordinates = { lat, lng };
           isGoogleMapsLive = true;
 
-          // Search Supermarkets: rankby=distance ordered strictly from property coordinates
+          // Search Supermarkets: rankby=distance strictly ordered by distance
           const spKeyword = encodeURIComponent('スーパー|マルエツ|まいばすけっと|サミット|成城石井|ライフ|オーケー|マルマンストア');
           const spUrl = `https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=${lat},${lng}&rankby=distance&keyword=${spKeyword}&language=ja&key=${apiKey}`;
           const spRes = await fetch(spUrl, { cache: 'no-store' });
@@ -440,10 +472,8 @@ export async function POST(req: NextRequest) {
             supermarkets = dedupedSupers.map(({ p, dist }: any, idx: number) => {
               let walkText = "";
               if (walkDurations[idx]) {
-                // Exact walking time from Google Distance Matrix (e.g. 徒歩 16分 (1.2 km))
                 walkText = `徒歩 ${walkDurations[idx]}${walkDistanceTexts[idx] ? ` (${walkDistanceTexts[idx]})` : ''}`;
               } else {
-                // Calibrated Tokyo pedestrian street routing
                 const { distanceMeters, minutes } = calculateTokyoWalkTime(dist);
                 walkText = `徒歩 ${minutes} 分 (${distanceMeters}m)`;
               }
@@ -534,7 +564,7 @@ export async function POST(req: NextRequest) {
           }
 
           // Search Famous Chains
-          const chainUrl = `https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=${lat},${lng}&rankby=distance&keyword=${encodeURIComponent('すき家|松屋|吉野家|マクドナルド|サイゼリヤ|日高屋|やよい軒|かつや')}&language=ja&key=${apiKey}`;
+          const chainUrl = `https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=${lat},${lng}&rankby=distance&keyword=${encodeURIComponent('すき家|松屋|吉野家|大戸屋|大戶屋|やよい軒|かつや|マクドナルド|サイゼリヤ|日高屋|モスバーガー|餃子の王将|丸亀製麺|富士そば')}&language=ja&key=${apiKey}`;
           const chainRes = await fetch(chainUrl, { cache: 'no-store' });
           const chainData = await chainRes.json();
           if (chainData.results?.length) {
