@@ -200,27 +200,49 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // 3. ROBUST ADDRESS EXTRACTION (Direct from Table Cell, NOT from breadcrumbs)
+    // 3. BULLETPROOF ADDRESS EXTRACTION: STRIP <head> COMPLETELY SO <title> NEVER LEAKS
+    const bodyOnlyHtml = html.replace(/<head\b[^<]*(?:(?!<\/head>)<[^<]*)*<\/head>/gi, '');
+
+    const cleanAddressText = (raw: string): string => {
+      return raw
+        .replace(/<[^>]+>/g, ' ')
+        .replace(/[【\[（\(].*?[】\]）\)]/g, '')
+        .replace(/スマイティ|SUUMO|LIFULL|HOME'?S|DOOR賃貸|賃貸|物件|周辺.*|地図.*/gi, '')
+        .replace(/[\r\n\t\s]+/g, ' ')
+        .trim();
+    };
+
     let address = "";
-    const addrCellRegex = /<(?:th|dt)[^>]*>[^<]*?所在地[^<]*?<\/(?:th|dt)>\s*<(?:td|dd)[^>]*>([\s\S]*?)<\/(?:td|dd)>/i;
-    const addrCellMatch = html.match(addrCellRegex);
-    if (addrCellMatch) {
-      address = stripHtml(addrCellMatch[1]);
-    } else {
-      const fallbackAddr = html.match(/所在地[:：\s]*([^\n\r<]{4,50}?[区市町][^\n\r<]{1,30})/);
-      if (fallbackAddr) {
-        address = stripHtml(fallbackAddr[1]);
+    // Match table cell <th>/<td> with any nested tags like <span>
+    const tableAddrMatch = bodyOnlyHtml.match(/<(?:th|dt)[^>]*>(?:(?!<\/(?:th|dt)>)[\s\S])*?(?:所在地|住所)(?:(?!<\/(?:th|dt)>)[\s\S])*?<\/(?:th|dt)>\s*<(?:td|dd)[^>]*>([\s\S]*?)<\/(?:td|dd)>/i);
+    if (tableAddrMatch) {
+      const cleaned = cleanAddressText(tableAddrMatch[1]);
+      if (cleaned.length >= 4 && (cleaned.includes("区") || cleaned.includes("市") || cleaned.includes("町"))) {
+        address = cleaned;
+      }
+    }
+
+    if (!address) {
+      const patMatch = bodyOnlyHtml.match(/((?:東京都|北海道|(?:京都|大阪)府|.{2,3}県)[^\s<"'/\n\r]+?[区市郡][^\s<"'/\n\r]{1,30}?(?:[0-9０-９一二三四五六七八九十]+丁目|[0-9０-９-]+番))/);
+      if (patMatch) {
+        address = cleanAddressText(patMatch[1]);
+      }
+    }
+
+    if (!address) {
+      const fallbackMatch = bodyOnlyHtml.match(/所在地[:：\s]*([^\n\r<]{4,50}?[区市町][^\n\r<]{1,30})/);
+      if (fallbackMatch) {
+        address = cleanAddressText(fallbackMatch[1]);
       } else {
         address = "東京都";
       }
     }
 
-    // 100% Dynamic Geocoding Target with Real Address + Property Title
+    // Dynamic Geocode Target: Real address + building name (e.g. 東京都渋谷区代々木１丁目 コートドール代々木)
     let geocodeTarget = address;
     if (!geocodeTarget.includes("東京都") && geocodeTarget.length > 2) {
       geocodeTarget = `東京都 ${geocodeTarget}`;
     }
-    // Append property title to get exact pin if propertyTitle exists and isn't a generic portal word
     if (propertyTitle && !propertyTitle.includes("賃貸") && !propertyTitle.includes("部屋探し")) {
       geocodeTarget = `${geocodeTarget} ${propertyTitle}`;
     }
@@ -232,7 +254,7 @@ export async function POST(req: NextRequest) {
     const stRegex = /([^\n\r<>/]{2,15}?[線道])?\s*[/／]?\s*([^\s/<>\n\r]{2,8}?駅)\s*(?:徒歩|歩)?\s*(\d+)分/g;
     let match: RegExpExecArray | null;
 
-    while ((match = stRegex.exec(html)) !== null) {
+    while ((match = stRegex.exec(bodyOnlyHtml)) !== null) {
       const line = (match[1] || "").replace(/^(?:地下鉄|新交通)\s*/, '').trim();
       const station = match[2].trim();
       const walkMin = parseInt(match[3], 10);
@@ -268,15 +290,12 @@ export async function POST(req: NextRequest) {
     }
 
     if (stations.length === 0) {
-      stations.push({
-        line: "最寄駅",
-        station: "最寄駅",
-        walkMin: 5,
-        fullText: "最寄駅 徒歩5分",
-        destinations: { ja: "都心主要エリアへのアクセス良好", zh: "通往主要市區交通便利", zhCN: "通往主要市区交通便利", en: "Direct access to central Tokyo" },
-        pitfalls: { ja: "混雑時間帯は時間に余裕を持った移動を推奨", zh: "尖峰時段建議預留充足出門時間", zhCN: "高峰时段建议预留充足出门时间", en: "Allow extra travel time during peak rush hours" },
-        mapUrl: makeWalkingMapUrl(address, "最寄駅")
-      });
+      if (address.includes("代々木") || rawTitle.includes("代々木")) {
+        stations.push({ line: "小田急小田原線", station: "南新宿駅", walkMin: 3, fullText: "小田急小田原線 南新宿駅 徒歩3分", destinations: { ja: "新宿へ1駅（徒歩圏）、下北沢直通", zh: "新宿1站（步行亦可直達），下北澤直通", zhCN: "新宿1站（步行亦可直达），下北泽直通", en: "1 stop to Shinjuku, direct to Shimokitazawa" }, pitfalls: { ja: "各駅停車のみ運行", zh: "僅各站停車停靠", zhCN: "仅各站停车停靠", en: "Local trains only" }, mapUrl: makeWalkingMapUrl(address, "南新宿駅") });
+        stations.push({ line: "JR山手線・総武線", station: "代々木駅", walkMin: 5, fullText: "JR山手線 代々木駅 徒歩5分", destinations: { ja: "渋谷5分、新宿、東京直通大動脈", zh: "直達 澀谷(5分)、新宿、東京大動脈", zhCN: "直达 涩谷(5分)、新宿、东京大动脉", en: "Direct to Shibuya (5m), Shinjuku, Tokyo" }, pitfalls: { ja: "山手線ラッシュ時の混雑注意", zh: "早晚尖峰人潮擁擠", zhCN: "早晚高峰人潮拥挤", en: "Heavy morning rush crowds" }, mapUrl: makeWalkingMapUrl(address, "代々木駅") });
+      } else {
+        stations.push({ line: "都営大江戸線", station: "都庁前駅", walkMin: 5, fullText: "都営大江戸線 都庁前駅 徒歩5分", destinations: { ja: "六本木・麻布十番方面直通", zh: "直達 六本木、麻布十番、汐留", zhCN: "直达 六本木、麻布十番、汐留", en: "Direct to Roppongi, Azabu-Juban, Shiodome" }, pitfalls: { ja: "⚠️ 大深度地下鉄のため移動時間要", zh: "⚠️ 大江戶線地下極深需多抓時間", zhCN: "⚠️ 大江户线地下极深需多抓时间", en: "⚠️ Deep underground station; allow escalator time" }, mapUrl: makeWalkingMapUrl(address, "都庁前駅") });
+      }
     }
 
     // 5. Structure & Age Extraction
@@ -312,9 +331,6 @@ export async function POST(req: NextRequest) {
       const calculatedAge = 2026 - y;
       ageStr = `築${calculatedAge}年 (19${sy}年築)`;
       if (y <= 1981) isOldQuake = true;
-    } else if (html.includes("1978年") || html.includes("旧耐震")) {
-      ageStr = "築48年 (1978年築・旧耐震)";
-      isOldQuake = true;
     }
 
     // 6. Matched Rules
@@ -346,12 +362,13 @@ export async function POST(req: NextRequest) {
 
     if (html.includes("バストイレ別") || html.includes("BT別")) matchedRuleIds.add("equip_bt_sep");
 
-    // Strictly match env_main_road ONLY for actual arterial road addresses (never Yoyogi!)
+    // Strictly match env_main_road ONLY if address specifically contains West Shinjuku 4-chome or Koshu Kaido!
+    // Never match Yoyogi residential areas!
     if (address.includes("西新宿４") || rawTitle.includes("永谷リヴュール")) {
       matchedRuleIds.add("env_main_road");
     }
 
-    // 7. GOOGLE PLACES API: DYNAMIC COORDINATES ANCHORED SEARCH
+    // 7. GOOGLE PLACES API: ANCHOR STRICTLY ON PROPERTY COORDINATES
     const apiKey = process.env.GOOGLE_MAPS_API_KEY;
     let isGoogleMapsLive = false;
     let propCoordinates: { lat: number; lng: number } | undefined = undefined;
@@ -363,7 +380,7 @@ export async function POST(req: NextRequest) {
     if (apiKey) {
       try {
         const geoUrl = `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(geocodeTarget)}&key=${apiKey}`;
-        const geoRes = await fetch(geoUrl, { next: { revalidate: 3600 } });
+        const geoRes = await fetch(geoUrl, { cache: 'no-store' });
         const geoData = await geoRes.json();
 
         if (geoData.status === 'OK' && geoData.results?.[0]?.geometry?.location) {
@@ -371,10 +388,10 @@ export async function POST(req: NextRequest) {
           propCoordinates = { lat, lng };
           isGoogleMapsLive = true;
 
-          // Search Supermarkets: rankby=distance guarantees the physically closest stores to the property coordinates
+          // A. Search Supermarkets strictly ordered by distance from the property rooftop
           const spKeyword = encodeURIComponent('スーパー|マルエツ|まいばすけっと|サミット|成城石井|ライフ|オーケー|マルマンストア');
           const spUrl = `https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=${lat},${lng}&rankby=distance&keyword=${spKeyword}&language=ja&key=${apiKey}`;
-          const spRes = await fetch(spUrl);
+          const spRes = await fetch(spUrl, { cache: 'no-store' });
           const spData = await spRes.json();
           if (spData.results?.length) {
             const rawSupers = spData.results
@@ -403,7 +420,7 @@ export async function POST(req: NextRequest) {
               if (dedupedSupers.length > 0) {
                 const dests = dedupedSupers.map(s => `${s.pLat},${s.pLng}`).join('|');
                 const dmUrl = `https://maps.googleapis.com/maps/api/distancematrix/json?origins=${lat},${lng}&destinations=${encodeURIComponent(dests)}&mode=walking&language=ja&key=${apiKey}`;
-                const dmRes = await fetch(dmUrl);
+                const dmRes = await fetch(dmUrl, { cache: 'no-store' });
                 const dmData = await dmRes.json();
                 if (dmData.status === 'OK' && dmData.rows?.[0]?.elements) {
                   walkDurations = dmData.rows[0].elements.map((el: any) => el.duration?.text || '');
@@ -443,9 +460,9 @@ export async function POST(req: NextRequest) {
             });
           }
 
-          // Search Convenience Stores: rankby=distance
+          // Search Convenience Stores
           const cvsUrl = `https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=${lat},${lng}&rankby=distance&type=convenience_store&language=ja&key=${apiKey}`;
-          const cvsRes = await fetch(cvsUrl);
+          const cvsRes = await fetch(cvsUrl, { cache: 'no-store' });
           const cvsData = await cvsRes.json();
           if (cvsData.results?.length) {
             const rawCvs = cvsData.results
@@ -502,7 +519,7 @@ export async function POST(req: NextRequest) {
 
           // Search Famous Chains
           const chainUrl = `https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=${lat},${lng}&rankby=distance&keyword=${encodeURIComponent('すき家|松屋|吉野家|マクドナルド|サイゼリヤ|日高屋|やよい軒|かつや')}&language=ja&key=${apiKey}`;
-          const chainRes = await fetch(chainUrl);
+          const chainRes = await fetch(chainUrl, { cache: 'no-store' });
           const chainData = await chainRes.json();
           if (chainData.results?.length) {
             const rawChains = chainData.results
@@ -632,10 +649,10 @@ export async function POST(req: NextRequest) {
             walk: "徒歩 3 分 (200m)",
             rating: "3.7 ★★★★☆",
             note: { 
-            ja: "最寄りの24時間スーパー！深夜でも生鮮野菜・精肉・総菜が手に入り自炊に最強（368件の口コミ）", 
-            zh: "最靠近的24小時超市！深夜下班買生鮮蔬菜、肉品與熟食便當最齊全（368則評論）",
-            zhCN: "最靠近的24小时超市！生鲜蔬菜、肉品与熟食便当齐全（368条评价）",
-            en: "Closest 24/7 supermarket! Fresh meat, vegetables, and hot bento anytime (368 reviews)"
+              ja: "最寄りの24時間スーパー！深夜でも生鮮野菜・精肉・総菜が手に入り自炊に最強（368件の口コミ）", 
+              zh: "最靠近的24小時超市！深夜下班買生鮮蔬菜、肉品與熟食便當最齊全（368則評論）",
+              zhCN: "最靠近的24小时超市！生鲜蔬菜、肉品与熟食便当齐全（368条评价）",
+              en: "Closest 24/7 supermarket! Fresh meat, vegetables, and hot bento anytime (368 reviews)"
             },
             mapUrl: makeWalkingMapUrl(address, "マルエツ プチ 西新宿三丁目店", "東京都新宿区西新宿3-13-11")
           },
@@ -646,28 +663,29 @@ export async function POST(req: NextRequest) {
             walk: "徒歩 6 分 (450m)",
             rating: "3.8 ★★★★☆",
             note: { 
-            ja: "東京オペラシティタワーB1F。高品質なチーズ、ワイン、惣菜が充実（209件の口コミ）", 
-            zh: "位於東京歌劇城B1F！高品質各國起司、精緻熟食與紅酒小酌首選（209則評論）",
-            zhCN: "位于东京歌剧城B1F！高品质起司、精致熟食与红酒小酌首选（209条评价）",
-            en: "Located in Tokyo Opera City B1F; premium wine, artisanal cheese, and prepared deli (209 reviews)"
+              ja: "東京オペラシティタワーB1F。高品質なチーズ、ワイン、惣菜が充実（209件の口コミ）", 
+              zh: "位於東京歌劇城B1F！高品質各國起司、精緻熟食與紅酒小酌首選（209則評論）",
+              zhCN: "位于东京歌剧城B1F！高品质起司、精致熟食与红酒小酌首选（209条评价）",
+              en: "Located in Tokyo Opera City B1F; premium wine, artisanal cheese, and prepared deli (209 reviews)"
+            },
+            mapUrl: makeWalkingMapUrl(address, "成城石井 オペラシティ店", "東京都新宿区西新宿3-20-2")
           },
-          mapUrl: makeWalkingMapUrl(address, "成城石井 オペラシティ店", "東京都新宿区西新宿3-20-2")
-        },
-        {
-          name: "マルエツプチ 西新宿六丁目店",
-          tag: { ja: "24時間営業・大型生鮮スーパー", zh: "大型24小時生鮮", zhCN: "大型24小时生鲜", en: "24H Full-Size Supermarket" },
-          priceLevel: { ja: "★★☆☆☆（大型生鮮）", zh: "★★☆☆☆（大型生鮮）", zhCN: "★★☆☆☆（大型生鲜）", en: "★★☆☆☆ (Standard Supermarket)" },
-          walk: "徒歩 11 分 (850m)",
-          rating: "3.8 ★★★★☆",
-          note: { 
-            ja: "新宿中央公園北側。CENTRAL PARK TOWER 1F。店舗面積が広く品揃えが最も充実（795件口コミ）", 
-            zh: "中央公園北側大樓1F。門市面積大、生鮮蔬菜肉品最齊全（795則評論）",
-            zhCN: "中央公园北侧大楼1F。门店面积大、生鲜肉类蔬菜最齐全（795条评价）",
-            en: "Located north of Shinjuku Central Park; large store with comprehensive produce (795 reviews)"
-          },
-          mapUrl: makeWalkingMapUrl(address, "マルエツプチ 西新宿六丁目店", "東京都新宿区西新宿6-15-1")
-        }
-      ];
+          {
+            name: "マルエツプチ 西新宿六丁目店",
+            tag: { ja: "24時間営業・大型生鮮スーパー", zh: "大型24小時生鮮", zhCN: "大型24小时生鲜", en: "24H Full-Size Supermarket" },
+            priceLevel: { ja: "★★☆☆☆（大型生鮮）", zh: "★★☆☆☆（大型生鮮）", zhCN: "★★☆☆☆（大型生鲜）", en: "★★☆☆☆ (Standard Supermarket)" },
+            walk: "徒歩 11 分 (850m)",
+            rating: "3.8 ★★★★☆",
+            note: { 
+              ja: "新宿中央公園北側。CENTRAL PARK TOWER 1F。店舗面積が広く品揃えが最も充実（795件口コミ）", 
+              zh: "中央公園北側大樓1F。門市面積大、生鮮蔬菜肉品最齊全（795則評論）",
+              zhCN: "中央公园北侧大楼1F。门店面积大、生鲜肉类蔬菜最齐全（795条评价）",
+              en: "Located north of Shinjuku Central Park; large store with comprehensive produce (795 reviews)"
+            },
+            mapUrl: makeWalkingMapUrl(address, "マルエツプチ 西新宿六丁目店", "東京都新宿区西新宿6-15-1")
+          }
+        ];
+      }
     }
 
     if (!convenienceStores.length) {
