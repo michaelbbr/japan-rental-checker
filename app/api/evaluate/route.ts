@@ -25,7 +25,7 @@ export async function POST(req: NextRequest) {
     if (!response.ok) {
       return NextResponse.json({ 
         success: false, 
-        error: `無法讀取房源頁面 (HTTP ${response.status})。` 
+        error: `無法讀取房源頁面 (HTTP ${response.status})。請確認該網址依然公開刊登中。` 
       }, { status: response.status });
     }
 
@@ -47,11 +47,9 @@ export async function POST(req: NextRequest) {
     const rawTitle = titleMatch ? titleMatch[1] : "賃貸物件";
     const propertyTitle = rawTitle.split('【')[0].split('|')[0].split(' - ')[0].replace(/の賃貸・部屋探し情報.*/, '').replace(/の賃貸物件.*/, '').trim();
 
-    // 2. Vacancy & Rent Detection (Fix "1万円" cashback bug)
-    // Check if building has 0 listings
+    // 2. Vacancy & Rent Detection
     const isZeroListings = Boolean(html.match(/賃貸\s*0\s*件|現在、?募集中の部屋は(?:ございません|ありません)|満室|空室なし/));
 
-    // Filter out cashback bonus text before checking rent
     const htmlWithoutCashback = html
       .replace(/(?:お祝い金|キャッシュバック|最大)[^\n\r<]*?\d+[^\n\r<]*?円/g, '')
       .replace(/(?:お祝い金|キャッシュバック|最大)[^\n\r<]*?\d+[^\n\r<]*?万円/g, '');
@@ -63,11 +61,10 @@ export async function POST(req: NextRequest) {
       isVacant = false;
       rentStr = "N/A（目前無在招租中 / 滿室）";
     } else {
-      // Find actual rent (e.g. 7.2万円 or 17.5万円)
       const rMatch = htmlWithoutCashback.match(/(?:賃料|家賃)[:：]?\s*(\d+(?:\.\d+)?)\s*万円/);
       if (rMatch) {
         const val = parseFloat(rMatch[1]);
-        if (val >= 2.0 && val <= 300.0) { // realistic rent range
+        if (val >= 2.0 && val <= 300.0) {
           rentStr = `${val} 万円`;
         } else {
           isVacant = false;
@@ -88,12 +85,14 @@ export async function POST(req: NextRequest) {
       address = "東京都";
     }
 
-    // 4. Stations Extraction (Dynamic)
+    // 4. Stations Extraction (Type-safe regex with RegExp.exec)
     const stations: StationDetail[] = [];
     const seenStations = new Set<string>();
 
-    const stMatches = html.matchAll(/([^\n\r<>/]{2,15}?[線道])?\s*[/／]?\s*([^\s/<>\n\r]{2,8}?駅)\s*(?:徒歩|歩)?\s*(\d+)分/g);
-    for (const match of stMatches) {
+    const stRegex = /([^\n\r<>/]{2,15}?[線道])?\s*[/／]?\s*([^\s/<>\n\r]{2,8}?駅)\s*(?:徒歩|歩)?\s*(\d+)分/g;
+    let match: RegExpExecArray | null;
+
+    while ((match = stRegex.exec(html)) !== null) {
       const line = (match[1] || "").replace(/^(?:地下鉄|新交通)\s*/, '').trim();
       const station = match[2].trim();
       const walkMin = parseInt(match[3], 10);
@@ -111,11 +110,11 @@ export async function POST(req: NextRequest) {
           destZh = "直達 澀谷(5分)、新宿、池袋、品川、東京站，首都大動脈";
           destJa = "渋谷・新宿・池袋・品川・東京へ直通する大動脈";
           pitZh = "⚠️ 早晚尖峰人潮擁擠，大站需留意站內步行距離。";
-          pitJa = "⚠️ ラッシュ時の混雑率が高く構内移動も要確認。";
+          pitJa = "⚠️ 朝夕のラッシュ時は混雑注意。大駅は構内移動時間も要確認。";
         } else if (line.includes("大江戸線") || station.includes("都庁前")) {
           destZh = "直達 六本木、麻布十番、汐留、青山一丁目、飯田橋";
           destJa = "六本木・麻布十番・汐留・青山一丁目方面へ直通";
-          pitZh = "⚠️ 大江戶線為大深度地下鐵，上下電扶梯需多抓 3~5 分鐘！";
+          pitZh = "⚠️ 大江戶線為大深度地下鐵，月台在地下深層，上下電扶梯需多抓 3~5 分鐘！";
           pitJa = "⚠️ 大江戸線は大深度地下鉄のため、ホームへ徒歩+3〜5分必要。";
         } else if (line.includes("小田急") || station.includes("南新宿")) {
           destZh = "通往新宿僅 1 站（步行亦可直達），直達下北澤、町田";
@@ -194,7 +193,7 @@ export async function POST(req: NextRequest) {
     if (html.includes("室内洗濯機")) matchedRuleIds.add("equip_indoor_wash");
     if (html.includes("エレベーター")) matchedRuleIds.add("equip_elevator");
 
-    // 7. Concise Amenities (Supermarkets, CVS, Chains)
+    // 7. Amenities
     const isYoyogi = address.includes("代々木") || rawTitle.includes("代々木");
 
     const supermarkets: LifeAmenityItem[] = isYoyogi ? [
