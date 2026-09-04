@@ -15,6 +15,7 @@ function haversineMeters(lat1: number, lon1: number, lat2: number, lon2: number)
   return R * c;
 }
 
+// Generates walking directions URL displaying the REAL store name and address
 function makeWalkingMapUrl(
   originAddr: string, 
   destName: string, 
@@ -24,25 +25,34 @@ function makeWalkingMapUrl(
   return `https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(originAddr)}&destination=${encodeURIComponent(cleanDest)}&travelmode=walking`;
 }
 
-// STRICT EXCLUSION: CLINICS, HOSPITALS, LOCKERS, CORPORATE OFFICES
-const MEDICAL_AND_NON_STORE_TERMS = [
+// STRICT EXCLUSION: REAL ESTATE, CLINICS, INSURANCE, LOCKERS, APPLIANCES
+const NON_SUPERMARKET_TERMS = [
+  // Housing / Real estate / Appliance / Smart life
+  "スマートライフ", "ライフパートナー", "ライフスタイル", "ライフサポート", "ライフステージ", 
+  "カーライフ", "不動産", "リアルティ", "住宅", "ハウス", "ホーム", "リフォーム", 
+  "インテリア", "住まい", "家電", "スマート",
+  // Medical / Clinics / Hospitals
   "クリニック", "clinic", "医院", "病院", "内科", "歯科", "デンタル", "皮膚科", 
   "外科", "眼科", "薬局", "調剤", "処方", "耳鼻", "小児科", "整骨", "整体", "接骨", 
-  "鍼灸", "マッサージ", "リハビリ", "amazon", "ロッカー", "locker", "ｆｐ", "fp", 
-  "パートナー", "事務所", "相談", "保険", "コインランドリー", "クリーニング", 
-  "駐車場", "自販機", "ステーション", "受取", "便", "営業所", "オフィス", "税理士", "行政書士"
+  "鍼灸", "マッサージ", "リハビリ",
+  // Corporate / Insurance / Consulting
+  "amazon", "ロッカー", "locker", "ｆｐ", "fp", "パートナー", "事務所", "相談", 
+  "保険", "コインランドリー", "クリーニング", "駐車場", "自販機", "ステーション", 
+  "受取", "便", "営業所", "オフィス", "税理士", "行政書士", "コンサル", "株式会社", "合同会社"
 ];
 
-const MEDICAL_PLACE_TYPES = [
-  "health", "doctor", "hospital", "dentist", "pharmacy", "physiotherapist"
+const INVALID_GOOGLE_TYPES = [
+  "real_estate_agency", "insurance_agency", "finance", "health", 
+  "dentist", "doctor", "hospital", "pharmacy", "physiotherapist",
+  "car_repair", "laundry", "accounting", "lawyer", "storage"
 ];
 
 function isGenuineSupermarket(p: any): boolean {
   const name = (p.name || "").toLowerCase();
   const types: string[] = p.types || [];
 
-  if (types.some(t => MEDICAL_PLACE_TYPES.includes(t))) return false;
-  if (MEDICAL_AND_NON_STORE_TERMS.some(term => name.includes(term))) return false;
+  if (types.some(t => INVALID_GOOGLE_TYPES.includes(t))) return false;
+  if (NON_SUPERMARKET_TERMS.some(term => name.includes(term))) return false;
   return true;
 }
 
@@ -50,8 +60,8 @@ function isGenuineConvenienceStore(p: any): boolean {
   const name = (p.name || "").toLowerCase();
   const types: string[] = p.types || [];
 
-  if (types.some(t => MEDICAL_PLACE_TYPES.includes(t))) return false;
-  if (MEDICAL_AND_NON_STORE_TERMS.some(term => name.includes(term))) return false;
+  if (types.some(t => INVALID_GOOGLE_TYPES.includes(t))) return false;
+  if (NON_SUPERMARKET_TERMS.some(term => name.includes(term))) return false;
   return true;
 }
 
@@ -165,7 +175,7 @@ export async function POST(req: NextRequest) {
       if (!seenStations.has(key) && stations.length < 3 && !station.includes("利用") && station.length <= 7) {
         seenStations.add(key);
 
-        let dest: LocalizedText = { ja: "都心主要エリアへのアクセス良好", zh: "通往主要市區交通便利", zhCN: "通往主要市区交通便利", en: "Convenient direct access to central Tokyo" };
+        let dest: LocalizedText = { ja: "都心主要エリアへのアクセス良好", zh: "通往主要市區交通便利", zhCN: "通往主要市区交通便利", en: "Direct access to central Tokyo" };
         let pit: LocalizedText = { ja: "混雑時間帯は時間に余裕を持った移動を推奨。", zh: "尖峰時段建議預留充足出門時間。", zhCN: "高峰时段建议预留充足出门时间。", en: "Allow extra travel time during peak rush hours." };
 
         if (line.includes("山手線") || station.includes("代々木") || (station.includes("新宿") && !station.includes("西新宿"))) {
@@ -299,7 +309,7 @@ export async function POST(req: NextRequest) {
       matchedRuleIds.add("env_main_road");
     }
 
-    // 7. GOOGLE MAPS API: WIDER 1000m RADIUS + MEDICAL CLINIC FILTERING
+    // 7. GOOGLE MAPS API: WIDER 1000m RADIUS + STRICT NOISE FILTERING
     const apiKey = process.env.GOOGLE_MAPS_API_KEY;
     let isGoogleMapsLive = false;
     let propCoordinates: { lat: number; lng: number } | undefined = undefined;
@@ -319,7 +329,7 @@ export async function POST(req: NextRequest) {
           propCoordinates = { lat, lng };
           isGoogleMapsLive = true;
 
-          // A. Search Supermarkets (RADIUS 1000m to catch Maruetsu 6-chome & My Basket)
+          // Search Supermarkets (Radius 1000m to include Maruetsu 6-chome & Summit)
           const spKeyword = encodeURIComponent('スーパー|マルエツ|まいばすけっと|サミット|成城石井|ライフ|オーケー');
           const spUrl = `https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=${lat},${lng}&radius=1000&keyword=${spKeyword}&language=ja&key=${apiKey}`;
           const spRes = await fetch(spUrl);
@@ -335,7 +345,6 @@ export async function POST(req: NextRequest) {
               });
             rawSupers.sort((a: any, b: any) => a.dist - b.dist);
 
-            // Deduplicate: Keep genuine supermarkets
             const seenSupers = new Set<string>();
             const dedupedSupers: any[] = [];
             for (const item of rawSupers) {
@@ -348,11 +357,11 @@ export async function POST(req: NextRequest) {
 
             supermarkets = dedupedSupers.map(({ p, dist }: any) => {
               const walkMin = Math.max(1, Math.round(dist / 80));
-              let priceTier: LocalizedText = { ja: "★★☆☆☆（庶民派スーパー相場）", zh: "★★☆☆☆（平價生鮮）", zhCN: "★★☆☆☆（平价生鲜）", en: "★★☆☆☆ (Affordable Supermarket)" };
+              let priceTier: LocalizedText = { ja: "★★☆☆☆（庶民派相場）", zh: "★★☆☆☆（平價生鮮）", zhCN: "★★☆☆☆（平价生鲜）", en: "★★☆☆☆ (Affordable)" };
               let tag: LocalizedText = { ja: "主力生鮮スーパー", zh: "主力生鮮超市", zhCN: "主力生鲜超市", en: "Main Supermarket" };
 
               if (p.name.includes("成城石井") || p.name.includes("明治屋")) {
-                priceTier = { ja: "★★★★☆（輸入・高級食材）", zh: "★★★★☆（高檔進口）", zhCN: "★★★★☆（高档进口）", en: "★★★★☆ (Premium Imports)" };
+                priceTier = { ja: "★★★★☆（高級・輸入食材）", zh: "★★★★☆（高檔進口）", zhCN: "★★★★☆（高档进口）", en: "★★★★☆ (Gourmet Imports)" };
                 tag = { ja: "高級輸入スーパー", zh: "精品進口超市", zhCN: "精品进口超市", en: "Gourmet Grocer" };
               } else if (p.name.includes("まいばすけっと") || p.name.includes("マルエツプチ")) {
                 priceTier = { ja: "★★☆☆☆（コンビニより3割安・24H/深夜）", zh: "★★☆☆☆（比超商便宜30%・24H/深夜營業）", zhCN: "★★☆☆☆（比超商便宜30%·24H/深夜营业）", en: "★★☆☆☆ (30% cheaper than CVS / 24H)" };
@@ -376,7 +385,7 @@ export async function POST(req: NextRequest) {
             });
           }
 
-          // B. Search Convenience Stores
+          // Search Convenience Stores
           const cvsUrl = `https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=${lat},${lng}&radius=600&type=convenience_store&language=ja&key=${apiKey}`;
           const cvsRes = await fetch(cvsUrl);
           const cvsData = await cvsRes.json();
@@ -434,7 +443,7 @@ export async function POST(req: NextRequest) {
             });
           }
 
-          // C. Search Famous Chains
+          // Search Famous Chains
           const chainUrl = `https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=${lat},${lng}&radius=900&keyword=${encodeURIComponent('すき家|松屋|吉野家|マクドナルド|サイゼリヤ|日高屋|やよい軒|かつや')}&language=ja&key=${apiKey}`;
           const chainRes = await fetch(chainUrl);
           const chainData = await chainRes.json();
@@ -481,7 +490,7 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // High-Accuracy Grounded Fallbacks with All 4 Supermarkets Explicitly Included
+    // High-Accuracy Grounded Fallbacks with All 4 Supermarkets
     if (!supermarkets.length) {
       supermarkets = [
         {
