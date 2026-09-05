@@ -32,15 +32,32 @@ function makeWalkingMapUrl(
   destName: string, 
   destVicinity?: string
 ): string {
-  const cleanDest = destVicinity ? `${destName} ${destVicinity}` : destName;
+  const cleanDest = destVicinity ? `${destName} ${destVicinity}`.trim() : destName;
   let originParam = "";
-  if (typeof origin === 'object' && origin.lat && origin.lng) {
-    originParam = `${origin.lat},${origin.lng}`;
-  } else if (typeof origin === 'string') {
-    originParam = origin;
-  } else {
-    originParam = "東京都";
+
+  if (typeof origin === 'object' && origin !== null) {
+    if (origin.lat && origin.lng) {
+      originParam = `${origin.lat},${origin.lng}`;
+    } else if (origin.text && origin.text.trim().length > 4 && origin.text.trim() !== "東京都") {
+      originParam = origin.text.trim();
+    }
+  } else if (typeof origin === 'string' && origin.trim().length > 4 && origin.trim() !== "東京都") {
+    originParam = origin.trim();
   }
+
+  // Double Safety Rescue: If originParam is still empty or bare "東京都", derive from destVicinity or destName
+  if (!originParam || originParam === "東京都") {
+    if (destVicinity) {
+      const vMatch = destVicinity.match(/((?:東京都|北海道|(?:京都|大阪)府|.{2,3}県)?[^\s]+?[区市町])/);
+      if (vMatch) {
+        originParam = vMatch[1];
+      }
+    }
+    if (!originParam || originParam === "東京都") {
+      originParam = destName;
+    }
+  }
+
   return `https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(originParam)}&destination=${encodeURIComponent(cleanDest)}&travelmode=walking`;
 }
 
