@@ -1,3 +1,4 @@
+function anyStringContains(str: string, tokens: string[]): boolean { return tokens.some(t => str.includes(t)); }
 import { NextRequest, NextResponse } from 'next/server';
 import { evaluateProperty } from '@/lib/engine';
 import { StationDetail, LifeAmenityItem, LocalizedText } from '@/lib/types';
@@ -262,82 +263,78 @@ export async function POST(req: NextRequest) {
       rentStr = "N/A（目前滿室無招租）";
     }
 
-    // 3. UNIVERSAL ADDRESS EXTRACTION (LEOPALACE21, SUUMO, SUMAITY, HOME'S)
-    const bodyOnlyHtml = html.replace(/<head\b[^<]*(?:(?!<\/head>)<[^<]*)*<\/head>/gi, '');
-
-    // CRITICAL: Strip broker/inquiry sections so corporate headquarters (e.g. 中野区本町3-30-4) are NEVER matched!
-    const bodyClean = bodyOnlyHtml.replace(/(?:お問い合わせ先|お問合せ先|取扱店舗|会社概要|情報提供元|情報提供会社)[\s\S]*$/i, '');
-
+    // 3. ULTRA-ROBUST ADDRESS EXTRACTION (HOME'S, SUUMO, SUMAITY, LEOPALACE21)
     const cleanAddressText = (raw: string): string => {
       return raw
         .replace(/<[^>]+>/g, ' ')
         .replace(/[【\[（\(].*?[】\]）\)]/g, '')
         .replace(/スマイティ|SUUMO|LIFULL|HOME'?S|DOOR賃貸|賃貸|物件|周辺.*|地図.*/gi, '')
+        .replace(/の賃貸.*|の物件詳細.*|物件詳細.*|の賃貸住宅情報.*/gi, '')
         .replace(/[\r\n\t\s]+/g, ' ')
         .trim();
     };
 
     let address = "";
-    
-    // Pattern A: Leopalace21 property address followed by （地図）
-    const mapMatch = bodyClean.match(/((?:東京都|北海道|(?:京都|大阪)府|.{2,3}県)[^\s<"'\/\n\r]+?[区市郡][^\s<"'\/\n\r]{1,30}?)(?:（地図）|\(地図\)|地図)/);
-    if (mapMatch) {
-      const cand = cleanAddressText(mapMatch[1]);
-      if (cand.length >= 4) {
+
+    // Step A: Check meta tags (description & og:description) — 100% immune to body HTML layout differences
+    const metaDescMatch = html.match(/<meta[^>]+(?:name="description"|property="og:description")[^>]+content="([^"]*?所在地[:：\s]*((?:東京都|北海道|(?:京都|大阪)府|.{2,3}県)[^"、\s]+?[区市郡][^"、\s]{1,30})[^"]*)"/i);
+    if (metaDescMatch) {
+      const cand = cleanAddressText(metaDescMatch[2]);
+      if (cand.length >= 4 && !cand.includes("中野区本町3-30-4")) {
         address = cand;
       }
     }
 
-    // Pattern B: Universal Key-Value container for <th>/<td>, <dt>/<dd>, or <div>/<div> (SUUMO & Sumaity)
+    // Step B: Check JSON-LD structured data (schema.org PostalAddress)
     if (!address) {
-      const universalKvMatch = bodyClean.match(/<(?:th|dt|div|span|p)[^>]*>(?:(?!<\/(?:th|dt|div|span|p)>)[\s\S])*?(?:所在地|住所)(?:(?!<\/(?:th|dt|div|span|p)>)[\s\S])*?<\/(?:th|dt|div|span|p)>\s*<(?:td|dd|div|span|p)[^>]*>([\s\S]*?)<\/(?:td|dd|div|span|p)>/i);
-      if (universalKvMatch) {
-        const cand = cleanAddressText(universalKvMatch[1]);
-        if (cand.length >= 4 && (cand.includes("区") || cand.includes("市") || cand.includes("町") || cand.includes("都") || cand.includes("府") || cand.includes("県"))) {
+      const jsonLdMatch = html.match(/"address":\s*(?:\{\s*"@type":\s*"PostalAddress"[^}]*"streetAddress":\s*"([^"]+)"|"([^"]+)")/);
+      if (jsonLdMatch) {
+        const cand = cleanAddressText(jsonLdMatch[1] || jsonLdMatch[2]);
+        if (cand.length >= 4 && !cand.includes("中野区本町3-30-4")) {
           address = cand;
         }
       }
     }
 
-    // Pattern C: Text matching 所在地 followed by Japanese address in clean body
+    // Step C: Universal Key-Value container for <th>/<td>, <dt>/<dd>, or <div>/<div> (Without nuking the document!)
     if (!address) {
-      const textMatch = bodyClean.match(/所在地[:：\s]*((?:東京都|北海道|(?:京都|大阪)府|.{2,3}県)?[^\s<"'\/\n\r]+?[区市郡][^\s<"'\/\n\r]{1,30})/);
+      const kvMatches = html.match(/<(?:th|dt|div|span|p)[^>]*>(?:(?!<\/(?:th|dt|div|span|p)>)[\s\S])*?(?:所在地|住所)(?:(?!<\/(?:th|dt|div|span|p)>)[\s\S])*?<\/(?:th|dt|div|span|p)>\s*<(?:td|dd|div|span|p)[^>]*>([\s\S]*?)<\/(?:td|dd|div|span|p)>/gi);
+      if (kvMatches) {
+        for (const m of kvMatches) {
+          const innerMatch = m.match(/<(?:td|dd|div|span|p)[^>]*>([\s\S]*?)<\/(?:td|dd|div|span|p)>/i);
+          if (innerMatch) {
+            const cand = cleanAddressText(innerMatch[1]);
+            // Ignore Leopalace contact center headquarters specifically
+            if (cand.includes("中野区本町3-30-4") || cand.includes("コンタクトセンター")) continue;
+            if (cand.length >= 4 && (cand.includes("区") || cand.includes("市") || cand.includes("町") || cand.includes("都") || cand.includes("府") || cand.includes("県"))) {
+              address = cand;
+              break;
+            }
+          }
+        }
+      }
+    }
+
+    // Step D: Text matching 所在地 followed by Japanese address in body
+    if (!address) {
+      const textMatch = html.match(/所在地[:：\s]*((?:東京都|北海道|(?:京都|大阪)府|.{2,3}県)?[^\s<"'\/\n\r]+?[区市郡][^\s<"'\/\n\r]{1,30})/);
       if (textMatch) {
         const cand = cleanAddressText(textMatch[1]);
-        if (cand.length >= 4) {
+        if (cand.length >= 4 && !cand.includes("中野区本町3-30-4")) {
           address = cand;
         }
       }
     }
 
-    // Pattern D: Explicit Japanese address regex in clean body
+    // Step E: Direct Japanese address regex in body (excluding script and style)
     if (!address) {
-      const addrRegex = bodyClean.match(/((?:東京都|北海道|(?:京都|大阪)府|.{2,3}県)[^\s<"'\/\n\r]{1,15}?[区市郡][^\s<"'\/\n\r]{1,25}?(?:[0-9０-９一二三四五六七八九十]+丁目|[0-9０-９一二三四五六七八九十]+|[0-9０-９-]+番*))/);
+      const bodyNoScript = html.replace(/<(?:script|style)\b[^<]*(?:(?!<\/(?:script|style)>)<[^<]*)*<\/(?:script|style)>/gi, ' ');
+      const addrRegex = bodyNoScript.match(/((?:東京都|北海道|(?:京都|大阪)府|.{2,3}県)[^\s<"'\/\n\r]{1,15}?[区市郡][^\s<"'\/\n\r]{1,25}?(?:[0-9０-９一二三四五六七八九十]+丁目|[0-9０-９一二三四五六七八九十]+|[0-9０-９-]+番*))/);
       if (addrRegex) {
         const cand = cleanAddressText(addrRegex[1]);
-        if (cand.length >= 4) {
+        if (cand.length >= 4 && !cand.includes("中野区本町3-30-4")) {
           address = cand;
         }
-      }
-    }
-
-    // Pattern E: Parse Prefecture and City from URL structure (e.g. /saitama/soka-shi-11221/...)
-    if (!address || address === "東京都") {
-      const urlMatch = url.match(/\/(saitama|tokyo|kanagawa|chiba|osaka|kyoto|aichi|fukuoka|gunma|tochigi|ibaraki|shizuoka|nagano|gifu)\/([a-z0-9\-]+)/i);
-      if (urlMatch) {
-        const prefMap: Record<string, string> = {
-          saitama: "埼玉県", tokyo: "東京都", kanagawa: "神奈川県", chiba: "千葉県",
-          osaka: "大阪府", kyoto: "京都府", aichi: "愛知県", shizuoka: "静岡県",
-          nagano: "長野県", gifu: "岐阜県", gunma: "群馬県"
-        };
-        const pref = prefMap[urlMatch[1].toLowerCase()] || "東京都";
-        const cityKey = urlMatch[2].split('-')[0].toLowerCase();
-        const cityMap: Record<string, string> = {
-          soka: "草加市", yashio: "八潮市", koshigaya: "越谷市", kawaguchi: "川口市",
-          shinjuku: "新宿区", shibuya: "渋谷区", nakano: "中野区"
-        };
-        const city = cityMap[cityKey] || "";
-        address = `${pref}${city}`;
       }
     }
 
@@ -345,25 +342,7 @@ export async function POST(req: NextRequest) {
       address = "東京都";
     }
 
-    let geocodeTarget = address;
-    if (!geocodeTarget.includes("都") && !geocodeTarget.includes("府") && !geocodeTarget.includes("県") && geocodeTarget.length > 2) {
-      geocodeTarget = `東京都 ${geocodeTarget}`;
-    }
-    if (propertyTitle && !propertyTitle.includes("賃貸") && !propertyTitle.includes("部屋探し")) {
-      const cleanBuildingName = propertyTitle.replace(/\d+号室|\d+号/g, '').trim();
-      geocodeTarget = `${geocodeTarget} ${cleanBuildingName}`;
-    }
-
-    // Specific known property rooftop anchor points
-    if (html.includes("永谷リヴュール") || propertyTitle.includes("永谷リヴュール")) {
-      geocodeTarget = "東京都新宿区西新宿4丁目31-3 永谷リヴュール新宿";
-    } else if (html.includes("コートドール代々木") || propertyTitle.includes("コートドール代々木")) {
-      geocodeTarget = "東京都渋谷区代々木1丁目 コートドール代々木";
-    } else if (html.includes("パリオヴェルデ") || propertyTitle.includes("パリオヴェルデ") || url.toLowerCase().includes("soka")) {
-      geocodeTarget = `${address} レオパレスパリオヴェルデ`;
-    }
-
-    // 4. Stations Extraction
+        // 4. Stations Extraction
     const stations: StationDetail[] = [];
     const seenStations = new Set<string>();
 
@@ -408,14 +387,14 @@ export async function POST(req: NextRequest) {
 
     if (stations.length === 0) {
       if (address.includes("代々木") || propertyTitle.includes("代々木")) {
-        stations.push({ line: "小田急小田原線", station: "南新宿駅", walkMin: 3, fullText: "小田急小田原線 南新宿駅 徒歩3分", destinations: { ja: "新宿へ1駅（徒歩圏）、下北沢直通", zh: "新宿1站（步行亦可直達），下北澤直通", zhCN: "新宿1站（步行亦可直达），下北泽直通", en: "1 stop to Shinjuku, direct to Shimokitazawa" }, pitfalls: { ja: "各駅停車のみ運行", zh: "僅各站停車停靠", zhCN: "仅各站停车停靠", en: "Local trains only" }, mapUrl: makeWalkingMapUrl({ text: address }, "南新宿駅") });
-        stations.push({ line: "JR山手線・総武線", station: "代々木駅", walkMin: 5, fullText: "JR山手線 代々木駅 徒歩5分", destinations: { ja: "渋谷5分、新宿、東京直通大動脈", zh: "直達 澀谷(5分)、新宿、東京大動脈", zhCN: "直达 涩谷(5分)、新宿、东京大动脉", en: "Direct to Shibuya (5m), Shinjuku, Tokyo" }, pitfalls: { ja: "山手線ラッシュ時の混雑注意", zh: "早晚尖峰人潮擁擠", zhCN: "早晚高峰人潮拥挤", en: "Heavy morning rush crowds" }, mapUrl: makeWalkingMapUrl({ text: address }, "代々木駅") });
+        stations.push({ line: "小田急小田原線", station: "南新宿駅", walkMin: 3, fullText: "小田急小田原線 南新宿駅 徒歩3分", destinations: { ja: "新宿へ1駅（徒歩圏）、下北沢直通", zh: "新宿1站（步行亦可直達），下北澤直通", zhCN: "新宿1站（步行亦可直达），下北泽直通", en: "1 stop to Shinjuku, direct to Shimokitazawa" }, pitfalls: { ja: "各駅停車のみ運行", zh: "僅各站停車停靠", zhCN: "仅各站停车停靠", en: "Local trains only" }, mapUrl: makeWalkingMapUrl({ lat: propCoordinates?.lat, lng: propCoordinates?.lng, text: address }, "南新宿駅") });
+        stations.push({ line: "JR山手線・総武線", station: "代々木駅", walkMin: 5, fullText: "JR山手線 代々木駅 徒歩5分", destinations: { ja: "渋谷5分、新宿、東京直通大動脈", zh: "直達 澀谷(5分)、新宿、東京大動脈", zhCN: "直达 涩谷(5分)、新宿、东京大动脉", en: "Direct to Shibuya (5m), Shinjuku, Tokyo" }, pitfalls: { ja: "山手線ラッシュ時の混雑注意", zh: "早晚尖峰人潮擁擠", zhCN: "早晚高峰人潮拥挤", en: "Heavy morning rush crowds" }, mapUrl: makeWalkingMapUrl({ lat: propCoordinates?.lat, lng: propCoordinates?.lng, text: address }, "代々木駅") });
       } else if (address.includes("草加") || propertyTitle.includes("パリオヴェルデ") || url.toLowerCase().includes("soka")) {
-        stations.push({ line: "東武スカイツリーライン", station: "草加駅", walkMin: 16, fullText: "東武スカイツリーライン 草加駅 徒歩16分", destinations: { ja: "北千住・上野・大手町方面（直通地下鉄日比谷線・半蔵門線）", zh: "直達 北千住、上野、大手町（直通日比谷線・半藏門線）", zhCN: "直达 北千住、上野、大手町（直通日比谷线・半藏门线）", en: "Direct to Kitasenju, Ueno, Otemachi via Hibiya/Hanzomon lines" }, pitfalls: { ja: "急行停車駅。駅まで徒歩16分のため自転車利用も推奨", zh: "草加為急行大站。步行需16分，建議搭配自行車代步", zhCN: "草加为急行大站。步行需16分，建议搭配自行车", en: "Express stop; 16-min walk, bicycle commute recommended" }, mapUrl: makeWalkingMapUrl({ text: address }, "草加駅") });
+        stations.push({ line: "東武スカイツリーライン", station: "草加駅", walkMin: 16, fullText: "東武スカイツリーライン 草加駅 徒歩16分", destinations: { ja: "北千住・上野・大手町方面（直通地下鉄日比谷線・半蔵門線）", zh: "直達 北千住、上野、大手町（直通日比谷線・半藏門線）", zhCN: "直达 北千住、上野、大手町（直通日比谷线・半藏门线）", en: "Direct to Kitasenju, Ueno, Otemachi via Hibiya/Hanzomon lines" }, pitfalls: { ja: "急行停車駅。駅まで徒歩16分のため自転車利用も推奨", zh: "草加為急行大站。步行需16分，建議搭配自行車代步", zhCN: "草加为急行大站。步行需16分，建议搭配自行车", en: "Express stop; 16-min walk, bicycle commute recommended" }, mapUrl: makeWalkingMapUrl({ lat: propCoordinates?.lat, lng: propCoordinates?.lng, text: address }, "草加駅") });
       } else if (address.includes("西新宿４") || propertyTitle.includes("永谷リヴュール")) {
-        stations.push({ line: "都営大江戸線", station: "都庁前駅", walkMin: 5, fullText: "都営大江戸線 都庁前駅 徒歩5分", destinations: { ja: "六本木・麻布十番方面直通", zh: "直達 六本木、麻布十番、汐留", zhCN: "直达 六本木、麻布十番、汐留", en: "Direct to Roppongi, Azabu-Juban, Shiodome" }, pitfalls: { ja: "⚠️ 大深度地下鉄のため移動時間要", zh: "⚠️ 大江戶線地下極深需多抓時間", zhCN: "⚠️ 大江户线地下极深需多抓时间", en: "⚠️ Deep underground station; allow escalator time" }, mapUrl: makeWalkingMapUrl({ text: address }, "都庁前駅") });
+        stations.push({ line: "都営大江戸線", station: "都庁前駅", walkMin: 5, fullText: "都営大江戸線 都庁前駅 徒歩5分", destinations: { ja: "六本木・麻布十番方面直通", zh: "直達 六本木、麻布十番、汐留", zhCN: "直达 六本木、麻布十番、汐留", en: "Direct to Roppongi, Azabu-Juban, Shiodome" }, pitfalls: { ja: "⚠️ 大深度地下鉄のため移動時間要", zh: "⚠️ 大江戶線地下極深需多抓時間", zhCN: "⚠️ 大江户线地下极深需多抓时间", en: "⚠️ Deep underground station; allow escalator time" }, mapUrl: makeWalkingMapUrl({ lat: propCoordinates?.lat, lng: propCoordinates?.lng, text: address }, "都庁前駅") });
       } else {
-        stations.push({ line: "主要路線", station: "最寄り駅", walkMin: 8, fullText: "最寄り駅 徒歩8分", destinations: { ja: "都心方面へのアクセス良好", zh: "通往市區交通實用", zhCN: "通往市区交通实用", en: "Convenient access to city center" }, pitfalls: { ja: "ラッシュ時の運行間隔を確認", zh: "留意尖峰發車間距", zhCN: "留意高峰发车间距", en: "Check peak frequency" }, mapUrl: makeWalkingMapUrl({ text: address }, "最寄り駅") });
+        stations.push({ line: "主要路線", station: "最寄り駅", walkMin: 8, fullText: "最寄り駅 徒歩8分", destinations: { ja: "都心方面へのアクセス良好", zh: "通往市區交通實用", zhCN: "通往市区交通实用", en: "Convenient access to city center" }, pitfalls: { ja: "ラッシュ時の運行間隔を確認", zh: "留意尖峰發車間距", zhCN: "留意高峰发车间距", en: "Check peak frequency" }, mapUrl: makeWalkingMapUrl({ lat: propCoordinates?.lat, lng: propCoordinates?.lng, text: address }, "最寄り駅") });
       }
     }
 
