@@ -227,24 +227,24 @@ export default function Home() {
     switch (symbol) {
       case '◎':
         return isDarkMode 
-          ? 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30' 
-          : 'bg-emerald-50 text-emerald-700 border-emerald-200';
+          ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40 shadow-sm' 
+          : 'bg-emerald-100 text-emerald-950 border-emerald-400 font-black shadow-sm';
       case '○':
         return isDarkMode 
-          ? 'bg-sky-500/15 text-sky-400 border-sky-500/30' 
-          : 'bg-sky-50 text-sky-700 border-sky-200';
+          ? 'bg-sky-500/20 text-sky-300 border-sky-500/40 shadow-sm' 
+          : 'bg-sky-100 text-sky-950 border-sky-400 font-black shadow-sm';
       case '△':
         return isDarkMode 
-          ? 'bg-amber-500/15 text-amber-400 border-amber-500/30' 
-          : 'bg-amber-50 text-amber-700 border-amber-200';
+          ? 'bg-amber-500/20 text-amber-300 border-amber-500/40 shadow-sm' 
+          : 'bg-amber-100 text-amber-950 border-amber-400 font-black shadow-sm';
       case '▲':
         return isDarkMode 
-          ? 'bg-rose-500/15 text-rose-400 border-rose-500/30' 
-          : 'bg-rose-50 text-rose-700 border-rose-200';
+          ? 'bg-rose-500/20 text-rose-300 border-rose-500/40 shadow-sm' 
+          : 'bg-rose-100 text-rose-950 border-rose-400 font-black shadow-sm';
       default:
         return isDarkMode 
-          ? 'bg-gray-500/15 text-gray-400 border-gray-500/30' 
-          : 'bg-gray-100 text-gray-600 border-gray-200';
+          ? 'bg-gray-700/40 text-gray-300 border-gray-600' 
+          : 'bg-slate-200 text-slate-900 border-slate-400 font-black shadow-sm';
     }
   };
 
@@ -295,8 +295,8 @@ export default function Home() {
                   onClick={() => setLang(item.id as Language)}
                   className={`px-2.5 py-1 rounded-lg transition-all ${
                     lang === item.id 
-                      ? 'bg-indigo-600 text-white font-bold shadow' 
-                      : 'text-gray-400 hover:text-gray-200'
+                      ? 'bg-indigo-600 text-white font-black shadow' 
+                      : (isDarkMode ? 'text-gray-400 hover:text-gray-200' : 'text-slate-700 hover:text-slate-900 font-bold')
                   }`}
                 >
                   {item.label}
@@ -402,7 +402,8 @@ export default function Home() {
                   <h2 className="text-xl sm:text-2xl font-black tracking-tight mb-2">
                     {propertyTitle || '物件詳細'}
                   </h2>
-                  <div className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 font-medium">
+                  <div className={`text-xs sm:text-sm font-semibold ${isDarkMode ? "text-gray-400" : "text-slate-700"}`}>
+
                     {propertyMeta}
                   </div>
                 </div>
@@ -432,9 +433,9 @@ export default function Home() {
                   className={`flex-1 py-2.5 px-3 rounded-xl text-xs sm:text-sm font-bold whitespace-nowrap transition-all ${
                     activeTab === tab.id
                       ? (isDarkMode 
-                          ? 'bg-indigo-600 text-white shadow-md' 
-                          : 'bg-white text-indigo-700 shadow')
-                      : 'text-gray-400 hover:text-gray-200'
+                          ? 'bg-indigo-600 text-white shadow-md font-black' 
+                          : 'bg-white text-indigo-800 shadow-md font-black border border-indigo-200')
+                      : (isDarkMode ? 'text-gray-400 hover:text-gray-200' : 'text-slate-700 hover:text-slate-900 font-extrabold')
                   }`}
                 >
                   {tab.label}
@@ -471,12 +472,14 @@ export default function Home() {
                         >
                           <div className={`text-sm sm:text-base font-extrabold ${isDarkMode ? 'text-gray-200' : 'text-slate-800'}`}>{dim.label[lang]}</div>
                           <div className={`w-14 h-14 sm:w-16 sm:h-16 flex items-center justify-center rounded-2xl border my-1.5 shadow-sm transition-transform ${getSymbolBadge(dim.symbol)}`}>
-                            <span className={`font-black leading-none ${
+                            <span className={`font-black leading-none flex items-center justify-center ${
                               dim.symbol === 'N/A' 
-                                ? 'text-base sm:text-lg' 
-                                : dim.symbol === '○' 
-                                ? 'text-2xl sm:text-3xl' 
-                                : 'text-3xl sm:text-4xl'
+                                ? 'text-xs sm:text-sm font-bold' 
+                                : dim.symbol === '◎' 
+                                ? 'text-3xl sm:text-4xl scale-[1.35] transform inline-block' 
+                                : dim.symbol === '△' || dim.symbol === '▲'
+                                ? 'text-3xl sm:text-4xl scale-[1.35] transform inline-block' 
+                                : 'text-2xl sm:text-3xl inline-block'
                             }`}>
                               {dim.symbol}
                             </span>
@@ -642,7 +645,7 @@ export default function Home() {
                         <div>
                           <div className="flex items-center justify-between gap-2 mb-1.5">
                             <span className={`font-black text-base sm:text-lg leading-snug ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>{sp.name}</span>
-                            <span className="px-3 py-1 rounded-lg text-sm font-black bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 whitespace-nowrap">
+                            <span className={`px-3 py-1 rounded-lg text-sm font-black whitespace-nowrap border ${isDarkMode ? "bg-emerald-500/20 text-emerald-300 border-emerald-500/30" : "bg-emerald-100 text-emerald-950 border-emerald-400 font-extrabold shadow-sm"}`}>
                               {sp.walk}
                             </span>
                           </div>
@@ -662,7 +665,7 @@ export default function Home() {
                             href={sp.mapUrl}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="inline-flex items-center justify-center gap-1.5 py-2 px-3.5 rounded-xl text-sm font-bold bg-sky-500/15 text-sky-300 border border-sky-500/30 hover:bg-sky-500/20 transition-all self-end"
+                            className={`inline-flex items-center justify-center gap-1.5 py-2 px-3.5 rounded-xl text-sm font-bold border transition-all self-end ${isDarkMode ? "bg-sky-500/15 text-sky-300 border-sky-500/30 hover:bg-sky-500/20" : "bg-sky-100 text-sky-950 border-sky-400 hover:bg-sky-200 font-extrabold shadow-sm"}`}
                           >
                             <span>{t.walkRouteHint}</span>
                           </a>
@@ -688,7 +691,7 @@ export default function Home() {
                         <div>
                           <div className="flex items-center justify-between gap-2 mb-1.5">
                             <span className={`font-black text-base sm:text-lg leading-snug ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>{cvs.name}</span>
-                            <span className="px-3 py-1 rounded-lg text-sm font-black bg-indigo-500/20 text-indigo-300 border border-indigo-500/40 whitespace-nowrap">
+                            <span className={`px-3 py-1 rounded-lg text-sm font-black whitespace-nowrap border ${isDarkMode ? "bg-indigo-500/20 text-indigo-300 border-indigo-500/40" : "bg-indigo-100 text-indigo-950 border-indigo-400 font-extrabold shadow-sm"}`}>
                               {cvs.walk}
                             </span>
                           </div>
@@ -703,7 +706,7 @@ export default function Home() {
                             href={cvs.mapUrl}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="inline-flex items-center justify-center gap-1.5 py-2 px-3.5 rounded-xl text-sm font-bold bg-sky-500/15 text-sky-300 border border-sky-500/30 hover:bg-sky-500/20 transition-all self-end"
+                            className={`inline-flex items-center justify-center gap-1.5 py-2 px-3.5 rounded-xl text-sm font-bold border transition-all self-end ${isDarkMode ? "bg-sky-500/15 text-sky-300 border-sky-500/30 hover:bg-sky-500/20" : "bg-sky-100 text-sky-950 border-sky-400 hover:bg-sky-200 font-extrabold shadow-sm"}`}
                           >
                             <span>{t.walkRouteHint}</span>
                           </a>
@@ -728,7 +731,7 @@ export default function Home() {
                       >
                         <div>
                           <div className={`font-black text-base sm:text-lg mb-1.5 ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>{c.name}</div>
-                          <div className={`text-sm sm:text-base font-black mb-1.5 ${isDarkMode ? 'text-indigo-300' : 'text-indigo-700'}`}>{c.walk}</div>
+                          <div className={`text-sm sm:text-base font-black mb-1.5 ${isDarkMode ? 'text-indigo-300' : 'text-indigo-950 font-extrabold'}`}>{c.walk}</div>
                           <p className={`text-sm leading-relaxed mb-3 ${isDarkMode ? 'text-gray-300' : 'text-slate-600'}`}>{c.note[lang]}</p>
                         </div>
                         {c.mapUrl && (
@@ -736,7 +739,7 @@ export default function Home() {
                             href={c.mapUrl}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="inline-flex items-center justify-center gap-1 py-1 px-2.5 rounded-lg text-[11px] font-bold bg-sky-500/10 text-sky-400 border border-sky-500/30 hover:bg-sky-500/20 transition-all self-end"
+                            className={`inline-flex items-center justify-center gap-1 py-1 px-2.5 rounded-lg text-xs font-bold border transition-all self-end ${isDarkMode ? "bg-sky-500/10 text-sky-400 border-sky-500/30 hover:bg-sky-500/20" : "bg-sky-100 text-sky-950 border-sky-400 hover:bg-sky-200 font-extrabold shadow-sm"}`}
                           >
                             <span>{t.walkRouteHint}</span>
                           </a>
