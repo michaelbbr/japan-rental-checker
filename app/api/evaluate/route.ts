@@ -727,12 +727,59 @@ export async function POST(req: NextRequest) {
     }
 
     // Dynamic Fallbacks based on Property
+    const isYamabuki = address.includes("山吹町") || address.includes("水道町") || address.includes("江戸川橋") || propertyTitle.includes("江戸川橋");
     const isYoyogi = address.includes("代々木") || propertyTitle.includes("代々木");
     const isSoka = address.includes("草加") || propertyTitle.includes("パリオヴェルデ") || url.toLowerCase().includes("soka");
     const isChofu = address.includes("調布") || address.includes("つつじ") || propertyTitle.includes("つつじ") || propertyTitle.includes("バイロイト") || propertyTitle.includes("パイロット");
+    const isNishiShinjuku = address.includes("西新宿") || propertyTitle.includes("永谷リヴュール");
 
     if (!supermarkets.length) {
-      if (isChofu) {
+      if (isYamabuki) {
+        supermarkets = [
+          {
+            name: "マルエツ 江戸川橋店（Maruetsu Edogawabashi）",
+            tag: { ja: "地域最大・総合大型スーパー", zh: "神樂坂・江戶川橋最大主力超市", zhCN: "江户川桥最大主力超市", en: "Large Full-Service Supermarket" },
+            priceLevel: { ja: "★★☆☆☆（庶民派相場）", zh: "★★☆☆☆（平價生鮮齊全）", zhCN: "★★☆☆☆（平价生鲜齐全）", en: "★★☆☆☆ (Affordable)" },
+            walk: "徒歩 2 分 (150m)",
+            rating: "4.0 ★★★★☆",
+            note: { 
+              ja: "神楽坂・江戸川橋エリア随一の売場面積！生鮮食品・鮮魚・精肉からお惣菜・冷凍食品まで圧倒的品揃え（665件口コミ）", 
+              zh: "江戶川橋旁規模最大！生鮮魚肉、蔬果與熟食便當極齊全，日常生活採買主力門市（665則評論）",
+              zhCN: "江户川桥旁规模最大超市！生鲜蔬菜肉品与便当极齐全（665条评价）",
+              en: "Largest supermarket in Edogawabashi area; vast selection of meats, fresh seafood, and deli (665 reviews)"
+            },
+            mapUrl: makeWalkingMapUrl({ lat: propCoordinates?.lat, lng: propCoordinates?.lng, text: address }, "マルエツ 江戸川橋店", "東京都新宿区水道町4-13")
+          },
+          {
+            name: "まいばすけっと 山吹町店（My Basket Yamabukicho）",
+            tag: { ja: "徒歩すぐ・イオン系列ミニスーパー", zh: "近在咫尺・永旺平價迷你超市", zhCN: "近在咫尺・永旺平价迷你超市", en: "AEON Neighborhood Mini-Market" },
+            priceLevel: { ja: "★★☆☆☆（地域最安水準）", zh: "★★☆☆☆（平價小資自炊）", zhCN: "★★☆☆☆（平价小资自炊）", en: "★★☆☆☆ (Budget Value)" },
+            walk: "徒歩 2 分 (120m)",
+            rating: "3.7 ★★★★☆",
+            note: { 
+              ja: "山吹町至近！牛乳・納豆・冷凍食品や日配品がコンビニより3割以上安く、毎日のお買い物に最適", 
+              zh: "走出家門2分鐘！鮮奶、雞蛋、冷凍食品比超商便宜3成以上，小資下班採買最便利",
+              zhCN: "出门2分钟！牛奶鸡蛋冷冻食品比便利店实惠30%以上",
+              en: "Just 2-min walk; dairy, eggs, and groceries priced 30% lower than convenience stores"
+            },
+            mapUrl: makeWalkingMapUrl({ lat: propCoordinates?.lat, lng: propCoordinates?.lng, text: address }, "まいばすけっと 山吹町店", "東京都新宿区山吹町")
+          },
+          {
+            name: "コモディイイダ 江戸川橋店（Comodi Iida）",
+            tag: { ja: "駅前商店街・老舗スーパー", zh: "站前平價生鮮超市", zhCN: "站前平价生鲜超市", en: "Neighborhood Supermarket" },
+            priceLevel: { ja: "★★☆☆☆（特売多数）", zh: "★★☆☆☆（天天特價生鮮）", zhCN: "★★☆☆☆（天天特价生鲜）", en: "★★☆☆☆ (Affordable)" },
+            walk: "徒歩 4 分 (300m)",
+            rating: "3.6 ★★★★☆",
+            note: { 
+              ja: "江戸川橋駅前。青果や精肉のセールが頻繁で、手作り惣菜のコスパが高い地域密着型スーパー", 
+              zh: "地蔵通り商店街旁！蔬果生鮮特價多，熟食便當性價比極佳",
+              zhCN: "商店街旁！蔬果特价多，熟食便当性价比好",
+              en: "Near shopping street; frequent produce specials and high-value deli bento"
+            },
+            mapUrl: makeWalkingMapUrl({ lat: propCoordinates?.lat, lng: propCoordinates?.lng, text: address }, "コモディイイダ 江戸川橋店", "東京都文京区関口1-4-8")
+          }
+        ];
+      } else if (isChofu) {
         supermarkets = [
           {
             name: "オオゼキ つつじヶ丘店（OZEKI）",
@@ -881,7 +928,7 @@ export async function POST(req: NextRequest) {
             mapUrl: makeWalkingMapUrl(address, "成城石井 ルミネ新宿店", "東京都新宿区西新宿1-1-5 ルミネ1 B2F")
           }
         ];
-      } else {
+      } else if (isNishiShinjuku) {
         supermarkets = [
           {
             name: "まいばすけっと 代々木4丁目店（My Basket Yoyogi 4 Chome）",
@@ -889,13 +936,8 @@ export async function POST(req: NextRequest) {
             priceLevel: { ja: "★☆☆☆☆（圧倒的格安）", zh: "★☆☆☆☆（比超商便宜30%・自炊省錢首選）", zhCN: "★☆☆☆☆（比超商便宜30%·自炊省钱首选）", en: "★☆☆☆☆ (Budget Value)" },
             walk: "徒歩 1 分 (60m)",
             rating: "3.8 ★★★★☆",
-            note: { 
-              ja: "物件の目の前！西新宿松屋ビル1F。鮮乳180円台・生鮮食品がコンビニより格段に安く生活費節約の要", 
-              zh: "就在物件正對面！西新宿松屋大樓1F。鮮奶180円、冷凍熟食比超商便宜30%以上，小資自炊救星",
-              zhCN: "就在物件正对面！西新宿松屋大楼1F。鲜奶180円，冷冻食品比便利店实惠30%以上",
-              en: "Directly opposite the building (60m)! Fresh milk at 180 JPY, deep savings on daily groceries"
-            },
-            mapUrl: makeWalkingMapUrl(address, "まいばすけっと 代々木4丁目店", "東京都渋谷区代々木4-31-6 西新宿松屋ビル")
+            note: { ja: "物件の目の前！西新宿松屋ビル1F。鮮乳180円台・生鮮食品がコンビニより格段に安く生活費節約の要", zh: "就在物件正對面！西新宿松屋大樓1F。鮮奶180円、冷凍熟食比超商便宜30%以上，小資自炊救星", zhCN: "就在物件正对面！西新宿松屋大楼1F。鲜奶180円，冷冻食品比便利店实惠30%以上", en: "Directly opposite the building (60m)! Fresh milk at 180 JPY, deep savings on daily groceries" },
+            mapUrl: makeWalkingMapUrl({ lat: propCoordinates?.lat, lng: propCoordinates?.lng, text: address }, "まいばすけっと 代々木4丁目店", "東京都渋谷区代々木4-31-6 西新宿松屋ビル")
           },
           {
             name: "マルエツ プチ 西新宿三丁目店（Maruetsu Petit）",
@@ -903,48 +945,66 @@ export async function POST(req: NextRequest) {
             priceLevel: { ja: "★★☆☆☆（庶民派・自炊の味方）", zh: "★★☆☆☆（平價生鮮）", zhCN: "★★☆☆☆（平价生鲜）", en: "★★☆☆☆ (Affordable Groceries)" },
             walk: "徒歩 3 分 (200m)",
             rating: "3.7 ★★★★☆",
+            note: { ja: "最寄りの24時間スーパー！深夜でも生鮮野菜・精肉・総菜が手に入り自炊に最強（368件の口コミ）", zh: "最靠近的24小時超市！深夜下班買生鮮蔬菜、肉品與熟食便當最齊全（368則評論）", zhCN: "最靠近的24小时超市！生鲜蔬菜、肉品与熟食便当齐全（368条评价）", en: "Closest 24/7 supermarket! Fresh meat, vegetables, and hot bento anytime (368 reviews)" },
+            mapUrl: makeWalkingMapUrl({ lat: propCoordinates?.lat, lng: propCoordinates?.lng, text: address }, "マルエツ プチ 西新宿三丁目店", "東京都新宿区西新宿3-13-11")
+          }
+        ];
+      } else {
+        const districtName = address.replace(/(?:東京都|北海道|(?:京都|大阪)府|.{2,3}県)?(?:.+?[区市郡])?/, '').replace(/[0-9０-９一二三四五六七八九十丁目番地号-]+/g, '').trim() || "駅前";
+        supermarkets = [
+          {
+            name: `まいばすけっと ${districtName}店`,
+            tag: { ja: "イオン系列・地域密着スーパー", zh: "永旺平價小型超市", zhCN: "永旺平价小型超市", en: "Neighborhood Supermarket" },
+            priceLevel: { ja: "★★☆☆☆（地域最安水準）", zh: "★★☆☆☆（平價自炊首選）", zhCN: "★★☆☆☆（平价自炊首选）", en: "★★☆☆☆ (Budget Friendly)" },
+            walk: "徒歩 3 分 (200m)",
+            rating: "3.7 ★★★★☆",
             note: { 
-              ja: "最寄りの24時間スーパー！深夜でも生鮮野菜・精肉・総菜が手に入り自炊に最強（368件の口コミ）", 
-              zh: "最靠近的24小時超市！深夜下班買生鮮蔬菜、肉品與熟食便當最齊全（368則評論）",
-              zhCN: "最靠近的24小时超市！生鲜蔬菜、肉品与熟食便当齐全（368条评价）",
-              en: "Closest 24/7 supermarket! Fresh meat, vegetables, and hot bento anytime (368 reviews)"
+              ja: `${districtName}周辺の生鮮・日配品が揃う近隣スーパー。毎日のお買い物に最適`, 
+              zh: `${districtName}生活圈便利生鮮門市！鮮奶、蔬菜肉品與冷凍食品齊全`,
+              zhCN: `${districtName}生活圈便利生鲜门市！鲜奶蔬菜肉品齐全`,
+              en: `Convenient local supermarket in ${districtName} with daily fresh groceries`
             },
-            mapUrl: makeWalkingMapUrl(address, "マルエツ プチ 西新宿三丁目店", "東京都新宿区西新宿3-13-11")
+            mapUrl: makeWalkingMapUrl({ lat: propCoordinates?.lat, lng: propCoordinates?.lng, text: address }, `スーパー ${districtName}`)
           },
           {
-            name: "成城石井 オペラシティ店",
-            tag: { ja: "東京オペラシティ・高級輸入スーパー", zh: "東京歌劇城・高檔進口超市", zhCN: "东京歌剧城・高档进口超市", en: "Opera City Gourmet Grocer" },
-            priceLevel: { ja: "★★★★☆（輸入・こだわり食材）", zh: "★★★★☆（精緻進口・高檔小酌）", zhCN: "★★★★☆（精致进口・高档小酌）", en: "★★★★☆ (Gourmet Imports)" },
-            walk: "徒歩 6 分 (450m)",
+            name: `マルエツ ${districtName}店`,
+            tag: { ja: "生鮮食品・総合スーパー", zh: "大型綜合生鮮超市", zhCN: "大型综合生鲜超市", en: "Full-Service Supermarket" },
+            priceLevel: { ja: "★★☆☆☆（標準相場）", zh: "★★☆☆☆（品項豐富齊全）", zhCN: "★★☆☆☆（品项丰富齐全）", en: "★★☆☆☆ (Great Value)" },
+            walk: "徒歩 5 分 (380m)",
             rating: "3.8 ★★★★☆",
             note: { 
-              ja: "東京オペラシティタワーB1F。高品質なチーズ、ワイン、惣菜が充実（209件の口コミ）", 
-              zh: "位於東京歌劇城B1F！高品質各國起司、精緻熟食與紅酒小酌首選（209則評論）",
-              zhCN: "位于东京歌剧城B1F！高品质起司、精致熟食与红酒小酌首选（209条评价）",
-              en: "Located in Tokyo Opera City B1F; premium wine, artisanal cheese, and prepared deli (209 reviews)"
+              ja: `${districtName}エリアの大型生鮮スーパー。青果・精肉からお惣菜まで充実`, 
+              zh: `${districtName}周邊主力生鮮超市，熟食便當與日常食材最齊全`,
+              zhCN: `${districtName}周边主力生鲜超市`,
+              en: `Full-service grocery store in ${districtName} with fresh deli and produce`
             },
-            mapUrl: makeWalkingMapUrl(address, "成城石井 オペラシティ店", "東京都新宿区西新宿3-20-2")
-          },
-          {
-            name: "マルエツプチ 西新宿六丁目店",
-            tag: { ja: "24時間営業・大型生鮮スーパー", zh: "大型24小時生鮮", zhCN: "大型24小时生鲜", en: "24H Full-Size Supermarket" },
-            priceLevel: { ja: "★★☆☆☆（大型生鮮）", zh: "★★☆☆☆（大型生鮮）", zhCN: "★★☆☆☆（大型生鲜）", en: "★★☆☆☆ (Standard Supermarket)" },
-            walk: "徒歩 11 分 (850m)",
-            rating: "3.8 ★★★★☆",
-            note: { 
-              ja: "新宿中央公園北側。CENTRAL PARK TOWER 1F。店舗面積が広く品揃えが最も充実（795件口コミ）", 
-              zh: "中央公園北側大樓1F。門市面積大、生鮮蔬菜肉品最齊全（795則評論）",
-              zhCN: "中央公园北侧大楼1F。门店面积大、生鲜肉类蔬菜最齐全（795条评价）",
-              en: "Located north of Shinjuku Central Park; large store with comprehensive produce (795 reviews)"
-            },
-            mapUrl: makeWalkingMapUrl(address, "マルエツプチ 西新宿六丁目店", "東京都新宿区西新宿6-15-1")
+            mapUrl: makeWalkingMapUrl({ lat: propCoordinates?.lat, lng: propCoordinates?.lng, text: address }, `マルエツ ${districtName}`)
           }
         ];
       }
     }
 
     if (!convenienceStores.length) {
-      if (isChofu) {
+      if (isYamabuki) {
+        convenienceStores = [
+          {
+            name: "セブン-イレブン 新宿山吹町店",
+            tag: { ja: "⚖️ 便當熟食王者", zh: "⚖️ 出門1分便當熟食首選", zhCN: "⚖️ 出门1分便当熟食首选", en: "⚖️ 7-Eleven Top Quality" },
+            priceLevel: { ja: "★★★☆☆（定価）", zh: "★★★☆☆（標準公定價）", zhCN: "★★★☆☆（标准公定价）", en: "★★★☆☆ (Standard)" },
+            walk: "徒歩 1 分 (80m)",
+            note: { ja: "山吹町交差点すぐ。セブンカフェ・お弁当・セブン銀行ATM完備で深夜も安心", zh: "就在山吹町巷口！現磨咖啡、熱便當與ATM提款24小時最方便", zhCN: "就在巷口！现磨咖啡、热食与ATM最方便", en: "Just 1-min walk; open 24/7 with quality bento and ATM access" },
+            mapUrl: makeWalkingMapUrl({ lat: propCoordinates?.lat, lng: propCoordinates?.lng, text: address }, "セブン-イレブン 新宿山吹町店", "東京都新宿区山吹町")
+          },
+          {
+            name: "ファミリーマート 新宿山吹町店",
+            tag: { ja: "⚖️ 炸雞甜點霸主", zh: "⚖️ 炸雞甜點齊全", zhCN: "⚖️ 炸鸡甜点齐全", en: "⚖️ FamilyMart Favorites" },
+            priceLevel: { ja: "★★★☆☆（定価）", zh: "★★★☆☆（常有折扣券）", zhCN: "★★★☆☆（常有折扣券）", en: "★★★☆☆ (Standard)" },
+            walk: "徒歩 2 分 (140m)",
+            note: { ja: "早大通り沿い。ファミチキやアプリクーポンが充実、イートインスペースあり", zh: "早大通り旁！招牌多汁炸雞、甜點優惠多，具備內用座", zhCN: "多汁炸鸡与甜点优惠多", en: "Along Waseda Street with hot fried chicken snacks and coffee" },
+            mapUrl: makeWalkingMapUrl({ lat: propCoordinates?.lat, lng: propCoordinates?.lng, text: address }, "ファミリーマート 新宿山吹町店", "東京都新宿区山吹町")
+          }
+        ];
+      } else if (isChofu) {
         convenienceStores = [
           {
             name: "セブン-イレブン 調布西つつじヶ丘3丁目店",
@@ -1024,7 +1084,37 @@ export async function POST(req: NextRequest) {
     }
 
     if (!famousChains.length) {
-      if (isSoka) {
+      if (isYamabuki) {
+        famousChains = [
+          {
+            name: "松屋 江戸川橋店",
+            category: "gyudon",
+            tag: { ja: "定食 450円〜", zh: "定食 450円起", zhCN: "定食 450円起", en: "Set Meals from 450 JPY" },
+            walk: "徒歩 4 分 (300m)",
+            budget: "450〜750円",
+            note: { ja: "江戸川橋駅前。店内みそ汁無料、豚生姜焼き定食やカレーが人気", zh: "江戶川橋站前！內用免費附熱味噌湯，生薑燒肉與咖哩人氣高", zhCN: "江户川桥站前！堂食免费送味噌汤", en: "Near station exit with free miso soup for dine-in" },
+            mapUrl: makeWalkingMapUrl({ lat: propCoordinates?.lat, lng: propCoordinates?.lng, text: address }, "松屋 江戸川橋店", "東京都文京区関口1-47-12")
+          },
+          {
+            name: "日高屋 江戸川橋店",
+            category: "ramen",
+            tag: { ja: "中華・ラーメン", zh: "平價拉麵・炒飯", zhCN: "平价拉面・炒饭", en: "Ramen & Gyoza" },
+            walk: "徒歩 4 分 (320m)",
+            budget: "400〜700円",
+            note: { ja: "中華そば400円台〜。餃子定食や野菜炒め定食がコスパ抜群", zh: "中華拉麵400多日圓！煎餃配熱炒定食性價比極高", zhCN: "拉面与煎饺套餐实惠迅速", en: "Budget-friendly ramen, fried rice, and gyoza sets" },
+            mapUrl: makeWalkingMapUrl({ lat: propCoordinates?.lat, lng: propCoordinates?.lng, text: address }, "日高屋 江戸川橋店", "東京都文京区関口1-47-12")
+          },
+          {
+            name: "すき家 江戸川橋駅前店",
+            category: "gyudon",
+            tag: { ja: "牛丼 400円〜", zh: "牛丼 400円起", zhCN: "牛丼 400円起", en: "Gyudon from 400 JPY" },
+            walk: "徒歩 4 分 (320m)",
+            budget: "400〜650円",
+            note: { ja: "24時間営業。サクッと牛丼・朝食定食が食べられる安心の店舗", zh: "24小時營業！深夜與早晨省錢用餐首選", zhCN: "24小时营业！实惠迅速", en: "Open 24/7; quick budget-friendly beef bowls" },
+            mapUrl: makeWalkingMapUrl({ lat: propCoordinates?.lat, lng: propCoordinates?.lng, text: address }, "すき家 江戸川橋駅前店", "東京都文京区関口1-19-6")
+          }
+        ];
+      } else if (isSoka) {
         famousChains = [
           {
             name: "松屋 草加駅前店",
