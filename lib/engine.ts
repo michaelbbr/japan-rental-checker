@@ -84,24 +84,31 @@ export function evaluateProperty(
     let reasonEn = "";
 
     if (key === 'location') {
-      if (s >= 3.0 || (matchedIds.includes('walk_5') && stations.length >= 2)) {
+      const minWalk = stations.length > 0 ? Math.min(...stations.map(st => st.walkMin)) : (matchedIds.includes('walk_5') ? 5 : 10);
+      if (minWalk <= 3) {
         symbol = '◎';
-        reasonJa = "駅徒歩5分以内で複数路線が利用可能。都心通勤アクセスが極めて優秀。";
-        reasonZh = "徒歩5分內近車站，且能使用多條鐵道路線，通勤通達極具優勢。";
-        reasonZhCN = "步行5分以内近车站，且能使用多条铁路线路，通勤极具优势。";
-        reasonEn = "Within a 5-minute walk to stations with access to multiple lines; exceptional transit connectivity.";
-      } else if (s >= 0.5) {
+        reasonJa = `駅徒歩${minWalk}分の駅前至近物件！雨天や夜間も極めて快適で、圧倒的な通勤・通学利便性を誇ります。`;
+        reasonZh = `車站步行僅需${minWalk}分鐘之極近站前物件！雨天或深夜返家無任何負擔，通勤動線具備壓倒性優勢。`;
+        reasonZhCN = `车站步行仅需${minWalk}分钟之极近站前物件！雨天或深夜返家无任何负担，通勤动线具备压倒性优势。`;
+        reasonEn = `Superb station-front location within a ${minWalk}-minute walk; supreme commuting convenience in all weather.`;
+      } else if (minWalk <= 7) {
+        symbol = '◎';
+        reasonJa = `最寄駅まで徒歩${minWalk}分の好立地。日々の通勤・通学が非常に快適で、駅前利便性を日常的に享受できます。`;
+        reasonZh = `車站步行${minWalk}分鐘以內之優良地段，日常搭乘大眾運輸極具效率，生活機能充沛。`;
+        reasonZhCN = `车站步行${minWalk}分钟以内之优良地段，日常搭乘公共交通极具效率，生活机能充沛。`;
+        reasonEn = `Convenient station access within a ${minWalk}-minute walk; practical and time-saving for daily transit.`;
+      } else if (minWalk <= 10) {
         symbol = '○';
-        reasonJa = "最寄駅への徒歩分数が標準的で日常の通勤通学に実用的です。";
-        reasonZh = "車站步行距離適中，日常大眾運輸通勤實用性佳。";
-        reasonZhCN = "车站步行距离适中，日常公共交通通勤实用性佳。";
-        reasonEn = "Moderate walking distance to station; convenient for daily transit.";
+        reasonJa = `駅徒歩${minWalk}分で日常の通勤通学に十分実用的な標準立地。`;
+        reasonZh = `車站步行${minWalk}分鐘，通勤便利度適中，屬日本都市租屋之實用標準立地。`;
+        reasonZhCN = `车站步行${minWalk}分钟，通勤便利度适中，属实用标准立地。`;
+        reasonEn = `Standard transit location within a ${minWalk}-minute walk; practical for everyday commuting.`;
       } else {
         symbol = '△';
-        reasonJa = "駅までやや距離があり、悪天候時の移動や夜道の往復に留意が必要。";
-        reasonZh = "距離車站步行稍遠，雨雪天或夜間出行需注意往返負擔。";
-        reasonZhCN = "距离车站步行稍远，雨雪天或夜间出行需注意往返负担。";
-        reasonEn = "Slightly far from station; transit effort should be considered in bad weather.";
+        reasonJa = `駅まで徒歩${minWalk}分とやや距離があり、悪天候時の移動や夜道の往復に留意が必要。`;
+        reasonZh = `距離車站步行約${minWalk}分鐘稍遠，雨雪天或夜間出行需注意往返負擔，建議搭配自行車。`;
+        reasonZhCN = `距离车站步行约${minWalk}分钟稍远，雨雪天或夜间出行需注意往返负担，建议搭配自行车。`;
+        reasonEn = `Station walk is approximately ${minWalk} minutes; transit effort should be considered in bad weather.`;
       }
     } else if (key === 'rent') {
       if (!isVacant) {

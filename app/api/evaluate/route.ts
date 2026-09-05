@@ -349,14 +349,17 @@ export async function POST(req: NextRequest) {
     const stations: StationDetail[] = [];
     const seenStations = new Set<string>();
 
-    const stRegex = /([^\n\r<>/]{2,15}?[線道])?\s*[/／]?\s*[「『]?([^\s/<>[^\n\r「」『』]{2,10}?)(?:駅[」』]?|[」』]?駅)\s*(?:バス\s*(\d+)分[^\n\r<]*?)?(?:徒歩|歩)?\s*(\d+)分/g;
+    const cleanTransitText = bodyOnlyHtml.replace(/<[^>]+>/g, ' ').replace(/[\r\n\t\s]+/g, ' ');
+    const stRegex = /([^\n\r<>/]{2,15}?[線道])?\s*[/／]?\s*[「『]?\s*([^\s/<>[^\n\r「」『』]{2,10}?)\s*(?:駅\s*[」』]?|[」』]?\s*駅)\s*(?:バス\s*(\d+)\s*分[^\n\r<]*?)?(?:徒歩|歩)?\s*(\d+)\s*分/g;
     let match: RegExpExecArray | null;
 
-    while ((match = stRegex.exec(bodyOnlyHtml)) !== null) {
+    while ((match = stRegex.exec(cleanTransitText)) !== null) {
       let line = (match[1] || "").replace(/^(?:地下鉄|新交通|東武鉄道)\s*/, '').trim();
       line = line.replace(/東武伊勢崎[・線]+大師線|東武伊勢崎線[・]+大師線|人身線/g, '東武スカイツリーライン');
       const station = match[2].trim().endsWith('駅') ? match[2].trim() : `${match[2].trim()}駅`;
-      const walkMin = parseInt(match[3], 10);
+      const busMin = match[3] ? parseInt(match[3], 10) : 0;
+      const walkMinOnly = match[4] ? parseInt(match[4], 10) : (match[3] ? parseInt(match[3], 10) : 5);
+      const walkMin = busMin + walkMinOnly;
       const key = `${station}_${walkMin}`;
 
       if (!seenStations.has(key) && stations.length < 3 && !station.includes("利用") && station.length <= 7) {
@@ -472,6 +475,7 @@ export async function POST(req: NextRequest) {
 
     // D. Walk Distance
     if (stations.some(s => s.walkMin <= 5)) matchedRuleIds.add("walk_5");
+    if (stations.some(s => s.walkMin <= 3)) matchedRuleIds.add("walk_3");
 
     // E. Floor Level (1st Floor vs 2nd Floor and Above)
     const isGroundFloor = Boolean(
