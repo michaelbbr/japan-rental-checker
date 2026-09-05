@@ -50,7 +50,7 @@ export default function Home() {
       tier3Title: "内見時のチェックリスト",
       copyChecklist: "リストをコピー",
       copied: "✓ コピー完了",
-      footer: "v43（新世代モダンデザイン・タブ切り替え＆全自動校準旗艦版）• 日本賃貸 総合診断システム",
+      footer: "v44（新世代モダンデザイン・タブ切り替え＆全自動校準旗艦版）• 日本賃貸 総合診断システム",
       vacantBadge: "募集中",
       occupiedBadge: "満室（現在募集中なし / N/A）",
       mapsLiveBadge: "● Google Maps 即時連動中",
@@ -88,7 +88,7 @@ export default function Home() {
       tier3Title: "實地看房（內見）必查清單",
       copyChecklist: "一鍵複製清單",
       copied: "✓ 已複製到剪貼簿",
-      footer: "v43（全新世代高質感設計・分頁導航與全自動校準旗艦版）• 日本租房 綜合診斷系統",
+      footer: "v44（全新世代高質感設計・分頁導航與全自動校準旗艦版）• 日本租房 綜合診斷系統",
       vacantBadge: "招租中",
       occupiedBadge: "滿室（目前無招租中 / N/A）",
       mapsLiveBadge: "● Google Maps 即時座標連動",
@@ -126,7 +126,7 @@ export default function Home() {
       tier3Title: "实地看房（内见）必查清单",
       copyChecklist: "一键复制清单",
       copied: "✓ 已复制到剪贴板",
-      footer: "v43（新一代高质感设计・标签页导航与全自动校准旗舰版）• 日本租房 综合诊断系统",
+      footer: "v44（新一代高质感设计・标签页导航与全自动校准旗舰版）• 日本租房 综合诊断系统",
       vacantBadge: "招租中",
       occupiedBadge: "满室（目前无招租中 / N/A）",
       mapsLiveBadge: "● Google Maps 即时坐标连动",
@@ -164,7 +164,7 @@ export default function Home() {
       tier3Title: "On-site Viewing Checklist",
       copyChecklist: "Copy Checklist",
       copied: "✓ Copied!",
-      footer: "v43 (Next-Gen Clean UI • Tabbed Navigation & Universal Precision Grounding) • Japan Rental Intelligence",
+      footer: "v44 (Next-Gen Clean UI • Tabbed Navigation & Universal Precision Grounding) • Japan Rental Intelligence",
       vacantBadge: "Available",
       occupiedBadge: "Fully Occupied (N/A)",
       mapsLiveBadge: "● Google Maps Real-time Telemetry",
@@ -497,12 +497,14 @@ export default function Home() {
                     <div className={`p-4 rounded-2xl border transition-all ${
                       isDarkMode ? 'bg-gray-800/60 border-gray-700' : 'bg-indigo-50/50 border-indigo-100'
                     }`}>
-                      <div className="flex items-center gap-3 mb-2.5">
-                        <span className={`text-sm sm:text-base font-black uppercase tracking-wider ${isDarkMode ? 'text-indigo-400' : 'text-indigo-700'}`}>
+                      <div className="flex items-center gap-3.5 mb-3">
+                        <span className={`text-base sm:text-lg font-black uppercase tracking-wider ${isDarkMode ? 'text-indigo-400' : 'text-indigo-700'}`}>
                           {activeDimension.label[lang]} • {t.reasonBoxHeader}
                         </span>
-                        <span className={`px-3 py-1 rounded-lg text-sm font-black border ${getSymbolBadge(activeDimension.symbol)}`}>
-                          {activeDimension.symbol}
+                        <span className={`px-4 py-1.5 rounded-xl text-xl sm:text-2xl font-black border-2 flex items-center justify-center leading-none shadow-md ${getSymbolBadge(activeDimension.symbol)}`}>
+                          <span className={`${activeDimension.symbol === '◎' ? 'scale-[1.25] transform inline-block' : 'inline-block'}`}>
+                            {activeDimension.symbol}
+                          </span>
                         </span>
                       </div>
                       <p className={`text-base sm:text-lg font-bold leading-relaxed ${isDarkMode ? 'text-gray-100' : 'text-slate-900'}`}>
