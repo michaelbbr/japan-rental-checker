@@ -469,11 +469,19 @@ export default function Home() {
                               : (isDarkMode ? 'bg-gray-800/50 border-gray-800 hover:border-gray-600 hover:bg-gray-800/80' : 'bg-gray-50 border-gray-200 hover:bg-gray-100')
                           }`}
                         >
-                          <div className="text-sm sm:text-base font-extrabold text-gray-200">{dim.label[lang]}</div>
-                          <div className={`text-4xl sm:text-5xl font-black px-3 py-1.5 rounded-xl border my-1.5 shadow-sm transition-transform ${getSymbolBadge(dim.symbol)}`}>
-                            {dim.symbol}
+                          <div className={`text-sm sm:text-base font-extrabold ${isDarkMode ? 'text-gray-200' : 'text-slate-800'}`}>{dim.label[lang]}</div>
+                          <div className={`w-14 h-14 sm:w-16 sm:h-16 flex items-center justify-center rounded-2xl border my-1.5 shadow-sm transition-transform ${getSymbolBadge(dim.symbol)}`}>
+                            <span className={`font-black leading-none ${
+                              dim.symbol === 'N/A' 
+                                ? 'text-base sm:text-lg' 
+                                : dim.symbol === '○' 
+                                ? 'text-2xl sm:text-3xl' 
+                                : 'text-3xl sm:text-4xl'
+                            }`}>
+                              {dim.symbol}
+                            </span>
                           </div>
-                          <div className="text-xs sm:text-sm text-gray-400 font-bold tracking-wide">
+                          <div className={`text-xs sm:text-sm font-bold tracking-wide ${isDarkMode ? 'text-gray-400' : 'text-slate-500'}`}>
                             {dim.score > 0 ? `+${dim.score.toFixed(1)}` : dim.score.toFixed(1)}
                           </div>
                         </button>
@@ -487,14 +495,14 @@ export default function Home() {
                       isDarkMode ? 'bg-gray-800/60 border-gray-700' : 'bg-indigo-50/50 border-indigo-100'
                     }`}>
                       <div className="flex items-center gap-3 mb-2.5">
-                        <span className="text-sm sm:text-base font-black uppercase tracking-wider text-indigo-400">
+                        <span className={`text-sm sm:text-base font-black uppercase tracking-wider ${isDarkMode ? 'text-indigo-400' : 'text-indigo-700'}`}>
                           {activeDimension.label[lang]} • {t.reasonBoxHeader}
                         </span>
                         <span className={`px-3 py-1 rounded-lg text-sm font-black border ${getSymbolBadge(activeDimension.symbol)}`}>
                           {activeDimension.symbol}
                         </span>
                       </div>
-                      <p className="text-base sm:text-lg font-medium leading-relaxed text-gray-100">
+                      <p className={`text-base sm:text-lg font-bold leading-relaxed ${isDarkMode ? 'text-gray-100' : 'text-slate-900'}`}>
                         {activeDimension.reason[lang]}
                       </p>
                     </div>
@@ -518,30 +526,30 @@ export default function Home() {
                         }`}
                       >
                         <div className="flex items-center justify-between gap-2 mb-2">
-                          <span className="font-extrabold text-base sm:text-xl text-white">{card.name[lang]}</span>
+                          <span className={`font-extrabold text-base sm:text-xl ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>{card.name[lang]}</span>
                           <span className={`px-3 py-1 rounded-full text-xs sm:text-sm font-bold border ${
                             card.overallType === 'positive'
-                              ? 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30'
+                              ? (isDarkMode ? 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30' : 'bg-emerald-100 text-emerald-800 border-emerald-300 font-black')
                               : card.overallType === 'neutral'
-                              ? 'bg-amber-500/15 text-amber-400 border-amber-500/30'
-                              : 'bg-rose-500/15 text-rose-400 border-rose-500/30'
+                              ? (isDarkMode ? 'bg-amber-500/15 text-amber-400 border-amber-500/30' : 'bg-amber-100 text-amber-900 border-amber-300 font-black')
+                              : (isDarkMode ? 'bg-rose-500/15 text-rose-400 border-rose-500/30' : 'bg-rose-100 text-rose-800 border-rose-300 font-black')
                           }`}>
                             {card.overall[lang]}
                           </span>
                         </div>
 
                         {card.merits.map((m, mIdx) => (
-                          <div key={mIdx} className="text-sm sm:text-base text-emerald-400 font-medium leading-relaxed mb-2">
+                          <div key={mIdx} className={`text-sm sm:text-base font-medium leading-relaxed mb-2 ${isDarkMode ? 'text-emerald-400' : 'text-emerald-800 font-semibold'}`}>
                             <span className="font-bold">{t.meritPrefix}</span>{m[lang]}
                           </div>
                         ))}
                         {card.cautions.map((c, cIdx) => (
-                          <div key={cIdx} className="text-sm sm:text-base text-amber-400 font-medium leading-relaxed mb-2">
+                          <div key={cIdx} className={`text-sm sm:text-base font-medium leading-relaxed mb-2 ${isDarkMode ? 'text-amber-400' : 'text-amber-900 font-semibold'}`}>
                             <span className="font-bold">{t.cautionPrefix}</span>{c[lang]}
                           </div>
                         ))}
                         {card.demerits.map((d, dIdx) => (
-                          <div key={dIdx} className="text-sm sm:text-base text-rose-400 font-medium leading-relaxed mb-2">
+                          <div key={dIdx} className={`text-sm sm:text-base font-medium leading-relaxed mb-2 ${isDarkMode ? 'text-rose-400' : 'text-rose-800 font-semibold'}`}>
                             <span className="font-bold">{t.demeritPrefix}</span>{d[lang]}
                           </div>
                         ))}
@@ -573,11 +581,13 @@ export default function Home() {
                       <div className="flex items-center justify-between gap-2 mb-2">
                         <div className="flex items-center gap-2">
                           <span className="text-lg">🚉</span>
-                          <span className="font-black text-base sm:text-xl text-white">{st.station}</span>
-                          <span className="text-sm text-gray-300 font-medium">({st.line})</span>
+                          <span className={`font-black text-base sm:text-xl ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>{st.station}</span>
+                          <span className={`text-sm font-medium ${isDarkMode ? 'text-gray-300' : 'text-slate-600'}`}>({st.line})</span>
                         </div>
                         <div className="flex items-center gap-2">
-                          <span className="px-3.5 py-1.5 rounded-xl text-sm sm:text-base font-black bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">
+                          <span className={`px-3.5 py-1.5 rounded-xl text-sm sm:text-base font-black border ${
+                            isDarkMode ? 'bg-indigo-500/20 text-indigo-300 border-indigo-500/30' : 'bg-indigo-50 text-indigo-700 border-indigo-300'
+                          }`}>
                             徒歩 {st.walkMin} 分
                           </span>
                           {st.mapUrl && (
@@ -585,7 +595,9 @@ export default function Home() {
                               href={st.mapUrl}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="px-3.5 py-1.5 rounded-xl text-sm font-bold bg-sky-500/15 text-sky-300 border border-sky-500/30 hover:bg-sky-500/20 transition-all"
+                              className={`px-3.5 py-1.5 rounded-xl text-sm font-bold border transition-all ${
+                                isDarkMode ? 'bg-sky-500/15 text-sky-300 border-sky-500/30 hover:bg-sky-500/20' : 'bg-sky-50 text-sky-700 border-sky-300 hover:bg-sky-100'
+                              }`}
                             >
                               {t.walkRouteHint}
                             </a>
@@ -593,11 +605,11 @@ export default function Home() {
                         </div>
                       </div>
 
-                      <div className="text-sm sm:text-base text-gray-200 leading-relaxed mb-2">
-                        <span className="font-bold text-gray-300">{t.destLabel}</span>
+                      <div className={`text-sm sm:text-base leading-relaxed mb-2 ${isDarkMode ? 'text-gray-200' : 'text-slate-700'}`}>
+                        <span className={`font-bold ${isDarkMode ? 'text-gray-300' : 'text-slate-900'}`}>{t.destLabel}</span>
                         {st.destinations[lang]}
                       </div>
-                      <div className="text-sm sm:text-base text-amber-400/95 leading-relaxed font-medium">
+                      <div className={`text-sm sm:text-base leading-relaxed font-medium ${isDarkMode ? 'text-amber-400/95' : 'text-amber-900'}`}>
                         <span className="font-bold">{t.pitfallLabel}</span>
                         {st.pitfalls[lang]}
                       </div>
@@ -629,16 +641,18 @@ export default function Home() {
                       >
                         <div>
                           <div className="flex items-center justify-between gap-2 mb-1.5">
-                            <span className="font-black text-base sm:text-lg text-white leading-snug">{sp.name}</span>
+                            <span className={`font-black text-base sm:text-lg leading-snug ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>{sp.name}</span>
                             <span className="px-3 py-1 rounded-lg text-sm font-black bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 whitespace-nowrap">
                               {sp.walk}
                             </span>
                           </div>
-                          <div className="flex items-center gap-2.5 text-sm text-gray-300 font-semibold mb-2">
+                          <div className={`flex items-center gap-2.5 text-sm font-semibold mb-2 ${isDarkMode ? 'text-gray-300' : 'text-slate-700'}`}>
+
                             <span>{sp.tag[lang]}</span>
                             {sp.rating && <span className="font-bold text-amber-400">★ {sp.rating}</span>}
                           </div>
-                          <p className="text-sm sm:text-base text-gray-300 leading-relaxed mb-3 font-normal">
+                          <p className={`text-sm sm:text-base leading-relaxed mb-3 font-normal ${isDarkMode ? 'text-gray-300' : 'text-slate-600'}`}>
+
                             {sp.note[lang]}
                           </p>
                         </div>
@@ -673,13 +687,14 @@ export default function Home() {
                       >
                         <div>
                           <div className="flex items-center justify-between gap-2 mb-1.5">
-                            <span className="font-black text-base sm:text-lg text-white leading-snug">{cvs.name}</span>
+                            <span className={`font-black text-base sm:text-lg leading-snug ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>{cvs.name}</span>
                             <span className="px-3 py-1 rounded-lg text-sm font-black bg-indigo-500/20 text-indigo-300 border border-indigo-500/40 whitespace-nowrap">
                               {cvs.walk}
                             </span>
                           </div>
-                          <div className="text-sm text-gray-300 font-semibold mb-2">{cvs.tag[lang]}</div>
-                          <p className="text-sm sm:text-base text-gray-300 leading-relaxed mb-3 font-normal">
+                          <div className={`text-sm font-semibold mb-2 ${isDarkMode ? 'text-gray-300' : 'text-slate-700'}`}>{cvs.tag[lang]}</div>
+                          <p className={`text-sm sm:text-base leading-relaxed mb-3 font-normal ${isDarkMode ? 'text-gray-300' : 'text-slate-600'}`}>
+
                             {cvs.note[lang]}
                           </p>
                         </div>
@@ -712,9 +727,9 @@ export default function Home() {
                         }`}
                       >
                         <div>
-                          <div className="font-black text-base sm:text-lg text-white mb-1.5">{c.name}</div>
-                          <div className="text-sm sm:text-base font-black text-indigo-300 mb-1.5">{c.walk}</div>
-                          <p className="text-sm text-gray-300 leading-relaxed mb-3">{c.note[lang]}</p>
+                          <div className={`font-black text-base sm:text-lg mb-1.5 ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>{c.name}</div>
+                          <div className={`text-sm sm:text-base font-black mb-1.5 ${isDarkMode ? 'text-indigo-300' : 'text-indigo-700'}`}>{c.walk}</div>
+                          <p className={`text-sm leading-relaxed mb-3 ${isDarkMode ? 'text-gray-300' : 'text-slate-600'}`}>{c.note[lang]}</p>
                         </div>
                         {c.mapUrl && (
                           <a
@@ -761,8 +776,9 @@ export default function Home() {
                         id={`chk-${idx}`}
                         className="mt-0.5 w-4 h-4 rounded text-indigo-600 focus:ring-indigo-500 border-gray-300 dark:border-gray-700"
                       />
-                      <label htmlFor={`chk-${idx}`} className="text-xs sm:text-sm leading-relaxed cursor-pointer select-none">
-                        <span className="font-bold text-indigo-400 mr-2">[{item.name[lang]}]</span>
+                      <label htmlFor={`chk-${idx}`} className={`text-xs sm:text-sm leading-relaxed cursor-pointer select-none ${isDarkMode ? 'text-gray-200' : 'text-slate-700'}`}>
+
+                        <span className={`font-bold mr-2 ${isDarkMode ? 'text-indigo-400' : 'text-indigo-700'}`}>[{item.name[lang]}]</span>
                         {item.text[lang]}
                       </label>
                     </div>
