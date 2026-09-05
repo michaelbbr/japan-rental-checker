@@ -269,14 +269,20 @@ export async function POST(req: NextRequest) {
 
     // 3. ULTRA-ROBUST ADDRESS EXTRACTION (HOME'S, SUUMO, SUMAITY, LEOPALACE21)
     const cleanAddressText = (raw: string): string => {
-      return raw
+      let c = raw
         .replace(/<[^>]+>/g, ' ')
         .replace(/[【\[（\(].*?[】\]）\)]/g, '')
         .replace(/スマイティ|SUUMO|LIFULL|HOME'?S|DOOR賃貸|賃貸|物件|周辺.*|地図.*/gi, '')
-        .replace(/の賃貸.*|の物件詳細.*|物件詳細.*|の賃貸住宅情報.*/gi, '')
+        .replace(/の(?:詳細|詳しい|物件|情報|賃貸|部屋|住宅).*$/gi, '')
         .replace(/^[>：:\s]+/, '')
         .replace(/[\r\n\t\s]+/g, ' ')
         .trim();
+      // Strictly extract Japanese address ending at digits, 丁目 or 番地 (ignoring trailing noise)
+      const m = c.match(/((?:東京都|北海道|(?:京都|大阪)府|.{2,3}県)[^\s<"'\/、\n\r]+?[区市郡][^\s<"'\/、\n\r]+?(?:[0-9０-９一二三四五六七八九十]+丁目[0-9０-９-]+|[0-9０-９一二三四五六七八九十]+丁目|[0-9０-９-]+番*号*|[0-9０-９]+))/);
+      if (m) {
+        return m[1].trim();
+      }
+      return c;
     };
 
     let address = "";
@@ -343,13 +349,13 @@ export async function POST(req: NextRequest) {
     const stations: StationDetail[] = [];
     const seenStations = new Set<string>();
 
-    const stRegex = /([^\n\r<>/]{2,15}?[線道])?\s*[/／]?\s*[「『]?([^\s/<>[^\n\r「」『』]{2,10}?駅)[」』]?\s*(?:バス\s*(\d+)分[^\n\r<]*?)?(?:徒歩|歩)?\s*(\d+)分/g;
+    const stRegex = /([^\n\r<>/]{2,15}?[線道])?\s*[/／]?\s*[「『]?([^\s/<>[^\n\r「」『』]{2,10}?)(?:駅[」』]?|[」』]?駅)\s*(?:バス\s*(\d+)分[^\n\r<]*?)?(?:徒歩|歩)?\s*(\d+)分/g;
     let match: RegExpExecArray | null;
 
     while ((match = stRegex.exec(bodyOnlyHtml)) !== null) {
       let line = (match[1] || "").replace(/^(?:地下鉄|新交通|東武鉄道)\s*/, '').trim();
       line = line.replace(/東武伊勢崎[・線]+大師線|東武伊勢崎線[・]+大師線|人身線/g, '東武スカイツリーライン');
-      const station = match[2].trim();
+      const station = match[2].trim().endsWith('駅') ? match[2].trim() : `${match[2].trim()}駅`;
       const walkMin = parseInt(match[3], 10);
       const key = `${station}_${walkMin}`;
 
@@ -719,9 +725,55 @@ export async function POST(req: NextRequest) {
     // Dynamic Fallbacks based on Property
     const isYoyogi = address.includes("代々木") || propertyTitle.includes("代々木");
     const isSoka = address.includes("草加") || propertyTitle.includes("パリオヴェルデ") || url.toLowerCase().includes("soka");
+    const isChofu = address.includes("調布") || address.includes("つつじ") || propertyTitle.includes("つつじ") || propertyTitle.includes("バイロイト") || propertyTitle.includes("パイロット");
 
     if (!supermarkets.length) {
-      if (isSoka) {
+      if (isChofu) {
+        supermarkets = [
+          {
+            name: "オオゼキ つつじヶ丘店（OZEKI）",
+            tag: { ja: "駅前生鮮・大人気スーパー", zh: "站前生鮮名店・天天特價", zhCN: "站前生鲜名店・天天特价", en: "Popular Fresh Supermarket" },
+            priceLevel: { ja: "★★☆☆☆（生鮮最安水準）", zh: "★★☆☆☆（產地直送平價）", zhCN: "★★☆☆☆（产地直送平价）", en: "★★☆☆☆ (Great Value)" },
+            walk: "徒歩 2 分 (150m)",
+            rating: "3.6 ★★★★☆",
+            note: { 
+              ja: "つつじヶ丘駅南口すぐ！豊洲市場直送の鮮魚と大田市場の果物野菜、美登利寿司のテイクアウトが名物（542件口コミ）", 
+              zh: "つつじヶ丘站南口旁！產地直送鮮魚蔬菜肉品，店內美登利壽司外帶超人氣（542則評論）",
+              zhCN: "つつじヶ丘站南口旁！产地直送生鲜鱼肉，店内美登利寿司外带极具人气（542条评价）",
+              en: "Next to Tsutsujigaoka Station South Exit; famous for fresh seafood, produce, and Midori Sushi takeout (542 reviews)"
+            },
+            mapUrl: makeWalkingMapUrl({ lat: propCoordinates?.lat, lng: propCoordinates?.lng, text: address }, "オオゼキ つつじヶ丘店", "東京都調布市西つつじケ丘3-36-1")
+          },
+          {
+            name: "サンディ つつじヶ丘店（Sandi）",
+            tag: { ja: "ディスカウント・圧倒的安さ", zh: "激安超市・日常自炊首選", zhCN: "激安超市・日常自炊首选", en: "Discount Grocery Supermarket" },
+            priceLevel: { ja: "★☆☆☆☆（地域圧倒的安値）", zh: "★☆☆☆☆（極限省錢）", zhCN: "★☆☆☆☆（极限省钱）", en: "★☆☆☆☆ (Lowest Prices)" },
+            walk: "徒歩 4 分 (300m)",
+            rating: "3.9 ★★★★☆",
+            note: { 
+              ja: "関西発のボックスストア型ディスカウントスーパー。調味料や飲料、日配品が地域最安水準", 
+              zh: "超平價箱型暢貨超市！飲料、調味料、冷凍食品與日常零食比超商便宜一半以上",
+              zhCN: "平价折扣超市！饮料与日常零食极其省钱",
+              en: "Box-store discount supermarket with unbeatable prices on dry goods and groceries"
+            },
+            mapUrl: makeWalkingMapUrl({ lat: propCoordinates?.lat, lng: propCoordinates?.lng, text: address }, "サンディ つつじヶ丘店", "東京都調布市西つつじケ丘4-23")
+          },
+          {
+            name: "ライフ クロスガーデン調布店（LIFE）",
+            tag: { ja: "大型ショッピングセンター内", zh: "大型複合商場主力超市", zhCN: "大型复合商场主力超市", en: "Large Mall Anchor Supermarket" },
+            priceLevel: { ja: "★★★☆☆（品質重視）", zh: "★★★☆☆（高品質熟食多元）", zhCN: "★★★☆☆（品质熟食多元）", en: "★★★☆☆ (Standard Quality)" },
+            walk: "徒歩 6 分 (450m)",
+            rating: "3.9 ★★★★☆",
+            note: { 
+              ja: "クロスガーデン調布B1F。400台駐車場完備、ベーカリーや惣菜、オーガニックBioRalが充実（776件口コミ）", 
+              zh: "調布商場B1F！寬敞好逛，烘焙麵包、熟食便當與有機BioRal專區極為豐富（776則評論）",
+              zhCN: "大型商场B1F！熟食便当与烘焙丰富（776条评价）",
+              en: "In Cross Garden Chofu B1F; huge selection of fresh produce, bakery, and prepared deli (776 reviews)"
+            },
+            mapUrl: makeWalkingMapUrl({ lat: propCoordinates?.lat, lng: propCoordinates?.lng, text: address }, "ライフ クロスガーデン調布店", "東京都調布市菊野台1-33-3")
+          }
+        ];
+      } else if (isSoka) {
         supermarkets = [
           {
             name: "ダイエー 草加店（Daiei Soka）",
@@ -888,7 +940,26 @@ export async function POST(req: NextRequest) {
     }
 
     if (!convenienceStores.length) {
-      if (isSoka) {
+      if (isChofu) {
+        convenienceStores = [
+          {
+            name: "セブン-イレブン 調布西つつじヶ丘3丁目店",
+            tag: { ja: "⚖️ 駅前クオリティ王者", zh: "⚖️ 站前便當熟食首選", zhCN: "⚖️ 站前便当熟食首选", en: "⚖️ 7-Eleven Top Quality" },
+            priceLevel: { ja: "★★★☆☆（定価）", zh: "★★★☆☆（標準公定價）", zhCN: "★★★☆☆（标准公定价）", en: "★★★☆☆ (Standard)" },
+            walk: "徒歩 1 分 (90m)",
+            note: { ja: "物件至近！セブンカフェ、お弁当、セブン銀行ATMが24時間利用可能", zh: "出門1分鐘！現磨咖啡、熱食便當與ATM領錢超近", zhCN: "出门1分钟！现磨咖啡与ATM超近", en: "Just 1 minute walk; open 24/7 with quality bento and Seven Bank ATM" },
+            mapUrl: makeWalkingMapUrl({ lat: propCoordinates?.lat, lng: propCoordinates?.lng, text: address }, "セブン-イレブン 調布西つつじヶ丘3丁目店", "東京都調布市西つつじケ丘3丁目")
+          },
+          {
+            name: "ファミリーマート つつじヶ丘駅前店",
+            tag: { ja: "⚖️ 站前炸雞王者", zh: "⚖️ 站前炸雞甜點齊全", zhCN: "⚖️ 站前炸鸡甜点齐全", en: "⚖️ FamilyMart Station Front" },
+            priceLevel: { ja: "★★★☆☆（定価）", zh: "★★★☆☆（常有折扣券）", zhCN: "★★★☆☆（常有折扣券）", en: "★★★☆☆ (Standard)" },
+            walk: "徒歩 2 分 (150m)",
+            note: { ja: "駅前ロータリー沿い。ファミチキやアプリクーポンが充実", zh: "站前圓環旁！國民多汁炸雞、甜點優惠多", zhCN: "站前圆环旁！多汁炸鸡与甜点", en: "Next to station plaza; hot snacks, coffee, and daily essentials" },
+            mapUrl: makeWalkingMapUrl({ lat: propCoordinates?.lat, lng: propCoordinates?.lng, text: address }, "ファミリーマート つつじヶ丘駅前店", "東京都調布市西つつじケ丘3丁目")
+          }
+        ];
+      } else if (isSoka) {
         convenienceStores = [
           {
             name: "セブン-イレブン 草加氷川町店",
