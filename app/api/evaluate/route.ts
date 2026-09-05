@@ -1,10 +1,12 @@
-function anyStringContains(str: string, tokens: string[]): boolean { return tokens.some(t => str.includes(t)); }
 import { NextRequest, NextResponse } from 'next/server';
 import { evaluateProperty } from '@/lib/engine';
 import { StationDetail, LifeAmenityItem, LocalizedText } from '@/lib/types';
 
 export const dynamic = 'force-dynamic';
 
+function anyStringContains(str: string, tokens: string[]): boolean {
+  return tokens.some(t => str.includes(t));
+}
 function haversineMeters(lat1: number, lon1: number, lat2: number, lon2: number): number {
   const R = 6371000;
   const phi1 = (lat1 * Math.PI) / 180;
@@ -199,6 +201,7 @@ export async function POST(req: NextRequest) {
     }
 
     const html = await response.text();
+    const bodyOnlyHtml = html.replace(/<head\b[^<]*(?:(?!<\/head>)<[^<]*)*<\/head>/gi, '');
 
     const stripHtml = (str: string): string => {
       return str
@@ -270,13 +273,14 @@ export async function POST(req: NextRequest) {
         .replace(/[【\[（\(].*?[】\]）\)]/g, '')
         .replace(/スマイティ|SUUMO|LIFULL|HOME'?S|DOOR賃貸|賃貸|物件|周辺.*|地図.*/gi, '')
         .replace(/の賃貸.*|の物件詳細.*|物件詳細.*|の賃貸住宅情報.*/gi, '')
+        .replace(/^[>：:\s]+/, '')
         .replace(/[\r\n\t\s]+/g, ' ')
         .trim();
     };
 
     let address = "";
 
-    // Step A: Check meta tags (description & og:description) — 100% immune to body HTML layout differences
+    // Stage 1: Check meta tags (100% immune to body HTML layout differences)
     const metaDescMatch = html.match(/<meta[^>]+(?:name="description"|property="og:description")[^>]+content="([^"]*?所在地[:：\s]*((?:東京都|北海道|(?:京都|大阪)府|.{2,3}県)[^"、\s]+?[区市郡][^"、\s]{1,30})[^"]*)"/i);
     if (metaDescMatch) {
       const cand = cleanAddressText(metaDescMatch[2]);
@@ -285,48 +289,40 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // Step B: Check JSON-LD structured data (schema.org PostalAddress)
+    // Stage 2: Leopalace21 property address followed by （地図）
     if (!address) {
-      const jsonLdMatch = html.match(/"address":\s*(?:\{\s*"@type":\s*"PostalAddress"[^}]*"streetAddress":\s*"([^"]+)"|"([^"]+)")/);
-      if (jsonLdMatch) {
-        const cand = cleanAddressText(jsonLdMatch[1] || jsonLdMatch[2]);
+      const mapMatch = html.match(/((?:東京都|北海道|(?:京都|大阪)府|.{2,3}県)[^\s<"'\/\n\r]+?[区市郡][^\s<"'\/\n\r]{1,30}?)(?:（地図）|\(地図\)|地図)/);
+      if (mapMatch) {
+        const cand = cleanAddressText(mapMatch[1]);
         if (cand.length >= 4 && !cand.includes("中野区本町3-30-4")) {
           address = cand;
         }
       }
     }
 
-    // Step C: Universal Key-Value container for <th>/<td>, <dt>/<dd>, or <div>/<div> (Without nuking the document!)
+    // Stage 3: Table <th>/<td> & <dt>/<dd> (Sumaity, HOME'S, etc.)
     if (!address) {
-      const kvMatches = html.match(/<(?:th|dt|div|span|p)[^>]*>(?:(?!<\/(?:th|dt|div|span|p)>)[\s\S])*?(?:所在地|住所)(?:(?!<\/(?:th|dt|div|span|p)>)[\s\S])*?<\/(?:th|dt|div|span|p)>\s*<(?:td|dd|div|span|p)[^>]*>([\s\S]*?)<\/(?:td|dd|div|span|p)>/gi);
-      if (kvMatches) {
-        for (const m of kvMatches) {
-          const innerMatch = m.match(/<(?:td|dd|div|span|p)[^>]*>([\s\S]*?)<\/(?:td|dd|div|span|p)>/i);
-          if (innerMatch) {
-            const cand = cleanAddressText(innerMatch[1]);
-            // Ignore Leopalace contact center headquarters specifically
-            if (cand.includes("中野区本町3-30-4") || cand.includes("コンタクトセンター")) continue;
-            if (cand.length >= 4 && (cand.includes("区") || cand.includes("市") || cand.includes("町") || cand.includes("都") || cand.includes("府") || cand.includes("県"))) {
-              address = cand;
-              break;
-            }
-          }
-        }
-      }
-    }
-
-    // Step D: Text matching 所在地 followed by Japanese address in body
-    if (!address) {
-      const textMatch = html.match(/所在地[:：\s]*((?:東京都|北海道|(?:京都|大阪)府|.{2,3}県)?[^\s<"'\/\n\r]+?[区市郡][^\s<"'\/\n\r]{1,30})/);
-      if (textMatch) {
-        const cand = cleanAddressText(textMatch[1]);
-        if (cand.length >= 4 && !cand.includes("中野区本町3-30-4")) {
+      const mTable = html.match(/<(?:th|dt)[^>]*>[\s\S]*?(?:所在地|住所)[\s\S]*?<\/(?:th|dt)>\s*<(?:td|dd)[^>]*>([\s\S]*?)<\/(?:td|dd)>/i);
+      if (mTable) {
+        const cand = cleanAddressText(mTable[1]);
+        if (cand.length >= 4 && !cand.includes("中野区本町3-30-4") && anyStringContains(cand, ["都", "府", "県", "道"]) && anyStringContains(cand, ["区", "市", "町", "村"])) {
           address = cand;
         }
       }
     }
 
-    // Step E: Direct Japanese address regex in body (excluding script and style)
+    // Stage 4: Div key-value pairs (SUUMO responsive layout)
+    if (!address) {
+      const mDiv = html.match(/<(?:div|span|p)[^>]*>[\s\S]*?(?:所在地|住所)[\s\S]*?<\/(?:div|span|p)>\s*<(?:div|span|p)[^>]*>([\s\S]*?)<\/(?:div|span|p)>/i);
+      if (mDiv) {
+        const cand = cleanAddressText(mDiv[1]);
+        if (cand.length >= 4 && !cand.includes("中野区本町3-30-4") && anyStringContains(cand, ["都", "府", "県", "道"]) && anyStringContains(cand, ["区", "市", "町", "村"])) {
+          address = cand;
+        }
+      }
+    }
+
+    // Stage 5: Direct address regex in body
     if (!address) {
       const bodyNoScript = html.replace(/<(?:script|style)\b[^<]*(?:(?!<\/(?:script|style)>)<[^<]*)*<\/(?:script|style)>/gi, ' ');
       const addrRegex = bodyNoScript.match(/((?:東京都|北海道|(?:京都|大阪)府|.{2,3}県)[^\s<"'\/\n\r]{1,15}?[区市郡][^\s<"'\/\n\r]{1,25}?(?:[0-9０-９一二三四五六七八九十]+丁目|[0-9０-９一二三四五六七八九十]+|[0-9０-９-]+番*))/);
