@@ -463,17 +463,17 @@ export default function Home() {
                         <button
                           key={dim.key}
                           onClick={() => setSelectedDimensionKey(dim.key)}
-                          className={`p-3 rounded-2xl border text-center transition-all flex flex-col items-center justify-center gap-1 ${
+                          className={`p-4 sm:p-5 rounded-2xl border text-center transition-all flex flex-col items-center justify-center gap-1.5 ${
                             isSelected 
-                              ? (isDarkMode ? 'bg-indigo-600/20 border-indigo-500 shadow-md ring-2 ring-indigo-500/30' : 'bg-indigo-50 border-indigo-500 shadow-md ring-2 ring-indigo-500/20')
-                              : (isDarkMode ? 'bg-gray-800/40 border-gray-800 hover:border-gray-700' : 'bg-gray-50 border-gray-200 hover:bg-gray-100/80')
+                              ? (isDarkMode ? 'bg-indigo-600/25 border-indigo-400 shadow-xl ring-2 ring-indigo-400/50 scale-105' : 'bg-indigo-50 border-indigo-500 shadow-lg ring-2 ring-indigo-500/30 scale-105')
+                              : (isDarkMode ? 'bg-gray-800/50 border-gray-800 hover:border-gray-600 hover:bg-gray-800/80' : 'bg-gray-50 border-gray-200 hover:bg-gray-100')
                           }`}
                         >
-                          <div className="text-xs font-bold text-gray-400">{dim.label[lang]}</div>
-                          <div className={`text-2xl font-black px-2 py-0.5 rounded-lg border my-1 ${getSymbolBadge(dim.symbol)}`}>
+                          <div className="text-sm sm:text-base font-extrabold text-gray-200">{dim.label[lang]}</div>
+                          <div className={`text-4xl sm:text-5xl font-black px-3 py-1.5 rounded-xl border my-1.5 shadow-sm transition-transform ${getSymbolBadge(dim.symbol)}`}>
                             {dim.symbol}
                           </div>
-                          <div className="text-[10px] text-gray-400 font-medium">
+                          <div className="text-xs sm:text-sm text-gray-400 font-bold tracking-wide">
                             {dim.score > 0 ? `+${dim.score.toFixed(1)}` : dim.score.toFixed(1)}
                           </div>
                         </button>
@@ -486,15 +486,15 @@ export default function Home() {
                     <div className={`p-4 rounded-2xl border transition-all ${
                       isDarkMode ? 'bg-gray-800/60 border-gray-700' : 'bg-indigo-50/50 border-indigo-100'
                     }`}>
-                      <div className="flex items-center gap-2 mb-1.5">
-                        <span className="text-xs font-black uppercase text-indigo-400">
+                      <div className="flex items-center gap-3 mb-2.5">
+                        <span className="text-sm sm:text-base font-black uppercase tracking-wider text-indigo-400">
                           {activeDimension.label[lang]} • {t.reasonBoxHeader}
                         </span>
-                        <span className={`px-2 py-0.2 rounded text-[10px] font-bold border ${getSymbolBadge(activeDimension.symbol)}`}>
+                        <span className={`px-3 py-1 rounded-lg text-sm font-black border ${getSymbolBadge(activeDimension.symbol)}`}>
                           {activeDimension.symbol}
                         </span>
                       </div>
-                      <p className="text-xs sm:text-sm font-medium leading-relaxed">
+                      <p className="text-base sm:text-lg font-medium leading-relaxed text-gray-100">
                         {activeDimension.reason[lang]}
                       </p>
                     </div>
@@ -518,8 +518,8 @@ export default function Home() {
                         }`}
                       >
                         <div className="flex items-center justify-between gap-2 mb-2">
-                          <span className="font-extrabold text-sm">{card.name[lang]}</span>
-                          <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold border ${
+                          <span className="font-extrabold text-base sm:text-xl text-white">{card.name[lang]}</span>
+                          <span className={`px-3 py-1 rounded-full text-xs sm:text-sm font-bold border ${
                             card.overallType === 'positive'
                               ? 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30'
                               : card.overallType === 'neutral'
@@ -531,17 +531,17 @@ export default function Home() {
                         </div>
 
                         {card.merits.map((m, mIdx) => (
-                          <div key={mIdx} className="text-xs text-emerald-500 dark:text-emerald-400 font-medium mb-1">
+                          <div key={mIdx} className="text-sm sm:text-base text-emerald-400 font-medium leading-relaxed mb-2">
                             <span className="font-bold">{t.meritPrefix}</span>{m[lang]}
                           </div>
                         ))}
                         {card.cautions.map((c, cIdx) => (
-                          <div key={cIdx} className="text-xs text-amber-500 dark:text-amber-400 font-medium mb-1">
+                          <div key={cIdx} className="text-sm sm:text-base text-amber-400 font-medium leading-relaxed mb-2">
                             <span className="font-bold">{t.cautionPrefix}</span>{c[lang]}
                           </div>
                         ))}
                         {card.demerits.map((d, dIdx) => (
-                          <div key={dIdx} className="text-xs text-rose-500 dark:text-rose-400 font-medium mb-1">
+                          <div key={dIdx} className="text-sm sm:text-base text-rose-400 font-medium leading-relaxed mb-2">
                             <span className="font-bold">{t.demeritPrefix}</span>{d[lang]}
                           </div>
                         ))}
@@ -573,11 +573,11 @@ export default function Home() {
                       <div className="flex items-center justify-between gap-2 mb-2">
                         <div className="flex items-center gap-2">
                           <span className="text-lg">🚉</span>
-                          <span className="font-black text-sm sm:text-base">{st.station}</span>
-                          <span className="text-xs text-gray-400 font-medium">({st.line})</span>
+                          <span className="font-black text-base sm:text-xl text-white">{st.station}</span>
+                          <span className="text-sm text-gray-300 font-medium">({st.line})</span>
                         </div>
                         <div className="flex items-center gap-2">
-                          <span className="px-2.5 py-1 rounded-xl text-xs font-black bg-indigo-500/15 text-indigo-400 border border-indigo-500/30">
+                          <span className="px-3.5 py-1.5 rounded-xl text-sm sm:text-base font-black bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">
                             徒歩 {st.walkMin} 分
                           </span>
                           {st.mapUrl && (
@@ -585,7 +585,7 @@ export default function Home() {
                               href={st.mapUrl}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="px-2.5 py-1 rounded-xl text-xs font-bold bg-sky-500/10 text-sky-400 border border-sky-500/30 hover:bg-sky-500/20 transition-all"
+                              className="px-3.5 py-1.5 rounded-xl text-sm font-bold bg-sky-500/15 text-sky-300 border border-sky-500/30 hover:bg-sky-500/20 transition-all"
                             >
                               {t.walkRouteHint}
                             </a>
@@ -593,11 +593,11 @@ export default function Home() {
                         </div>
                       </div>
 
-                      <div className="text-xs text-gray-400 mb-1">
+                      <div className="text-sm sm:text-base text-gray-200 leading-relaxed mb-2">
                         <span className="font-bold text-gray-300">{t.destLabel}</span>
                         {st.destinations[lang]}
                       </div>
-                      <div className="text-xs text-amber-400/90">
+                      <div className="text-sm sm:text-base text-amber-400/95 leading-relaxed font-medium">
                         <span className="font-bold">{t.pitfallLabel}</span>
                         {st.pitfalls[lang]}
                       </div>
@@ -629,16 +629,16 @@ export default function Home() {
                       >
                         <div>
                           <div className="flex items-center justify-between gap-2 mb-1.5">
-                            <span className="font-black text-sm leading-tight">{sp.name}</span>
-                            <span className="px-2 py-0.5 rounded-lg text-xs font-black bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 whitespace-nowrap">
+                            <span className="font-black text-base sm:text-lg text-white leading-snug">{sp.name}</span>
+                            <span className="px-3 py-1 rounded-lg text-sm font-black bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 whitespace-nowrap">
                               {sp.walk}
                             </span>
                           </div>
-                          <div className="flex items-center gap-2 text-xs text-gray-400 mb-2">
+                          <div className="flex items-center gap-2.5 text-sm text-gray-300 font-semibold mb-2">
                             <span>{sp.tag[lang]}</span>
                             {sp.rating && <span className="font-bold text-amber-400">★ {sp.rating}</span>}
                           </div>
-                          <p className="text-xs text-gray-500 dark:text-gray-400 leading-relaxed mb-3">
+                          <p className="text-sm sm:text-base text-gray-300 leading-relaxed mb-3 font-normal">
                             {sp.note[lang]}
                           </p>
                         </div>
@@ -648,7 +648,7 @@ export default function Home() {
                             href={sp.mapUrl}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="inline-flex items-center justify-center gap-1.5 py-1.5 px-3 rounded-xl text-xs font-bold bg-sky-500/10 text-sky-400 border border-sky-500/30 hover:bg-sky-500/20 transition-all self-end"
+                            className="inline-flex items-center justify-center gap-1.5 py-2 px-3.5 rounded-xl text-sm font-bold bg-sky-500/15 text-sky-300 border border-sky-500/30 hover:bg-sky-500/20 transition-all self-end"
                           >
                             <span>{t.walkRouteHint}</span>
                           </a>
@@ -673,13 +673,13 @@ export default function Home() {
                       >
                         <div>
                           <div className="flex items-center justify-between gap-2 mb-1.5">
-                            <span className="font-black text-sm leading-tight">{cvs.name}</span>
-                            <span className="px-2 py-0.5 rounded-lg text-xs font-black bg-indigo-500/15 text-indigo-400 border border-indigo-500/30 whitespace-nowrap">
+                            <span className="font-black text-base sm:text-lg text-white leading-snug">{cvs.name}</span>
+                            <span className="px-3 py-1 rounded-lg text-sm font-black bg-indigo-500/20 text-indigo-300 border border-indigo-500/40 whitespace-nowrap">
                               {cvs.walk}
                             </span>
                           </div>
-                          <div className="text-xs text-gray-400 mb-2">{cvs.tag[lang]}</div>
-                          <p className="text-xs text-gray-500 dark:text-gray-400 leading-relaxed mb-3">
+                          <div className="text-sm text-gray-300 font-semibold mb-2">{cvs.tag[lang]}</div>
+                          <p className="text-sm sm:text-base text-gray-300 leading-relaxed mb-3 font-normal">
                             {cvs.note[lang]}
                           </p>
                         </div>
@@ -688,7 +688,7 @@ export default function Home() {
                             href={cvs.mapUrl}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="inline-flex items-center justify-center gap-1.5 py-1.5 px-3 rounded-xl text-xs font-bold bg-sky-500/10 text-sky-400 border border-sky-500/30 hover:bg-sky-500/20 transition-all self-end"
+                            className="inline-flex items-center justify-center gap-1.5 py-2 px-3.5 rounded-xl text-sm font-bold bg-sky-500/15 text-sky-300 border border-sky-500/30 hover:bg-sky-500/20 transition-all self-end"
                           >
                             <span>{t.walkRouteHint}</span>
                           </a>
@@ -712,9 +712,9 @@ export default function Home() {
                         }`}
                       >
                         <div>
-                          <div className="font-black text-sm mb-1">{c.name}</div>
-                          <div className="text-xs font-bold text-indigo-400 mb-1">{c.walk}</div>
-                          <p className="text-xs text-gray-400 leading-relaxed mb-2">{c.note[lang]}</p>
+                          <div className="font-black text-base sm:text-lg text-white mb-1.5">{c.name}</div>
+                          <div className="text-sm sm:text-base font-black text-indigo-300 mb-1.5">{c.walk}</div>
+                          <p className="text-sm text-gray-300 leading-relaxed mb-3">{c.note[lang]}</p>
                         </div>
                         {c.mapUrl && (
                           <a
