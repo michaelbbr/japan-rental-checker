@@ -202,6 +202,7 @@ export async function POST(req: NextRequest) {
 
     const html = await response.text();
     const bodyOnlyHtml = html.replace(/<head\b[^<]*(?:(?!<\/head>)<[^<]*)*<\/head>/gi, '');
+    const bodyClean = bodyOnlyHtml;
 
     const stripHtml = (str: string): string => {
       return str
@@ -502,7 +503,7 @@ export async function POST(req: NextRequest) {
     }
 
     // G. Road Proximity (Strictly based on road keywords, never hardcoded property names!)
-    const bodyCleanNoNav = bodyClean.replace(/<nav\b[^<]*(?:(?!<\/nav>)<[^<]*)*<\/nav>/gi, '');
+    const bodyCleanNoNav = bodyOnlyHtml.replace(/<nav\b[^<]*(?:(?!<\/nav>)<[^<]*)*<\/nav>/gi, '');
     if (
       bodyCleanNoNav.includes("甲州街道沿い") || 
       bodyCleanNoNav.includes("首都高沿い") || 
