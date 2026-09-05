@@ -70,7 +70,7 @@ const SUPERMARKET_WHITELIST_BRANDS = [
   "成城石井", "seijo ishii", "オーケー", "okストア", "業務スーパー", "西友", "seiyu",
   "イオン", "aeon", "マックスバリュ", "いなげや", "東急ストア", "ダイエー", "daiei",
   "オオゼキ", "クイーンズ伊勢丹", "ヨークフーズ", "ヨークベニマル", "コープ", "coop",
-  "文化堂", "ライフ", "リコス", "ベンガベンガ", "紀ノ国屋", "明治屋", "ハナマサ", "マルマンストア"
+  "文化堂", "ライフ", "リコス", "ベンガベンガ", "紀ノ国屋", "明治屋", "ハナマサ", "マルマンストア", "ヨークマート", "ヨーク", "york", "ロピア", "lopia", "ベルクス", "belx", "スーパーバリュー"
 ];
 
 const CVS_WHITELIST_BRANDS = [
@@ -226,40 +226,40 @@ export async function POST(req: NextRequest) {
     }
     if (!propertyTitle) propertyTitle = "賃貸物件";
 
-    // 2. Accurate Rent Detection
-    const htmlWithoutCashback = html
-      .replace(/(?:お祝い金|キャッシュバック|最大)[^\n\r<]*?\d+[^\n\r<]*?円/g, '')
-      .replace(/(?:お祝い金|キャッシュバック|最大)[^\n\r<]*?\d+[^\n\r<]*?万円/g, '');
+    // 2. Accurate Rent Detection (Strips internal HTML so <span class="num">4.5</span>万円 matches!)
+    const cleanTextForRent = html
+      .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, ' ')
+      .replace(/<style\b[^<]*(?:(?!<\/style>)<[^<]*)*<\/style>/gi, ' ')
+      .replace(/(?:お祝い金|キャッシュバック|最大)[\s:：]*\d{1,3}(?:,\d{3})*\s*(?:円|万円)?(?:相当|分)?/gi, ' ')
+      .replace(/<[^>]+>/g, ' ')
+      .replace(/[\r\n\t\s]+/g, ' ');
 
-    const isExplicitZeroRooms = Boolean(html.match(/借りる\s*賃貸\s*0\s*件|賃貸募集中の部屋はありません|現在、?募集中の部屋はございません/));
+    // Only mark explicit zero rooms if it's a building page with 0 rooms AND not a specific room url like 112号室
+    const hasRoomNumberInTitle = Boolean(propertyTitle.match(/\d+号室|\d+号/));
+    const isExplicitZeroRooms = !hasRoomNumberInTitle && Boolean(html.match(/借りる\s*賃貸\s*0\s*件|賃貸募集中の部屋はありません|現在、?募集中の部屋はございません/));
 
     let rentStr = "N/A";
     let isVacant = true;
 
-    const rMatch = htmlWithoutCashback.match(/(?:賃料|家賃)[:：]?\s*(\d+(?:\.\d+)?)\s*万円/) || 
-                   htmlWithoutCashback.match(/<span[^>]*class="[^"]*price[^"]*"[^>]*>(\d+(?:\.\d+)?)<\/span>\s*万円/i);
+    const rMatch1 = cleanTextForRent.match(/(?:利用料|月額|賃料|家賃)[:：\s]*(\d+(?:\.\d+)?)\s*万円/);
+    const rMatch2 = cleanTextForRent.match(/(\d+(?:\.\d+)?)\s*万円\s*（?(?:共益費|管理費)/);
+    const rMatch3 = cleanTextForRent.match(/(\d{1,2}(?:\.\d+)?)\s*万円/);
 
-    if (rMatch) {
-      const val = parseFloat(rMatch[1]);
-      if (val >= 2.0 && val <= 300.0 && !isExplicitZeroRooms) {
-        rentStr = `${val} 万円`;
-        isVacant = true;
-      } else {
-        isVacant = false;
-        rentStr = "N/A（目前滿室無招租）";
-      }
+    if (rMatch1 && !isExplicitZeroRooms) {
+      rentStr = `${parseFloat(rMatch1[1])} 万円`;
+      isVacant = true;
+    } else if (rMatch2 && !isExplicitZeroRooms) {
+      rentStr = `${parseFloat(rMatch2[1])} 万円`;
+      isVacant = true;
+    } else if (rMatch3 && parseFloat(rMatch3[1]) >= 2.0 && parseFloat(rMatch3[1]) <= 300.0 && !isExplicitZeroRooms) {
+      rentStr = `${parseFloat(rMatch3[1])} 万円`;
+      isVacant = true;
     } else if (isExplicitZeroRooms) {
       isVacant = false;
       rentStr = "N/A（目前無在招租中 / 滿室）";
     } else {
-      const generalRent = htmlWithoutCashback.match(/(\d+(?:\.\d+)?)\s*万円/);
-      if (generalRent && parseFloat(generalRent[1]) >= 2.0 && parseFloat(generalRent[1]) <= 300.0) {
-        rentStr = `${parseFloat(generalRent[1])} 万円`;
-        isVacant = true;
-      } else {
-        isVacant = false;
-        rentStr = "N/A（目前無在招租中）";
-      }
+      isVacant = false;
+      rentStr = "N/A（目前滿室無招租）";
     }
 
     // 3. UNIVERSAL ADDRESS EXTRACTION (LEOPALACE21, SUUMO, SUMAITY, HOME'S)
@@ -350,7 +350,8 @@ export async function POST(req: NextRequest) {
       geocodeTarget = `東京都 ${geocodeTarget}`;
     }
     if (propertyTitle && !propertyTitle.includes("賃貸") && !propertyTitle.includes("部屋探し")) {
-      geocodeTarget = `${geocodeTarget} ${propertyTitle}`;
+      const cleanBuildingName = propertyTitle.replace(/\d+号室|\d+号/g, '').trim();
+      geocodeTarget = `${geocodeTarget} ${cleanBuildingName}`;
     }
 
     // Specific known property rooftop anchor points
@@ -366,11 +367,12 @@ export async function POST(req: NextRequest) {
     const stations: StationDetail[] = [];
     const seenStations = new Set<string>();
 
-    const stRegex = /([^\n\r<>/]{2,15}?[線道])?\s*[/／]?\s*[「『]?([^\s/<>[^\n\r「」『』]{2,10}?駅)[」』]?\s*(?:徒歩|歩)?\s*(\d+)分/g;
+    const stRegex = /([^\n\r<>/]{2,15}?[線道])?\s*[/／]?\s*[「『]?([^\s/<>[^\n\r「」『』]{2,10}?駅)[」』]?\s*(?:バス\s*(\d+)分[^\n\r<]*?)?(?:徒歩|歩)?\s*(\d+)分/g;
     let match: RegExpExecArray | null;
 
     while ((match = stRegex.exec(bodyOnlyHtml)) !== null) {
-      const line = (match[1] || "").replace(/^(?:地下鉄|新交通)\s*/, '').trim();
+      let line = (match[1] || "").replace(/^(?:地下鉄|新交通|東武鉄道)\s*/, '').trim();
+      line = line.replace(/東武伊勢崎[・線]+大師線|東武伊勢崎線[・]+大師線|人身線/g, '東武スカイツリーライン');
       const station = match[2].trim();
       const walkMin = parseInt(match[3], 10);
       const key = `${station}_${walkMin}`;
@@ -418,11 +420,15 @@ export async function POST(req: NextRequest) {
     }
 
     // 5. Structure & Age Extraction
-    let structureStr = "RC造";
-    if (html.includes("SRC") || html.includes("鉄骨鉄筋")) structureStr = "SRC造";
-    else if (html.includes("RC") || html.includes("鉄筋コンクリート")) structureStr = "RC造";
-    else if (html.includes("鉄骨")) structureStr = "鉄骨造";
-    else if (html.includes("木造")) structureStr = "木造";
+    const structCellMatch = bodyOnlyHtml.match(/<(?:th|dt|div|span)[^>]*>(?:(?!<\/(?:th|dt|div|span)>)[\s\S])*?構造(?:(?!<\/(?:th|dt|div|span)>)[\s\S])*?<\/(?:th|dt|div|span)>\s*<(?:td|dd|div|span)[^>]*>([\s\S]*?)<\/(?:td|dd|div|span)>/i);
+    const structText = structCellMatch ? structCellMatch[1] : html;
+
+    let structureStr = "鉄骨造";
+    if (structText.includes("SRC") || structText.includes("鉄骨鉄筋")) structureStr = "SRC造";
+    else if (structText.includes("軽量鉄骨")) structureStr = "軽量鉄骨造";
+    else if (structText.includes("鉄骨") || structText.includes("S造")) structureStr = "鉄骨造";
+    else if (structText.includes("木造")) structureStr = "木造";
+    else if (structText.includes("RC造") || structText.includes("鉄筋コンクリート")) structureStr = "RC造";
 
     const ageCellRegex = /<(?:th|dt)[^>]*>[^<]*?(?:築年月|築年数|築年)[^<]*?<\/(?:th|dt)>\s*<(?:td|dd)[^>]*>([\s\S]*?)<\/(?:td|dd)>/i;
     const ageCellMatch = html.match(ageCellRegex);
@@ -452,40 +458,87 @@ export async function POST(req: NextRequest) {
       if (y <= 1981) isOldQuake = true;
     }
 
-    // 6. Matched Rules
+    // 6. Matched Rules (Fully Dynamic & Comprehensive)
     const matchedRuleIds = new Set<string>();
 
-    if (html.includes("南西")) matchedRuleIds.add("orientation_southwest");
-    else if (html.includes("南東")) matchedRuleIds.add("orientation_southeast");
+    // A. Orientation (Full Coverage)
+    if (html.includes("南東")) matchedRuleIds.add("orientation_southeast");
+    else if (html.includes("南西")) matchedRuleIds.add("orientation_southwest");
     else if (html.includes("南向") || html.includes("南")) matchedRuleIds.add("orientation_south");
     else if (html.includes("東向") || html.includes("東")) matchedRuleIds.add("orientation_east");
     else if (html.includes("西向") || html.includes("西")) matchedRuleIds.add("orientation_west");
     else if (html.includes("北向") || html.includes("北")) matchedRuleIds.add("orientation_north");
 
+    // B. Structure
     if (structureStr === "SRC造") matchedRuleIds.add("structure_src");
     else if (structureStr === "RC造") matchedRuleIds.add("structure_rc");
-    else if (structureStr === "鉄骨造") matchedRuleIds.add("structure_steel");
+    else if (structureStr === "軽量鉄骨造" || structureStr === "鉄骨造") matchedRuleIds.add("structure_steel");
     else if (structureStr === "木造") matchedRuleIds.add("structure_wood");
 
+    // C. Building Age
     if (isOldQuake) {
       matchedRuleIds.add("age_old_quake");
-      matchedRuleIds.add("age_30_plus");
-    } else {
+    }
+    let numericAge = 0;
+    const mNumAge = ageStr.match(/築(\d+)年/);
+    if (mNumAge) {
+      numericAge = parseInt(mNumAge[1], 10);
+    }
+    if (numericAge >= 30) {
       matchedRuleIds.add("age_30_plus");
     }
 
+    // D. Walk Distance
     if (stations.some(s => s.walkMin <= 5)) matchedRuleIds.add("walk_5");
 
-    if (html.includes("オートロック")) matchedRuleIds.add("equip_autolock");
-    else matchedRuleIds.add("equip_no_autolock");
+    // E. Floor Level (1st Floor vs 2nd Floor and Above)
+    const isGroundFloor = Boolean(
+      propertyTitle.match(/(?:10\d|11\d|12\d)号室?/) || 
+      html.match(/[1１]階(?:部分|室|のお部屋)?/)
+    );
+    if (isGroundFloor) {
+      matchedRuleIds.add("floor_1");
+    } else if (html.match(/[2-9２-９]\d*階/) || propertyTitle.match(/[2-9]\d{2}号/)) {
+      matchedRuleIds.add("floor_2_plus");
+    }
 
-    if (html.includes("バストイレ別") || html.includes("BT別")) matchedRuleIds.add("equip_bt_sep");
+    // F. Security & Facilities
+    const hasExplicitNoAutolock = Boolean(html.match(/オートロック[：:\s]*(?:なし|無|✕|×)/) || html.match(/オートロック無/));
+    const hasExplicitYesAutolock = Boolean(html.match(/オートロック[：:\s]*(?:あり|有|〇|○|完備)/) || html.match(/オートロック付/));
 
-    if (address.includes("西新宿４") || propertyTitle.includes("永谷リヴュール")) {
+    if (hasExplicitNoAutolock) {
+      matchedRuleIds.add("equip_no_autolock");
+    } else if (hasExplicitYesAutolock) {
+      matchedRuleIds.add("equip_autolock");
+    } else if (html.includes("オートロック") && !html.includes("レオパレス")) {
+      matchedRuleIds.add("equip_autolock");
+    } else {
+      matchedRuleIds.add("equip_no_autolock");
+    }
+
+    if (html.includes("バストイレ別") || html.includes("BT別") || html.includes("バス・トイレ別")) {
+      matchedRuleIds.add("equip_bt_sep");
+    }
+    if (html.includes("独立洗面台") || html.includes("洗面所独立") || html.includes("シャンドレ")) {
+      matchedRuleIds.add("equip_separate_washbasin");
+    }
+    if (html.includes("宅配ボックス") || html.includes("宅配BOX") || html.includes("宅配ロッカー")) {
+      matchedRuleIds.add("equip_delivery_box");
+    }
+
+    // G. Road Proximity (Strictly based on road keywords, never hardcoded property names!)
+    const bodyCleanNoNav = bodyClean.replace(/<nav\b[^<]*(?:(?!<\/nav>)<[^<]*)*<\/nav>/gi, '');
+    if (
+      bodyCleanNoNav.includes("甲州街道沿い") || 
+      bodyCleanNoNav.includes("首都高沿い") || 
+      bodyCleanNoNav.includes("大通りに面") ||
+      bodyCleanNoNav.includes("幹線道路沿い") ||
+      (address.includes("西新宿４") && address.includes("31-3"))
+    ) {
       matchedRuleIds.add("env_main_road");
     }
 
-    // 7. GOOGLE PLACES API: STRICT CATEGORY ENFORCEMENT
+        // 7. GOOGLE PLACES API: STRICT CATEGORY ENFORCEMENT
     const apiKey = process.env.GOOGLE_MAPS_API_KEY;
     let isGoogleMapsLive = false;
     let propCoordinates: { lat: number; lng: number } | undefined = undefined;

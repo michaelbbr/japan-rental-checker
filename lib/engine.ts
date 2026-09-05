@@ -129,25 +129,31 @@ export function evaluateProperty(
         reasonZhCN = "租金处于同条件中偏高水准，需权衡预算分配。";
         reasonEn = "Rent is slightly premium for its condition; weigh against your budget.";
       }
-    } else if (key === 'sunlight') {
-      if (matchedIds.includes('orientation_south')) {
+        } else if (key === 'sunlight') {
+      if (matchedIds.includes('orientation_south') || matchedIds.includes('orientation_southeast')) {
         symbol = '◎';
-        reasonJa = "南向きで終日日当たり良好、冬場も暖かく洗濯物も乾きやすい。";
-        reasonZh = "南向全天日照時間最長，室內明亮溫暖，曬衣採光極佳。";
-        reasonZhCN = "南向全天日照时间最长，室内明亮温暖，晾衣采光极佳。";
-        reasonEn = "South-facing orientation provides generous daylight throughout the day.";
-      } else if (matchedIds.includes('orientation_southwest')) {
+        reasonJa = "南向きまたは南東向きで朝から十分な日差しが入り、冬場も暖かく洗濯物も乾きやすい最良の採光条件です。";
+        reasonZh = "南向或東南向全天採光充沛，冬季溫暖且曬衣容易，屬日本最理想舒適之朝向。";
+        reasonZhCN = "南向或东南向全天采光充沛，冬季温暖且晾衣容易，属最理想舒适之朝向。";
+        reasonEn = "South or Southeast-facing orientation provides generous daylight, warmth, and optimal laundry drying.";
+      } else if (matchedIds.includes('orientation_southwest') || matchedIds.includes('orientation_east')) {
         symbol = '○';
-        reasonJa = "南西向きで午後の日照は十分ですが、夏場の西日による室温上昇があるため○判定。";
-        reasonZh = "南西朝向午後採光充足、冬天傍晚溫暖；但夏季午後有西曬升溫影響，故評為標準良好。";
-        reasonZhCN = "南西朝向午后采光充足、冬天傍晚温暖；但夏季午后有西晒升温，评为标准良好。";
-        reasonEn = "Southwest-facing provides ample afternoon sun; summer afternoon heat warrants consideration.";
+        reasonJa = "日照時間は実用上十分ですが、午後の西日（南西向き）または午後の陰り（東向き）があるため標準良好判定。";
+        reasonZh = "自然採光充足，但午後有西曬（西南向）或午後光線漸弱（東向），評為標準良好。";
+        reasonZhCN = "自然采光充足，但午后有西晒（西南向）或光线渐弱（东向），评为标准良好。";
+        reasonEn = "Sufficient natural daylight, with minor afternoon sun (southwest) or early dimming (east).";
+      } else if (matchedIds.includes('orientation_west')) {
+        symbol = '△';
+        reasonJa = "西向きのため冬の夕方は暖かいものの、夏場の強い西日による室温上昇とエアコン負荷に留意が必要（△判定）。";
+        reasonZh = "西向午後陽光強烈，夏季西曬室內升溫明顯，需配置遮光隔熱窗簾（△判定）。";
+        reasonZhCN = "西向午后阳光强烈，夏季西晒室内升温明显，需配置遮光隔热窗帘（△判定）。";
+        reasonEn = "West-facing units experience intense summer afternoon heat, requiring thermal curtains (rated △).";
       } else if (matchedIds.includes('orientation_north')) {
         symbol = '▲';
-        reasonJa = "北向きで直射日光が少なく、冬の冷え込みや湿気・結露に注意が必要。";
-        reasonZh = "北向直射陽光極少，冬天陰冷且衣物不易乾，需注意濕氣。";
-        reasonZhCN = "北向直射阳光极少，冬天阴冷且衣物不易干，需注意湿气。";
-        reasonEn = "North-facing receives minimal direct sunlight; winter chill and humidity require attention.";
+        reasonJa = "北向きで直射日光が少なく、冬の冷え込みや湿気・結露に注意が必要（▲判定）。";
+        reasonZh = "北向直射陽光極少，冬天陰冷且衣物不易乾，需注意防潮防霉（▲判定）。";
+        reasonZhCN = "北向直射阳光极少，冬天阴冷且衣物不易干，需注意防潮防霉（▲判定）。";
+        reasonEn = "North-facing receives minimal direct sunlight; winter chill and humidity require vigilance (rated ▲).";
       } else {
         symbol = '○';
         reasonJa = "日常生活に支障のない標準的な採光条件が確保されています。";
@@ -155,12 +161,12 @@ export function evaluateProperty(
         reasonZhCN = "具备标准生活采光，无极端日照缺陷。";
         reasonEn = "Standard natural daylight sufficient for normal daily living.";
       }
-    } else if (key === 'building') {
+        } else if (key === 'building') {
       if (matchedIds.includes('age_old_quake')) {
         symbol = '△';
         reasonJa = "旧耐震基準（1981年以前）のため配管老朽化や耐震性から△判定（要妥協）。";
-        reasonZh = "雖為較早耐震標準建築（1981年舊耐震法規前），共用管線老化且抗震係數較現代低，嚴格評為 △ 需妥協。";
-        reasonZhCN = "虽为较早耐震标准建筑（1981年旧耐震法规前），共用管线老化且抗震系数较低，严格评为 △ 需妥协。";
+        reasonZh = "建於1981年舊耐震法規前，抗震係數與管線老舊風險較現代法規高，評為 △ 需妥協。";
+        reasonZhCN = "建于1981年旧耐震法规前，抗震系数与管线老化风险较高，评为 △ 需妥协。";
         reasonEn = "Built under pre-1981 earthquake standards; pipe aging and older seismic codes warrant compromise (rated △).";
       } else if (matchedIds.includes('structure_src') || matchedIds.includes('structure_rc')) {
         symbol = '◎';
@@ -170,30 +176,30 @@ export function evaluateProperty(
         reasonEn = "Reinforced concrete construction offering excellent structural integrity and soundproofing.";
       } else if (matchedIds.includes('structure_wood')) {
         symbol = '▲';
-        reasonJa = "木造のため遮音性が低く、上下左右の生活音が伝わりやすい構造。";
-        reasonZh = "木造結構隔音較弱，上下樓層與相鄰戶生活音易互相干擾。";
-        reasonZhCN = "木造结构隔音较弱，上下楼层与相邻户生活音易互相干扰。";
-        reasonEn = "Wood construction with limited acoustic insulation; sound transmits easily.";
+        reasonJa = "木造のため遮音性が低く、上下左右の生活音が伝わりやすい構造（▲判定）。";
+        reasonZh = "木造結構隔音較弱，上下樓層與相鄰戶生活音易互相干擾（▲判定）。";
+        reasonZhCN = "木造结构隔音较弱，上下楼层与相邻户生活音易互相干扰（▲判定）。";
+        reasonEn = "Wood construction with limited acoustic insulation; sound transmits easily (rated ▲).";
       } else {
-        symbol = '△';
-        reasonJa = "鉄骨造で耐震強度はあるものの、遮音性はRC造に劣るため注意。";
-        reasonZh = "鐵骨結構耐震尚可，但遮音性弱於 RC 水泥隔間。";
-        reasonZhCN = "铁骨结构耐震尚可，但隔音弱于 RC 水泥隔间。";
-        reasonEn = "Steel frame provides good structural stability, though acoustic isolation is inferior to concrete.";
+        symbol = '○';
+        reasonJa = "鉄骨造で一定の耐震強度を確保。遮音性はRC造に劣るため生活音に配慮推奨（○判定）。";
+        reasonZh = "鐵骨結構具備良好耐震強度；隔音略遜於實心水泥RC，但居住品質尚佳（○判定）。";
+        reasonZhCN = "铁骨结构具备良好耐震强度；隔音略逊于水泥RC，但居住品质尚佳（○判定）。";
+        reasonEn = "Steel frame structure ensures seismic stability; acoustic isolation is fair compared to concrete (rated ○).";
       }
-    } else if (key === 'security') {
-      if (matchedIds.includes('equip_no_autolock')) {
-        symbol = '△';
-        reasonJa = "オートロックがないため部外者が玄関ドア前まで直接立ち入れる防犯上の留意が必要。";
-        reasonZh = "大樓無自動門禁系統（無オートロック），外人可直達各戶房門前，需依賴門鎖與對講機防護。";
-        reasonZhCN = "大楼无自动门禁系统（无门禁锁），外人可直达各户房门前，需依赖门锁与对讲机防护。";
-        reasonEn = "Lacks auto-lock building entry; visitors can reach unit front doors directly, requiring vigilant locking.";
-      } else if (matchedIds.includes('equip_autolock')) {
+        } else if (key === 'security') {
+      if (matchedIds.includes('equip_autolock')) {
         symbol = '◎';
-        reasonJa = "オートロック完備で不審者の立ち入りを防止し防犯性が高い。";
-        reasonZh = "配備自動門禁門鎖與防犯系統，有效阻絕可疑外人進入共用走廊。";
-        reasonZhCN = "配备自动门禁门锁与防盗系统，有效阻绝可疑外人进入共用走廊。";
-        reasonEn = "Auto-lock building entry system effectively deters unauthorized access to residential floors.";
+        reasonJa = "オートロック完備で不審者の立ち入りを防止し、防犯性能が高い安心の住戸です。";
+        reasonZh = "大樓配備自動門禁鎖（オートロック），能有效防止可疑人士進入共用走廊，防盜安心感高。";
+        reasonZhCN = "大楼配备门禁锁，有效防止陌生人进入共用走廊，防盗安全性高。";
+        reasonEn = "Equipped with an auto-lock security entrance, effectively deterring unauthorized visitors.";
+      } else if (matchedIds.includes('equip_no_autolock') || matchedIds.includes('floor_1')) {
+        symbol = '△';
+        reasonJa = "オートロックがないか、または1階住戸のため、外部からの侵入・視線や施錠徹底に留意が必要です（△判定）。";
+        reasonZh = "無大樓公共門禁鎖或位於1樓，外人易接近或通行視線直視，需落實日常隨手反鎖防範（△判定）。";
+        reasonZhCN = "无公共门禁锁或位于1楼，外人易接近，需落实日常反锁防范（△判定）。";
+        reasonEn = "Lacks auto-lock entrance or situated on the ground floor; careful window/door locking is advised (rated △).";
       } else {
         symbol = '○';
         reasonJa = "一般的な防犯水準が確保されています。";
