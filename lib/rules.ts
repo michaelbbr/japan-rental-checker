@@ -419,7 +419,7 @@ export const RULES: Rule[] = [
       zhCN: "务必关紧窗户实测隔音气密性，观察是否有双层气密窗，并静立感受重车震动。",
       en: "Close all windows completely to test double-pane acoustic sealing and feel for truck vibrations."
     }
-  }
+  },
   // 8. Financials: Key Money (礼金)
   {
     id: "reikin_zero",
