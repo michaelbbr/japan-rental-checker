@@ -866,6 +866,7 @@ export async function POST(req: NextRequest) {
     const isSoka = address.includes("草加") || propertyTitle.includes("パリオヴェルデ") || url.toLowerCase().includes("soka");
     const isChofu = address.includes("調布") || address.includes("つつじ") || propertyTitle.includes("つつじ") || propertyTitle.includes("バイロイト") || propertyTitle.includes("パイロット");
     const isNishiShinjuku = address.includes("西新宿") || propertyTitle.includes("永谷リヴュール");
+    const isYamabuki = address.includes("山吹") || address.includes("江戸川橋") || propertyTitle.includes("山吹");
 
     if (!supermarkets.length) {
       if (isYamabuki) {
