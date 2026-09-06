@@ -425,12 +425,12 @@ export async function POST(req: NextRequest) {
     const structCellMatch = bodyOnlyHtml.match(/<(?:th|dt|div|span)[^>]*>(?:(?!<\/(?:th|dt|div|span)>)[\s\S])*?構造(?:(?!<\/(?:th|dt|div|span)>)[\s\S])*?<\/(?:th|dt|div|span)>\s*<(?:td|dd|div|span)[^>]*>([\s\S]*?)<\/(?:td|dd|div|span)>/i);
     const structText = structCellMatch ? structCellMatch[1] : html;
 
-    let structureStr = "鉄骨造";
+    let structureStr = "RC造";
     if (structText.includes("SRC") || structText.includes("鉄骨鉄筋")) structureStr = "SRC造";
     else if (structText.includes("軽量鉄骨")) structureStr = "軽量鉄骨造";
+    else if (structText.includes("RC") || structText.includes("鉄筋コンクリート")) structureStr = "RC造";
     else if (structText.includes("鉄骨") || structText.includes("S造")) structureStr = "鉄骨造";
     else if (structText.includes("木造")) structureStr = "木造";
-    else if (structText.includes("RC造") || structText.includes("鉄筋コンクリート")) structureStr = "RC造";
 
     const ageCellRegex = /<(?:th|dt)[^>]*>[^<]*?(?:築年月|築年数|築年)[^<]*?<\/(?:th|dt)>\s*<(?:td|dd)[^>]*>([\s\S]*?)<\/(?:td|dd)>/i;
     const ageCellMatch = html.match(ageCellRegex);
@@ -460,16 +460,49 @@ export async function POST(req: NextRequest) {
       if (y <= 1981) isOldQuake = true;
     }
 
-    // 6. Matched Rules (Fully Dynamic & Comprehensive)
+    // 6. Matched Rules (Fully Dynamic, Robust Orientation, Reikin & Pet Policy)
     const matchedRuleIds = new Set<string>();
 
-    // A. Orientation (Full Coverage)
-    if (html.includes("南東")) matchedRuleIds.add("orientation_southeast");
-    else if (html.includes("南西")) matchedRuleIds.add("orientation_southwest");
-    else if (html.includes("南向") || html.includes("南")) matchedRuleIds.add("orientation_south");
-    else if (html.includes("東向") || html.includes("東")) matchedRuleIds.add("orientation_east");
-    else if (html.includes("西向") || html.includes("西")) matchedRuleIds.add("orientation_west");
-    else if (html.includes("北向") || html.includes("北")) matchedRuleIds.add("orientation_north");
+    // A. Orientation (Universal Strict Spec Cell Extraction — Zero Address/Station Pollution)
+    let orientStr = "";
+    
+    // Check 1: Table <th>/<td> or <dt>/<dd> (Sumaity, HOME'S, Leopalace21, AtHome)
+    const mTableOrient = html.match(/<(?:th|dt)[^>]*>[\s\S]*?(?:主要採光面|向き|方角)[\s\S]*?<\/(?:th|dt)>\s*<(?:td|dd)[^>]*>([\s\S]*?)<\/(?:td|dd)>/i);
+    if (mTableOrient) {
+      const c = mTableOrient[1].replace(/<[^>]+>/g, ' ').trim();
+      const mDir = c.match(/(南東|南西|北東|北西|南|東|西|北)/);
+      if (mDir) orientStr = mDir[1];
+    }
+
+    // Check 2: Div pair (SUUMO responsive divs)
+    if (!orientStr) {
+      const mDivOrient = html.match(/<(?:div|span|p)[^>]*>[\s\S]*?(?:主要採光面|向き|方角)[\s\S]*?<\/(?:div|span|p)>\s*<(?:div|span|p)[^>]*>([\s\S]*?)<\/(?:div|span|p)>/i);
+      if (mDivOrient) {
+        const c = mDivOrient[1].replace(/<[^>]+>/g, ' ').trim();
+        const mDir = c.match(/(南東|南西|北東|北西|南|東|西|北)/);
+        if (mDir) orientStr = mDir[1];
+      }
+    }
+
+    // Check 3: Explicit inline spec label (e.g. "主要採光面：東" or "向き：南東")
+    if (!orientStr) {
+      const mInline = html.match(/(?:主要採光面|向き|方角)[:：\s]*([東西南北]{1,2}(?:向き)?)/);
+      if (mInline) {
+        const c = mInline[1].trim();
+        const mDir = c.match(/(南東|南西|北東|北西|南|東|西|北)/);
+        if (mDir) orientStr = mDir[1];
+      }
+    }
+
+    // Map strictly to rule IDs — NEVER fall back to searching full HTML document!
+    if (orientStr === "南東") matchedRuleIds.add("orientation_southeast");
+    else if (orientStr === "南西") matchedRuleIds.add("orientation_southwest");
+    else if (orientStr === "北東") matchedRuleIds.add("orientation_northeast");
+    else if (orientStr === "北西") matchedRuleIds.add("orientation_northwest");
+    else if (orientStr === "東") matchedRuleIds.add("orientation_east");
+    else if (orientStr === "西") matchedRuleIds.add("orientation_west");
+    else if (orientStr === "南") matchedRuleIds.add("orientation_south");
+    else if (orientStr === "北") matchedRuleIds.add("orientation_north");
 
     // B. Structure
     if (structureStr === "SRC造") matchedRuleIds.add("structure_src");
@@ -492,7 +525,6 @@ export async function POST(req: NextRequest) {
 
     // D. Walk Distance
     if (stations.some(s => s.walkMin <= 5)) matchedRuleIds.add("walk_5");
-    if (stations.some(s => s.walkMin <= 3)) matchedRuleIds.add("walk_3");
 
     // E. Floor Level (1st Floor vs 2nd Floor and Above)
     const isGroundFloor = Boolean(
@@ -529,7 +561,51 @@ export async function POST(req: NextRequest) {
       matchedRuleIds.add("equip_delivery_box");
     }
 
-    // G. Road Proximity (Strictly based on road keywords, never hardcoded property names!)
+    // G. Financials: Reikin (礼金) Check
+    let hasZeroReikin = false;
+    let hasHeavyReikin = false;
+
+    const reikinCellMatch = html.match(/<(?:th|dt|div|span)[^>]*>[\s\S]*?(?:敷金[\s/／]*礼金|礼金)[\s\S]*?<\/(?:th|dt|div|span)>\s*<(?:td|dd|div|span)[^>]*>([\s\S]*?)<\/(?:td|dd|div|span)>/i);
+    if (reikinCellMatch) {
+      const val = reikinCellMatch[1].replace(/<[^>]+>/g, ' ').trim();
+      const parts = val.split(/[/／]/);
+      const reikinStr = parts.length >= 2 ? parts[1].trim() : parts[0].trim();
+      if (["-", "ー", "0", "0円", "0ヶ月", "0.0ヶ月", "なし", "無", "0.0"].includes(reikinStr)) {
+        hasZeroReikin = true;
+      } else {
+        const mReikin = reikinStr.match(/(\d+(?:\.\d+)?)/);
+        if (mReikin) {
+          const m = parseFloat(mReikin[1]);
+          if (m === 0) hasZeroReikin = true;
+          else if (m >= 2.0) hasHeavyReikin = true;
+        }
+      }
+    }
+
+    if (!hasZeroReikin && !hasHeavyReikin) {
+      if (html.match(/礼金[：:\s]*(?:なし|無|0|０|0円|0ヶ月|0.0ヶ月|-)|礼[：:\s]*[-ー0０]/) || html.includes("礼金ゼロ") || html.includes("礼金なし")) {
+        hasZeroReikin = true;
+      } else {
+        const mReikin = html.match(/礼金[：:\s]*(\d+(?:\.\d+)?)\s*ヶ?月/);
+        if (mReikin) {
+          const m = parseFloat(mReikin[1]);
+          if (m === 0) hasZeroReikin = true;
+          else if (m >= 2.0) hasHeavyReikin = true;
+        }
+      }
+    }
+
+    if (hasZeroReikin) matchedRuleIds.add("reikin_zero");
+    else if (hasHeavyReikin) matchedRuleIds.add("reikin_heavy");
+
+    // H. Pet Policy Check
+    if (html.match(/ペット不可|ペット飼育不可/)) {
+      matchedRuleIds.add("pet_not_allowed");
+    } else if (html.match(/ペット相談|ペット可|ペット飼育可|ペット飼育相談|小型犬|猫相談|猫可/)) {
+      matchedRuleIds.add("pet_allowed");
+    }
+
+    // I. Road Proximity
     const bodyCleanNoNav = bodyOnlyHtml.replace(/<nav\b[^<]*(?:(?!<\/nav>)<[^<]*)*<\/nav>/gi, '');
     if (
       bodyCleanNoNav.includes("甲州街道沿い") || 

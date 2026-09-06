@@ -420,4 +420,71 @@ export const RULES: Rule[] = [
       en: "Close all windows completely to test double-pane acoustic sealing and feel for truck vibrations."
     }
   }
+  // 8. Financials: Key Money (礼金)
+  {
+    id: "reikin_zero",
+    name: { ja: "礼金0（礼金なし）", zh: "零禮金（免禮金）", zhCN: "零礼金（免礼金）", en: "Zero Key Money (No Reikin)" },
+    category: "費用",
+    overall: { ja: "初期費用を大幅節約", zh: "初期費用大幅減輕", zhCN: "初期费用大幅减轻", en: "Huge Upfront Savings" },
+    overallType: "positive",
+    effects: { rent: 1.5 },
+    merits: [
+      { ja: "契約時の礼金（通常家賃1〜2ヶ月分）が0円。まとまった初期費用を15〜25万円程度丸々節約可能！", zh: "簽約時免付給房東的不可退還感謝金（通常為1~2個月租金），直接省下約15~25萬日圓初期開銷！", zhCN: "签约时免付给房东的不可退还感谢金（通常为1~2个月租金），直接省下约15~25万日元初期开销！", en: "Zero non-refundable gift money to the landlord; saves 1-2 months of rent (~150k-250k JPY) upfront!" }
+    ],
+    cautions: [
+      { ja: "短期解約違約金特約（1年未満の解約で家賃1ヶ月分等）が付いている場合があるため事前確認を推奨。", zh: "部分零禮金房源附帶「短期解約違約金」（如未住滿1年解約需補繳1個月租金），簽約前務必確認特約條款。", zhCN: "部分零礼金房源附带短期解约违约金（如未住满1年退租需补交1个月租金），签约前需确认特约条款。", en: "Check for early lease termination penalty clauses (e.g. 1 month rent penalty if vacating within 1 year)." }
+    ],
+    demerits: [],
+    naiken: {
+      ja: "敷金の返還条件や、退去時のハウスクリーニング費用の負担区分を重要事項説明書で確認。",
+      zh: "向房仲確認押金退還規定、退租時室內清潔費是否由租客定額負擔，並審閱契約特約事項。",
+      zhCN: "向中介确认押金退还规定、退租时室内清洁费是否由租客定额负担，并审阅合同特约事项。",
+      en: "Verify security deposit refund terms, move-out cleaning fee allocations, and review lease rider conditions."
+    }
+  },
+
+  // 9. Pet Policy
+  {
+    id: "pet_allowed",
+    name: { ja: "ペット相談・飼育可", zh: "可養寵物（寵物相談）", zhCN: "可养宠物（宠物商谈）", en: "Pet Friendly (Consultation)" },
+    category: "条件",
+    overall: { ja: "ペット同住可能", zh: "可與毛孩同住", zhCN: "可与毛孩同住", en: "Pets Allowed" },
+    overallType: "positive",
+    effects: { building: 1.0 },
+    merits: [
+      { ja: "大切な家族である犬や猫と一緒に暮らせる希少なペット飼育相談可能物件！", zh: "日本僅極少數公寓允許飼育寵物，此房源能與心愛的貓咪、狗狗一同入住新生活！", zhCN: "仅极少数公寓允许饲养宠物，此房源能与心爱的猫咪、狗狗一同开启新生活！", en: "Rare pet-friendly property in Japan allowing you to live together with your beloved dogs or cats!" }
+    ],
+    cautions: [
+      { ja: "ペット飼育時は敷金+1ヶ月や、退去時クリーニング（消臭・壁紙張替）の追加特約が付く一般的傾向。", zh: "飼養寵物時通常需額外加收1個月押金（敷金+1ヶ月），退租時通常會約定由租客全額負擔除臭與更換壁紙費用。", zhCN: "饲养宠物通常需额外加收1个月押金（敷金+1个月），退租时通常会约定由租客全额负担除臭与更换壁纸费用。", en: "Pet residency typically requires +1 month additional security deposit and specific tenant-paid deodorization/wallpaper replacement riders upon moving out." },
+      { ja: "飼育可能な種類・頭数（小型犬1匹のみ、猫の可否など）を管理規約で事前確認。", zh: "務必向房東與管理規約確認可飼養之種類與隻數限制（例如：僅限小型犬1隻、是否允許養貓、體重上限等）。", zhCN: "务必向房东确认可饲养之种类与数量限制（例如：仅限小型犬1只、是否允许养猫、体重上限等）。", en: "Verify exact animal rules in the building bylaws (e.g. 1 small dog only, cats permitted, weight limitations)." }
+    ],
+    demerits: [],
+    naiken: {
+      ja: "共用部分にペット専用足洗い場があるか、エレベーター内ペット同乗マナー、近隣の動物病院を確認。",
+      zh: "確認大樓一樓是否有洗腳區、攜帶寵物搭乘電梯之規定，以及周圍步行範圍內是否有動物醫院。",
+      zhCN: "确认大楼一楼是否有宠物洗脚池、带宠物搭乘电梯之规定，以及周边是否有动物医院。",
+      en: "Check building pet foot-washing amenities, elevator pet carriage rules, and locate nearby veterinary clinics."
+    }
+  },
+  {
+    id: "pet_not_allowed",
+    name: { ja: "ペット不可（飼育禁止）", zh: "嚴禁飼養寵物", zhCN: "严禁饲养宠物", en: "No Pets Allowed" },
+    category: "条件",
+    overall: { ja: "ペット飼育厳禁", zh: "禁止飼養寵物", zhCN: "禁止饲养宠物", en: "Strictly No Pets" },
+    overallType: "negative",
+    effects: {},
+    merits: [
+      { ja: "動物の鳴き声や毛・アレルギーの心配がなく、静かで衛生的な住環境を好む方に適している。", zh: "無相鄰戶寵物吠叫噪音或毛髮異味，適合追求安靜與有動物過敏體質之租客。", zhCN: "无邻近户宠物吠叫噪音或毛发异味，适合追求安静与对动物过敏之租客。", en: "Free from barking noise, pet hair, or dander; ideal for tenants with pet allergies or seeking quiet." }
+    ],
+    cautions: [
+      { ja: "マンション管理規約により動物の飼育は厳禁。無断飼育は契約解除・即時退去処分の対象となります。", zh: "大樓規約嚴格禁止飼養任何寵物，若擅自偷養將面臨合約立即解除、強制搬離並求償巨額違約金。", zhCN: "大楼规约严格禁止饲养任何宠物，若擅自偷养将面临合同立即解除、强制搬离并追索巨额违约金。", en: "Pets strictly prohibited by building covenants; unauthorized keeping results in immediate lease eviction." }
+    ],
+    demerits: [],
+    naiken: {
+      ja: "将来的にペットを飼う可能性がある場合は、本物件の契約を見送る必要があります。",
+      zh: "若未來有飼養貓狗之規劃，本物件完全無法融通，需另尋「ペット相談可」之房源。",
+      zhCN: "若未来有饲养猫狗之规划，本物件无法变通，需另寻宠物商谈房源。",
+      en: "If you plan to adopt or keep a pet in the future, this property cannot accommodate it."
+    }
+  }
 ];

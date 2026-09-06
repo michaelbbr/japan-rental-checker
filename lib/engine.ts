@@ -111,6 +111,12 @@ export function evaluateProperty(
         reasonZh = "目前全棟滿室，暫無公開招租中房間與即時租金資料。";
         reasonZhCN = "目前全栋满室，暂无公开招租中房间与即时租金资料。";
         reasonEn = "Currently fully occupied; no active vacancy or rent data available.";
+      } else if (matchedIds.includes('reikin_zero')) {
+        symbol = '◎';
+        reasonJa = "礼金0（なし）で契約時の初期費用を大幅に軽減可能！実質的なコストパフォーマンスが極めて良好です。";
+        reasonZh = "免禮金（禮金0個月）！簽約時直接省下1~2個月租金初期開銷，綜合實質性價比極高。";
+        reasonZhCN = "免礼金（礼金0个月）！签约时直接省下1~2个月租金初期开销，综合性价比极高。";
+        reasonEn = "Zero key money (no Reikin) significantly reduces move-in costs, offering exceptional overall value.";
       } else if (s >= 1.5) {
         symbol = '◎';
         reasonJa = "周辺相場に比べて割安感があり、コストパフォーマンスが高い家賃水準。";
@@ -137,12 +143,18 @@ export function evaluateProperty(
         reasonZh = "南向或東南向全天採光充沛，冬季溫暖且曬衣容易，屬日本最理想舒適之朝向。";
         reasonZhCN = "南向或东南向全天采光充沛，冬季温暖且晾衣容易，属最理想舒适之朝向。";
         reasonEn = "South or Southeast-facing orientation provides generous daylight, warmth, and optimal laundry drying.";
-      } else if (matchedIds.includes('orientation_southwest') || matchedIds.includes('orientation_east')) {
+      } else if (matchedIds.includes('orientation_east')) {
         symbol = '○';
-        reasonJa = "日照時間は実用上十分ですが、午後の西日（南西向き）または午後の陰り（東向き）があるため標準良好判定。";
-        reasonZh = "自然採光充足，但午後有西曬（西南向）或午後光線漸弱（東向），評為標準良好。";
-        reasonZhCN = "自然采光充足，但午后有西晒（西南向）或光线渐弱（东向），评为标准良好。";
-        reasonEn = "Sufficient natural daylight, with minor afternoon sun (southwest) or early dimming (east).";
+        reasonJa = "東向きで清々しい朝日が入り、朝型の生活リズムが整いやすい採光条件です（午後からは穏やかな光線環境）。";
+        reasonZh = "東向晨光充沛，清晨自然光線喚醒利於作息規律（午後光線轉為柔和無西曬）。";
+        reasonZhCN = "东向晨光充沛，清晨自然光线唤醒利于作息规律（午后光线转为柔和无西晒）。";
+        reasonEn = "East-facing with ample morning sunshine, perfect for early risers with soft afternoon light.";
+      } else if (matchedIds.includes('orientation_southwest')) {
+        symbol = '○';
+        reasonJa = "日照時間は実用上十分ですが、午後の西日（南西向き）があるため標準良好判定。";
+        reasonZh = "自然採光充足，但午後有西曬（西南向），評為標準良好。";
+        reasonZhCN = "自然采光充足，但午后有西晒（西南向），评为标准良好。";
+        reasonEn = "Sufficient natural daylight, with minor afternoon sun (southwest).";
       } else if (matchedIds.includes('orientation_west')) {
         symbol = '△';
         reasonJa = "西向きのため冬の夕方は暖かいものの、夏場の強い西日による室温上昇とエアコン負荷に留意が必要（△判定）。";
