@@ -84,26 +84,24 @@ export function evaluateProperty(
     let reasonEn = "";
 
     if (key === 'location') {
-      const validWalks = stations.map(st => st.walkMin).filter(n => typeof n === 'number' && !isNaN(n) && n > 0);
-      const minWalk = validWalks.length > 0 ? Math.min(...validWalks) : (matchedIds.includes('walk_5') ? 5 : 10);
-      if (minWalk <= 5) {
+      if (s >= 3.0 || (matchedIds.includes('walk_5') && stations.length >= 2)) {
         symbol = '◎';
-        reasonJa = `駅徒歩${minWalk}分の駅近・好立地！雨天や夜間の移動も快適で、通勤・通学利便性に極めて優れます。`;
-        reasonZh = `車站步行僅${minWalk}分鐘之近站好物件！雨天或夜間返家無負擔，通勤動線具備高度優勢。`;
-        reasonZhCN = `车站步行仅${minWalk}分钟之近站好物件！雨天或夜间返家无负担，通勤动线具备高度优势。`;
-        reasonEn = `Close to station within a ${minWalk}-minute walk; excellent commuting convenience in all weather.`;
-      } else if (minWalk <= 12) {
+        reasonJa = "駅徒歩5分以内で複数路線が利用可能。都心通勤アクセスが極めて優秀。";
+        reasonZh = "徒歩5分內近車站，且能使用多條鐵道路線，通勤通達極具優勢。";
+        reasonZhCN = "步行5分以内近车站，且能使用多条铁路线路，通勤极具优势。";
+        reasonEn = "Within a 5-minute walk to stations with access to multiple lines; exceptional transit connectivity.";
+      } else if (s >= 0.5) {
         symbol = '○';
-        reasonJa = `駅徒歩${minWalk}分で日常の通勤通学に実用的な標準立地。平坦な道のりで自転車利用なら数分で駅アクセス可能。`;
-        reasonZh = `車站步行約${minWalk}分鐘，屬日本標準通勤生活圈，道路平坦亦可搭配自行車數分鐘抵達車站。`;
-        reasonZhCN = `车站步行约${minWalk}分钟，属日本标准通勤生活圈，亦可搭配自行车数分钟抵达车站。`;
-        reasonEn = `Practical walking distance of ${minWalk} minutes; standard residential commute, effortlessly accessible by bicycle.`;
+        reasonJa = "最寄駅への徒歩分数が標準的で日常の通勤通学に実用的です。";
+        reasonZh = "車站步行距離適中，日常大眾運輸通勤實用性佳。";
+        reasonZhCN = "车站步行距离适中，日常公共交通通勤实用性佳。";
+        reasonEn = "Moderate walking distance to station; convenient for daily transit.";
       } else {
         symbol = '△';
-        reasonJa = `駅まで徒歩${minWalk}分と距離があるため、悪天候時の往復やバス・自転車の利用を推奨。`;
-        reasonZh = `距離車站步行約${minWalk}分鐘稍具距離，雨雪天或夜間出行建議搭配自行車或公車代步。`;
-        reasonZhCN = `距离车站步行约${minWalk}分钟稍具距离，雨雪天出行建议搭配自行车或公交代步。`;
-        reasonEn = `Station walk is approximately ${minWalk} minutes; bicycle or bus transit is recommended.`;
+        reasonJa = "駅までやや距離があり、悪天候時の移動や夜道の往復に留意が必要。";
+        reasonZh = "距離車站步行稍遠，雨雪天或夜間出行需注意往返負擔。";
+        reasonZhCN = "距离车站步行稍远，雨雪天或夜间出行需注意往返负担。";
+        reasonEn = "Slightly far from station; transit effort should be considered in bad weather.";
       }
     } else if (key === 'rent') {
       if (!isVacant) {
@@ -112,12 +110,6 @@ export function evaluateProperty(
         reasonZh = "目前全棟滿室，暫無公開招租中房間與即時租金資料。";
         reasonZhCN = "目前全栋满室，暂无公开招租中房间与即时租金资料。";
         reasonEn = "Currently fully occupied; no active vacancy or rent data available.";
-      } else if (matchedIds.includes('reikin_zero')) {
-        symbol = '◎';
-        reasonJa = "礼金0（なし）で契約時の初期費用を大幅に軽減可能！実質的なコストパフォーマンスが極めて良好です。";
-        reasonZh = "免禮金（禮金0個月）！簽約時直接省下1~2個月租金初期開銷，綜合實質性價比極高。";
-        reasonZhCN = "免礼金（礼金0个月）！签约时直接省下1~2个月租金初期开销，综合性价比极高。";
-        reasonEn = "Zero key money (no Reikin) significantly reduces move-in costs, offering exceptional overall value.";
       } else if (s >= 1.5) {
         symbol = '◎';
         reasonJa = "周辺相場に比べて割安感があり、コストパフォーマンスが高い家賃水準。";
@@ -144,18 +136,12 @@ export function evaluateProperty(
         reasonZh = "南向或東南向全天採光充沛，冬季溫暖且曬衣容易，屬日本最理想舒適之朝向。";
         reasonZhCN = "南向或东南向全天采光充沛，冬季温暖且晾衣容易，属最理想舒适之朝向。";
         reasonEn = "South or Southeast-facing orientation provides generous daylight, warmth, and optimal laundry drying.";
-      } else if (matchedIds.includes('orientation_east')) {
+      } else if (matchedIds.includes('orientation_southwest') || matchedIds.includes('orientation_east')) {
         symbol = '○';
-        reasonJa = "東向きで清々しい朝日が入り、朝型の生活リズムが整いやすい採光条件です（午後からは穏やかな光線環境）。";
-        reasonZh = "東向晨光充沛，清晨自然光線喚醒利於作息規律（午後光線轉為柔和無西曬）。";
-        reasonZhCN = "东向晨光充沛，清晨自然光线唤醒利于作息规律（午后光线转为柔和无西晒）。";
-        reasonEn = "East-facing with ample morning sunshine, perfect for early risers with soft afternoon light.";
-      } else if (matchedIds.includes('orientation_southwest')) {
-        symbol = '○';
-        reasonJa = "日照時間は実用上十分ですが、午後の西日（南西向き）があるため標準良好判定。";
-        reasonZh = "自然採光充足，但午後有西曬（西南向），評為標準良好。";
-        reasonZhCN = "自然采光充足，但午后有西晒（西南向），评为标准良好。";
-        reasonEn = "Sufficient natural daylight, with minor afternoon sun (southwest).";
+        reasonJa = "日照時間は実用上十分ですが、午後の西日（南西向き）または午後の陰り（東向き）があるため標準良好判定。";
+        reasonZh = "自然採光充足，但午後有西曬（西南向）或午後光線漸弱（東向），評為標準良好。";
+        reasonZhCN = "自然采光充足，但午后有西晒（西南向）或光线渐弱（东向），评为标准良好。";
+        reasonEn = "Sufficient natural daylight, with minor afternoon sun (southwest) or early dimming (east).";
       } else if (matchedIds.includes('orientation_west')) {
         symbol = '△';
         reasonJa = "西向きのため冬の夕方は暖かいものの、夏場の強い西日による室温上昇とエアコン負荷に留意が必要（△判定）。";

@@ -1,10 +1,11 @@
 'use client';
 
 import React, { useState } from 'react';
-import { EvaluationResult, Language } from '@/lib/types';
+import { EvaluationResult, Language } from '../lib/types';
 
 export default function Home() {
-  const [lang, setLang] = useState<Language>('zh');
+  // Default language is Japanese ('ja')
+  const [lang, setLang] = useState<Language>('ja');
   const [url, setUrl] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -13,174 +14,133 @@ export default function Home() {
   const [propertyRent, setPropertyRent] = useState<string | null>(null);
   const [evaluation, setEvaluation] = useState<EvaluationResult | null>(null);
   const [copied, setCopied] = useState(false);
-  const [selectedDimensionKey, setSelectedDimensionKey] = useState<string>('location');
-  const [activeTab, setActiveTab] = useState<'overview' | 'stations' | 'amenities' | 'checklist'>('overview');
-  const [isDarkMode, setIsDarkMode] = useState(true);
+  const [selectedDimensionKey, setSelectedDimensionKey] = useState<string>('quietness');
 
-  // Multi-language text dictionary
   const t = {
     ja: {
       brandBadge: "日本賃貸 総合診断システム",
       title: "日本の賃貸物件を、客観的に見抜く。",
-      subtitle: "SUUMO / HOME'S / スマイティ等のURLから、耐震性・駅動線・真の生活インフラを一瞬で高精度に診断",
-      placeholder: "物件URLを入力 (SUUMO, HOME'S, スマイティ, レオパレス21)...",
-      btnScore: "診断実行",
+      subtitle: "SUUMO等のURLから、耐震性・駅動線・真の生活インフラを一瞬で高精度に診断",
+      placeholder: "物件URLを入力 (SUUMO / DOOR賃貸 / HOME'S)...",
+      btnScore: "診断実行 ↵",
       btnScoring: "解析中...",
-      sampleLabel: "テスト用サンプルURL：",
-      tabOverview: "📊 総合診断・特徴",
-      tabStations: "🚉 交通動線・駅",
-      tabAmenities: "🛒 生活インフラ",
-      tabChecklist: "📝 内見チェックリスト",
-      tier1Title: "総合レーティング（6大指標）",
+      tier1Title: "① 総合レーティング（6大指標）",
       tier1Subtitle: "タップで診断根拠を表示",
-      tier2Title: "条件別メリット・注意点（長所と短所）",
+      tier2Title: "② 条件別メリット・注意点（長所と短所）",
       meritPrefix: "長所：",
       cautionPrefix: "注意：",
       demeritPrefix: "短所：",
-      stationsTitle: "最寄り駅・アクセス",
-      stationsSub: "タップでGoogleマップ徒歩ルート案内",
+      stationsTitle: "🚉 最寄り駅・アクセス（タップでGoogleマップ徒歩ルート案内）",
       destLabel: "直通方面：",
       pitfallLabel: "留意点：",
-      amenitiesTitle: "生活インフラ速報",
-      amenitiesSub: "タップで店舗へのGoogleマップ徒歩ルート案内",
-      superLabel: "周辺スーパーマーケット（位置づけ＆価格帯）",
-      cvsLabel: "コンビニエンスストア（価格帯＆特徴）",
-      chainLabel: "定番外食チェーン",
+      amenitiesTitle: "🏪 生活インフラ速報（タップで店舗への徒歩ルート案内）",
+      superLabel: "🛒 周辺スーパーマーケット（位置づけ＆価格帯）",
+      cvsLabel: "🏪 コンビニエンスストア（価格帯＆特徴）",
+      chainLabel: "🍽️ 定番外食チェーン",
       walkRouteHint: "徒歩ナビ ↗",
-      tier3Title: "内見時のチェックリスト",
-      copyChecklist: "リストをコピー",
+      tier3Title: "③ 内見時のチェックリスト",
+      copyChecklist: "［ リストをコピー ］",
       copied: "✓ コピー完了",
-      footer: "v42（全域變數深度審查・零崩潰穩定旗艦版）• 日本賃貸 総合診断システム",
-      vacantBadge: "募集中",
-      occupiedBadge: "満室（現在募集中なし / N/A）",
-      mapsLiveBadge: "● Google Maps 即時連動中",
+      footer: "v42（零路徑依賴・全相對引用終極穩定版）• 日本賃貸 総合診断システム • Google Maps リアルタイム徒歩ナビ連携",
+      vacantBadge: "満室（現在募集中なし / N/A）",
+      mapsLiveBadge: "● Google Maps リアルタイム連動",
       reasonBoxHeader: "判定理由・評価根拠",
       switchPrompt: "他の指標をタップして切替"
     },
     zh: {
       brandBadge: "日本租房 綜合診斷系統",
-      title: "日本租房物件，數據化客觀解析。",
-      subtitle: "輸入 SUUMO / HOME'S / スマイティ 等網址，即時解析耐震性、真實步行動線與生活圈機能",
-      placeholder: "貼上房源網址 (SUUMO, HOME'S, スマイティ, Leopalace21)...",
-      btnScore: "立即診斷",
-      btnScoring: "深入解析中...",
-      sampleLabel: "快速測試範例：",
-      tabOverview: "📊 綜合評估與特徵",
-      tabStations: "🚉 交通車站動線",
-      tabAmenities: "🛒 周邊生活機能",
-      tabChecklist: "📝 看房內見清單",
-      tier1Title: "綜合指標評級（6大維度）",
-      tier1Subtitle: "點擊各指標查看評估理由",
-      tier2Title: "條件優劣勢解析（長處與短處）",
-      meritPrefix: "優勢：",
-      cautionPrefix: "提醒：",
+      title: "日本租房物件，數據化精準解析。",
+      subtitle: "貼上 SUUMO 網址，瞬間透視房屋規格、耐震風險、車站動線與周邊真實生活機能",
+      placeholder: "輸入房源網址 (SUUMO / DOOR賃貸 / HOME'S)...",
+      btnScore: "開始診斷 ↵",
+      btnScoring: "分析中...",
+      tier1Title: "① 核心指標總評（六大維度）",
+      tier1Subtitle: "點擊查看客觀評分依據與理由",
+      tier2Title: "② 關鍵條件解析（優缺點合一）",
+      meritPrefix: "優點：",
+      cautionPrefix: "注意：",
       demeritPrefix: "缺點：",
-      stationsTitle: "鄰近車站與通勤交通",
-      stationsSub: "點擊可直接開啟 Google 地圖實測步行路線",
-      destLabel: "直達方向：",
-      pitfallLabel: "留意事項：",
-      amenitiesTitle: "生活圈民生機能速報",
-      amenitiesSub: "點擊店家開啟 Google 地圖實測步行導航",
-      superLabel: "周邊生鮮超市（定位與價格帶）",
-      cvsLabel: "周邊便利超商（價格帶與特點）",
-      chainLabel: "國民連鎖外食餐廳",
-      walkRouteHint: "步行導航 ↗",
-      tier3Title: "實地看房（內見）必查清單",
-      copyChecklist: "一鍵複製清單",
-      copied: "✓ 已複製到剪貼簿",
-      footer: "v42（全域變數深度審查・零崩潰穩定旗艦版）• 日本租房 綜合診斷系統",
-      vacantBadge: "招租中",
-      occupiedBadge: "滿室（目前無招租中 / N/A）",
-      mapsLiveBadge: "● Google Maps 即時座標連動",
-      reasonBoxHeader: "判定理由與評估依據",
-      switchPrompt: "點擊其他徽章以切換"
+      stationsTitle: "🚉 利用車站與交通動線（點擊查看 Google Maps 徒步路線）",
+      destLabel: "直達：",
+      pitfallLabel: "注意：",
+      amenitiesTitle: "🏪 生活機能速查（點擊店家開啟 Google Maps 徒步導航）",
+      superLabel: "🛒 主力超市（定位＆價格檔次）",
+      cvsLabel: "🏪 超商定位與價格檔次",
+      chainLabel: "🍽️ 周邊知名連鎖外食",
+      walkRouteHint: "徒步導航 ↗",
+      tier3Title: "③ 現場內見確認清單",
+      copyChecklist: "［ 複製清單 ］",
+      copied: "✓ 已複製",
+      footer: "v42（零路徑依賴・全相對引用終極穩定版）• 日本租房 綜合診斷系統 • Google Maps 徒步導航串接",
+      vacantBadge: "目前滿室（無招租中 / N/A）",
+      mapsLiveBadge: "● 即時地圖連線",
+      reasonBoxHeader: "評分理由與依據",
+      switchPrompt: "點擊上方指標切換"
     },
     zhCN: {
       brandBadge: "日本租房 综合诊断系统",
-      title: "日本租房房源，客观深度解析。",
-      subtitle: "输入 SUUMO / HOME'S / スマイティ 等网址，即时解析耐震性、真实步行路线与生活圈机能",
-      placeholder: "粘贴房源网址 (SUUMO, HOME'S, スマイティ, Leopalace21)...",
-      btnScore: "立即诊断",
-      btnScoring: "深度解析中...",
-      sampleLabel: "快速测试样例：",
-      tabOverview: "📊 综合评估与特征",
-      tabStations: "🚉 交通车站动线",
-      tabAmenities: "🛒 周边生活机能",
-      tabChecklist: "📝 看房内见清单",
-      tier1Title: "综合指标评级（6大维度）",
-      tier1Subtitle: "点击各指标查看评估理由",
-      tier2Title: "条件优劣势解析（长处与短处）",
-      meritPrefix: "优势：",
-      cautionPrefix: "提醒：",
+      title: "日本租房物件，数据化精准解析。",
+      subtitle: "贴上 SUUMO 网址，瞬间透视房屋规格、耐震风险、车站路线与周边真实生活设施",
+      placeholder: "输入房源网址 (SUUMO / DOOR租赁 / HOME'S)...",
+      btnScore: "开始诊断 ↵",
+      btnScoring: "解析中...",
+      tier1Title: "① 核心指标总评（六大维度）",
+      tier1Subtitle: "点击查看客观评分依据与理由",
+      tier2Title: "② 关键条件解析（优缺点合一）",
+      meritPrefix: "优点：",
+      cautionPrefix: "注意：",
       demeritPrefix: "缺点：",
-      stationsTitle: "邻近车站与通勤交通",
-      stationsSub: "点击可直接开启 Google 地图实测步行路线",
-      destLabel: "直达方向：",
-      pitfallLabel: "注意事项：",
-      amenitiesTitle: "生活圈民生机能速报",
-      amenitiesSub: "点击店家开启 Google 地图实测步行导航",
-      superLabel: "周边生鲜超市（定位与价格带）",
-      cvsLabel: "周边便利店（价格带与特点）",
-      chainLabel: "国民连锁餐饮",
+      stationsTitle: "🚉 利用车站与交通路线（点击查看 Google Maps 步行路线）",
+      destLabel: "直达：",
+      pitfallLabel: "注意：",
+      amenitiesTitle: "🏪 生活设施速查（点击店铺开启 Google Maps 步行导航）",
+      superLabel: "🛒 主力超市（定位＆价格档次）",
+      cvsLabel: "🏪 便利店定位与价格档次",
+      chainLabel: "🍽️ 周边知名连锁餐饮",
       walkRouteHint: "步行导航 ↗",
-      tier3Title: "实地看房（内见）必查清单",
-      copyChecklist: "一键复制清单",
-      copied: "✓ 已复制到剪贴板",
-      footer: "v42（全域變數深度審查・零崩潰穩定旗艦版）• 日本租房 综合诊断系统",
-      vacantBadge: "招租中",
-      occupiedBadge: "满室（目前无招租中 / N/A）",
-      mapsLiveBadge: "● Google Maps 即时坐标连动",
-      reasonBoxHeader: "判定理由与评估依据",
-      switchPrompt: "点击其他徽章以切换"
+      tier3Title: "③ 现场看房确认清单",
+      copyChecklist: "［ 复制清单 ］",
+      copied: "✓ 已复制",
+      footer: "日本租房 综合诊断系统 • 特斯拉黑魂极简UI • Google Maps 步行导航联动",
+      vacantBadge: "目前满室（无招租中 / N/A）",
+      mapsLiveBadge: "● 实时地图连接",
+      reasonBoxHeader: "评分理由与依据",
+      switchPrompt: "点击上方指标切换"
     },
     en: {
-      brandBadge: "Japan Rental Intelligence",
-      title: "Objective Intelligence for Japanese Rentals.",
-      subtitle: "Instant precision analysis of seismic resilience, true walking routes, and verified grocery infrastructure from property URLs",
-      placeholder: "Paste property URL (SUUMO, HOME'S, Sumaity, Leopalace21)...",
-      btnScore: "Diagnose",
+      brandBadge: "JAPAN RENTAL INTELLIGENCE",
+      title: "Objectively Understand Any Rental Property.",
+      subtitle: "Paste a SUUMO link to reveal real earthquake safety, station commutes, and genuine local amenities",
+      placeholder: "Paste property link (SUUMO / DOOR / HOME'S)...",
+      btnScore: "Analyze ↵",
       btnScoring: "Analyzing...",
-      sampleLabel: "Quick Test Samples:",
-      tabOverview: "📊 Overview & Ratings",
-      tabStations: "🚉 Stations & Transit",
-      tabAmenities: "🛒 Neighborhood Amenities",
-      tabChecklist: "📝 Viewing Checklist",
-      tier1Title: "Core Ratings (6 Dimensions)",
-      tier1Subtitle: "Click badge to view scoring rationale",
-      tier2Title: "Condition Merits & Trade-offs",
+      tier1Title: "① Core Ratings (6 Dimensions)",
+      tier1Subtitle: "Tap any badge to reveal diagnostic rationale",
+      tier2Title: "② Property Conditions (Pros & Cons)",
       meritPrefix: "Pros: ",
-      cautionPrefix: "Notice: ",
+      cautionPrefix: "Caution: ",
       demeritPrefix: "Cons: ",
-      stationsTitle: "Stations & Transit Routes",
-      stationsSub: "Click station for Google Maps pedestrian route",
-      destLabel: "Direct Lines: ",
+      stationsTitle: "🚉 Stations & Transit (Click for Google Maps Walking Route)",
+      destLabel: "Direct lines: ",
       pitfallLabel: "Caution: ",
-      amenitiesTitle: "Neighborhood Living Infrastructure",
-      amenitiesSub: "Click location for Google Maps turn-by-turn route",
-      superLabel: "Supermarkets (Tiers & Pricing)",
-      cvsLabel: "Convenience Stores",
-      chainLabel: "Famous Chain Restaurants",
-      walkRouteHint: "Route ↗",
-      tier3Title: "On-site Viewing Checklist",
-      copyChecklist: "Copy Checklist",
+      amenitiesTitle: "🏪 Local Amenities (Click place for Google Maps walking route)",
+      superLabel: "🛒 Supermarkets (Positioning & Price Level)",
+      cvsLabel: "🏪 Convenience Stores",
+      chainLabel: "🍽️ Famous Chain Restaurants",
+      walkRouteHint: "Walking Route ↗",
+      tier3Title: "③ Viewing Checklist",
+      copyChecklist: "[ Copy Checklist ]",
       copied: "✓ Copied!",
-      footer: "v44 (Next-Gen Clean UI • Tabbed Navigation & Universal Precision Grounding) • Japan Rental Intelligence",
-      vacantBadge: "Available",
-      occupiedBadge: "Fully Occupied (N/A)",
-      mapsLiveBadge: "● Google Maps Real-time Telemetry",
+      footer: "Japan Rental Property Checker • Dark Minimalist UI • Google Maps Walking Route Integration",
+      vacantBadge: "Fully Occupied (N/A)",
+      mapsLiveBadge: "● LIVE MAPS TELEMETRY",
       reasonBoxHeader: "Scoring Rationale",
-      switchPrompt: "Click another badge to view"
+      switchPrompt: "Tap another badge to switch"
     }
   }[lang];
 
-  const samples = [
-    { label: "SUUMO (西新宿)", url: "https://suumo.jp/chintai/bc_100524309699/" },
-    { label: "Sumaity (代々木)", url: "https://sumaity.com/chintai/tokyo_bldg/bldg_12278438/" },
-    { label: "HOME'S (調布)", url: "https://www.homes.co.jp/chintai/b-10451421/u-48413470/" }
-  ];
-
-  const handleSubmit = async (e?: React.FormEvent) => {
-    if (e) e.preventDefault();
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
     if (!url.trim()) return;
 
     setLoading(true);
@@ -203,9 +163,8 @@ export default function Home() {
       setPropertyRent(data.rent);
       setEvaluation(data.evaluation);
       if (data.evaluation?.tier1?.length > 0) {
-        setSelectedDimensionKey(data.evaluation?.tier1?.[0]?.key);
+        setSelectedDimensionKey(data.evaluation.tier1[0].key);
       }
-      setActiveTab('overview');
     } catch (err: any) {
       setError(err.message || '通信エラーまたは取得失敗');
     } finally {
@@ -215,7 +174,7 @@ export default function Home() {
 
   const handleCopyChecklist = () => {
     if (!evaluation) return;
-    const text = evaluation?.naiken?.map(c => `- [ ] [${c.name[lang]}] ${c.text[lang]}`).join('\n');
+    const text = evaluation.naiken.map(c => `- [ ] [${c.name[lang]}] ${c.text[lang]}`).join('\n');
     navigator.clipboard.writeText(text);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
@@ -223,583 +182,396 @@ export default function Home() {
 
   const activeDimension = evaluation?.tier1.find(d => d.key === selectedDimensionKey) || evaluation?.tier1[0];
 
-  const getSymbolBadge = (symbol: string) => {
-    switch (symbol) {
-      case '◎':
-        return isDarkMode 
-          ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40 shadow-sm' 
-          : 'bg-emerald-100 text-emerald-950 border-emerald-400 font-black shadow-sm';
-      case '○':
-        return isDarkMode 
-          ? 'bg-sky-500/20 text-sky-300 border-sky-500/40 shadow-sm' 
-          : 'bg-sky-100 text-sky-950 border-sky-400 font-black shadow-sm';
-      case '△':
-        return isDarkMode 
-          ? 'bg-amber-500/20 text-amber-300 border-amber-500/40 shadow-sm' 
-          : 'bg-amber-100 text-amber-950 border-amber-400 font-black shadow-sm';
-      case '▲':
-        return isDarkMode 
-          ? 'bg-rose-500/20 text-rose-300 border-rose-500/40 shadow-sm' 
-          : 'bg-rose-100 text-rose-950 border-rose-400 font-black shadow-sm';
-      default:
-        return isDarkMode 
-          ? 'bg-gray-700/40 text-gray-300 border-gray-600' 
-          : 'bg-slate-200 text-slate-900 border-slate-400 font-black shadow-sm';
-    }
-  };
-
   return (
-    <div className={`min-h-screen font-sans antialiased transition-colors duration-200 ${
-      isDarkMode ? 'bg-[#0E1117] text-[#F3F4F6]' : 'bg-[#F8FAFC] text-[#0F172A]'
-    }`}>
-      <div className="max-w-4xl mx-auto py-8 px-4 sm:px-6 flex flex-col items-center">
+    <div className="min-h-screen bg-[#0B0C10] text-[#FFFFFF] font-sans antialiased py-8 px-4 flex flex-col items-center selection:bg-[#38BDF8] selection:text-black">
+      <div className="w-full max-w-2xl flex-1 flex flex-col items-center">
         
-        {/* Navigation Bar */}
-        <header className="w-full flex items-center justify-between mb-8 pb-4 border-b border-gray-200 dark:border-gray-800">
-          <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-indigo-500 to-sky-500 flex items-center justify-center text-white font-bold shadow-md">
-              🏢
-            </div>
-            <div>
-              <div className="font-extrabold text-base tracking-tight">{t.brandBadge}</div>
-              <div className="text-xs text-gray-400 font-medium">JAPAN RENTAL INTELLIGENCE</div>
-            </div>
+        {/* Clean Sleek Header (NO "TESLA CYBER") */}
+        <header className="w-full flex items-center justify-between mb-8 border-b border-white/[0.08] pb-4">
+          <div className="inline-flex items-center gap-2.5 px-3 py-1 rounded-full bg-[#16181D] border border-white/[0.12] text-xs font-bold tracking-wider text-[#E5E7EB]">
+            <span className="w-2 h-2 rounded-full bg-[#38BDF8] shadow-[0_0_8px_#38BDF8] animate-pulse"></span>
+            <span>{t.brandBadge}</span>
           </div>
 
-          <div className="flex items-center gap-2">
-            {/* Theme Toggle Button */}
-            <button
-              onClick={() => setIsDarkMode(!isDarkMode)}
-              className={`p-2 rounded-xl text-sm font-semibold border transition-all ${
-                isDarkMode 
-                  ? 'bg-gray-800/80 border-gray-700 text-amber-300 hover:bg-gray-700' 
-                  : 'bg-white border-gray-200 text-gray-700 hover:bg-gray-50 shadow-sm'
-              }`}
-              title="切換深淺模式"
-            >
-              {isDarkMode ? '☀️ 日間' : '🌙 夜間'}
-            </button>
-
-            {/* Language Switcher */}
-            <div className={`flex items-center rounded-xl p-1 border text-xs font-semibold ${
-              isDarkMode ? 'bg-gray-800/80 border-gray-700' : 'bg-white border-gray-200 shadow-sm'
-            }`}>
-              {[
-                { id: 'ja', label: '日' },
-                { id: 'zh', label: '繁' },
-                { id: 'zhCN', label: '简' },
-                { id: 'en', label: 'EN' }
-              ].map(item => (
-                <button
-                  key={item.id}
-                  onClick={() => setLang(item.id as Language)}
-                  className={`px-2.5 py-1 rounded-lg transition-all ${
-                    lang === item.id 
-                      ? 'bg-indigo-600 text-white font-black shadow' 
-                      : (isDarkMode ? 'text-gray-400 hover:text-gray-200' : 'text-slate-700 hover:text-slate-900 font-bold')
-                  }`}
-                >
-                  {item.label}
-                </button>
-              ))}
-            </div>
+          {/* Minimalist Dark Pill Language Switcher */}
+          <div className="flex items-center bg-[#16181D] border border-white/[0.12] rounded-full p-1 text-xs font-bold">
+            {[
+              { id: 'ja', label: '日本語' },
+              { id: 'zh', label: '繁體' },
+              { id: 'zhCN', label: '简体' },
+              { id: 'en', label: 'EN' }
+            ].map(item => (
+              <button
+                key={item.id}
+                onClick={() => setLang(item.id as Language)}
+                className={`px-3 py-1 rounded-full transition-all cursor-pointer ${
+                  lang === item.id 
+                    ? 'bg-white text-black shadow-md font-black' 
+                    : 'text-[#9CA3AF] hover:text-white'
+                }`}
+              >
+                {item.label}
+              </button>
+            ))}
           </div>
         </header>
 
-        {/* Hero Section */}
-        <div className="w-full text-center mb-8">
-          <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight mb-2.5 bg-gradient-to-r from-indigo-500 via-sky-500 to-teal-400 bg-clip-text text-transparent">
+        {/* Hero Section (Bold, High-Contrast Typography) */}
+        <div className="text-center mb-8 space-y-2">
+          <h1 className="text-3xl sm:text-4xl font-black tracking-tight text-white">
             {t.title}
           </h1>
-          <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 max-w-xl mx-auto">
+          <p className="text-sm sm:text-base text-[#9CA3AF] font-medium max-w-lg mx-auto leading-relaxed">
             {t.subtitle}
           </p>
         </div>
 
-        {/* Search / URL Input Box */}
-        <form onSubmit={handleSubmit} className="w-full mb-4">
-          <div className={`p-2 rounded-2xl border transition-all shadow-lg flex flex-col sm:flex-row gap-2 ${
-            isDarkMode 
-              ? 'bg-gray-900/90 border-gray-700/80 focus-within:border-indigo-500' 
-              : 'bg-white border-gray-200 focus-within:border-indigo-500'
-          }`}>
-            <input
-              type="url"
-              required
-              value={url}
-              onChange={(e) => setUrl(e.target.value)}
-              placeholder={t.placeholder}
-              className="flex-1 bg-transparent px-4 py-3 text-sm outline-none placeholder-gray-400"
-            />
-            <button
-              type="submit"
-              disabled={loading}
-              className="px-6 py-3 rounded-xl bg-gradient-to-r from-indigo-600 to-sky-600 hover:from-indigo-500 hover:to-sky-500 text-white font-bold text-sm shadow-md transition-all disabled:opacity-50 flex items-center justify-center gap-2"
-            >
-              {loading ? (
-                <>
-                  <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
-                  <span>{t.btnScoring}</span>
-                </>
-              ) : (
-                <span>{t.btnScore}</span>
-              )}
-            </button>
-          </div>
+        {/* Dark Minimalist Search Box */}
+        <form 
+          onSubmit={handleSubmit} 
+          className="w-full bg-[#16181D] p-2 rounded-2xl border border-white/[0.15] focus-within:border-[#38BDF8] focus-within:ring-2 focus-within:ring-[#38BDF8]/20 transition-all flex items-center gap-2 mb-7 shadow-[0_4px_24px_rgba(0,0,0,0.5)]"
+        >
+          <span className="pl-3.5 text-[#6B7280] text-base">🔍</span>
+          <input
+            type="url"
+            required
+            value={url}
+            onChange={e => setUrl(e.target.value)}
+            placeholder={t.placeholder}
+            className="flex-1 text-sm sm:text-base font-medium bg-transparent outline-none text-white placeholder:text-[#6B7280] py-2"
+          />
+          <button
+            type="submit"
+            disabled={loading}
+            className="px-6 py-2.5 bg-white hover:bg-zinc-200 active:scale-95 disabled:bg-zinc-600 text-black text-sm font-black rounded-xl transition-all shadow-md flex items-center gap-1.5 shrink-0 cursor-pointer"
+          >
+            {loading ? (
+              <span className="flex items-center gap-1.5">
+                <span className="w-3.5 h-3.5 border-2 border-black/40 border-t-black rounded-full animate-spin"></span>
+                {t.btnScoring}
+              </span>
+            ) : (
+              <span>{t.btnScore}</span>
+            )}
+          </button>
         </form>
-
-        {/* Quick Sample Links */}
-        <div className="w-full flex items-center gap-2 mb-8 text-xs text-gray-400 flex-wrap">
-          <span className="font-semibold">{t.sampleLabel}</span>
-          {samples.map((s, idx) => (
-            <button
-              key={idx}
-              type="button"
-              onClick={() => { setUrl(s.url); }}
-              className={`px-2.5 py-1 rounded-lg border transition-all ${
-                isDarkMode 
-                  ? 'bg-gray-800/60 border-gray-700 hover:border-indigo-500 hover:text-white' 
-                  : 'bg-white border-gray-200 hover:border-indigo-500 hover:text-indigo-600 shadow-sm'
-              }`}
-            >
-              {s.label}
-            </button>
-          ))}
-        </div>
 
         {/* Error Alert */}
         {error && (
-          <div className="w-full p-4 mb-8 rounded-2xl bg-rose-500/10 border border-rose-500/30 text-rose-500 text-sm font-medium flex items-center gap-3">
-            <span className="text-lg">⚠️</span>
-            <span>{error}</span>
+          <div className="w-full mb-6 p-4 bg-[#EF4444]/10 border border-[#EF4444]/30 text-[#EF4444] text-sm rounded-xl text-center font-bold">
+            {error}
           </div>
         )}
 
-        {/* Evaluation Results */}
+        {/* Main Results Container */}
         {evaluation && (
-          <div className="w-full flex flex-col gap-6">
-
-            {/* Property Summary Banner */}
-            <div className={`p-6 rounded-3xl border shadow-xl relative overflow-hidden ${
-              isDarkMode ? 'bg-gray-900/90 border-gray-800' : 'bg-white border-gray-200'
-            }`}>
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-2 flex-wrap">
-                    <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold border ${
-                      evaluation?.isVacant 
-                        ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/30' 
-                        : 'bg-rose-500/10 text-rose-500 border-rose-500/30'
-                    }`}>
-                      {evaluation?.isVacant ? t.vacantBadge : t.occupiedBadge}
-                    </span>
-                    {evaluation?.amenities?.isGoogleMapsLive && (
-                      <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-sky-500/10 text-sky-400 border border-sky-500/30">
-                        {t.mapsLiveBadge}
-                      </span>
-                    )}
+          <div className="w-full space-y-4 animate-in fade-in duration-200">
+            
+            {/* Property Summary Header Card */}
+            <div className="bg-[#16181D] px-6 py-5 rounded-2xl border border-white/[0.08] shadow-[0_4px_20px_rgba(0,0,0,0.4)] flex items-center justify-between">
+              <div className="space-y-1">
+                <h2 className="font-black text-base sm:text-lg text-white tracking-tight">{propertyTitle}</h2>
+                <p className="text-xs sm:text-sm text-[#9CA3AF] font-semibold">{propertyMeta}</p>
+              </div>
+              <div className="text-right shrink-0">
+                {evaluation.isVacant && propertyRent && !propertyRent.includes("N/A") ? (
+                  <div className="text-2xl sm:text-3xl font-black text-white tracking-tight">
+                    {propertyRent}
                   </div>
-                  <h2 className="text-xl sm:text-2xl font-black tracking-tight mb-2">
-                    {propertyTitle || '物件詳細'}
-                  </h2>
-                  <div className={`text-xs sm:text-sm font-semibold ${isDarkMode ? "text-gray-400" : "text-slate-700"}`}>
-
-                    {propertyMeta}
+                ) : (
+                  <div className="inline-flex items-center px-3.5 py-1.5 bg-[#F59E0B]/10 text-[#F59E0B] border border-[#F59E0B]/30 rounded-xl text-xs sm:text-sm font-bold">
+                    {t.vacantBadge}
                   </div>
-                </div>
-
-                <div className="text-left sm:text-right sm:border-l sm:pl-6 border-gray-200 dark:border-gray-800">
-                  <div className="text-xs text-gray-400 font-medium mb-1">月額賃料</div>
-                  <div className="text-2xl sm:text-3xl font-black text-indigo-500 dark:text-indigo-400">
-                    {propertyRent || 'N/A'}
-                  </div>
-                </div>
+                )}
               </div>
             </div>
 
-            {/* Modern Tab Navigation */}
-            <div className={`flex items-center p-1.5 rounded-2xl border gap-1 shadow-sm overflow-x-auto ${
-              isDarkMode ? 'bg-gray-900/80 border-gray-800' : 'bg-gray-100/90 border-gray-200'
-            }`}>
-              {[
-                { id: 'overview', label: t.tabOverview },
-                { id: 'stations', label: t.tabStations },
-                { id: 'amenities', label: t.tabAmenities },
-                { id: 'checklist', label: t.tabChecklist }
-              ].map(tab => (
-                <button
-                  key={tab.id}
-                  onClick={() => setActiveTab(tab.id as any)}
-                  className={`flex-1 py-2.5 px-3 rounded-xl text-xs sm:text-sm font-bold whitespace-nowrap transition-all ${
-                    activeTab === tab.id
-                      ? (isDarkMode 
-                          ? 'bg-indigo-600 text-white shadow-md font-black' 
-                          : 'bg-white text-indigo-800 shadow-md font-black border border-indigo-200')
-                      : (isDarkMode ? 'text-gray-400 hover:text-gray-200' : 'text-slate-700 hover:text-slate-900 font-extrabold')
-                  }`}
-                >
-                  {tab.label}
-                </button>
-              ))}
+            {/* ① Core Ratings (High Contrast, Bold Labels) */}
+            <div className="bg-[#16181D] p-5 sm:p-6 rounded-2xl border border-white/[0.08] shadow-[0_4px_20px_rgba(0,0,0,0.4)] space-y-4">
+              <div className="flex items-center justify-between">
+                <span className="text-xs sm:text-sm font-black tracking-wider text-[#D1D5DB] uppercase">
+                  {t.tier1Title}
+                </span>
+                <span className="text-xs text-[#9CA3AF] font-medium">{t.tier1Subtitle}</span>
+              </div>
+
+              {/* 6 Dimension Pods */}
+              <div className="grid grid-cols-6 gap-2 text-center">
+                {evaluation.tier1.map(d => {
+                  const isSelected = activeDimension?.key === d.key;
+                  let colorClass = "bg-[#1F222A] text-white border-white/[0.08]";
+                  if (d.symbol === '◎') colorClass = "bg-[#10B981]/10 text-[#10B981] border-[#10B981]/40";
+                  else if (d.symbol === '○') colorClass = "bg-[#38BDF8]/10 text-[#38BDF8] border-[#38BDF8]/40";
+                  else if (d.symbol === '△') colorClass = "bg-[#F59E0B]/10 text-[#F59E0B] border-[#F59E0B]/40";
+                  else if (d.symbol === '▲') colorClass = "bg-[#EF4444]/10 text-[#EF4444] border-[#EF4444]/40";
+
+                  return (
+                    <button
+                      key={d.key}
+                      type="button"
+                      onClick={() => setSelectedDimensionKey(d.key)}
+                      onMouseEnter={() => setSelectedDimensionKey(d.key)}
+                      className={`p-3 rounded-xl border-2 transition-all cursor-pointer flex flex-col items-center justify-center ${colorClass} ${
+                        isSelected 
+                          ? 'ring-2 ring-white shadow-[0_0_12px_rgba(255,255,255,0.2)] scale-[1.04]' 
+                          : 'hover:opacity-90 active:scale-95'
+                      }`}
+                    >
+                      <span className="text-xs sm:text-sm font-bold">{d.label[lang]}</span>
+                      <span className="text-2xl sm:text-3xl font-black my-1">{d.symbol}</span>
+                      <span className="text-[10px] font-bold opacity-80 underline tracking-wider">理由 ▾</span>
+                    </button>
+                  );
+                })}
+              </div>
+
+              {/* Deep Diagnostic Rationale Drawer */}
+              {activeDimension && (
+                <div className="p-4 rounded-xl bg-[#0D0E12] border border-white/[0.12] text-sm space-y-1.5 animate-in fade-in duration-150">
+                  <div className="flex justify-between items-center font-bold">
+                    <span className="flex items-center gap-2">
+                      <span className="w-2 h-2 rounded-full bg-[#38BDF8] shadow-[0_0_8px_#38BDF8]"></span>
+                      <span className="text-sm sm:text-base font-black text-white">{activeDimension.label[lang]}【{activeDimension.symbol}】{t.reasonBoxHeader}</span>
+                    </span>
+                    <span className="text-xs text-[#9CA3AF] font-medium">{t.switchPrompt}</span>
+                  </div>
+                  <p className="text-sm sm:text-base text-[#E5E7EB] leading-relaxed pt-1 font-medium">
+                    {activeDimension.reason[lang]}
+                  </p>
+                </div>
+              )}
             </div>
 
-            {/* TAB 1: OVERVIEW & 6 DIMENSIONS */}
-            {activeTab === 'overview' && (
-              <div className="flex flex-col gap-6">
-                {/* 6 Dimension Badges Grid */}
-                <div className={`p-6 rounded-3xl border shadow-lg ${
-                  isDarkMode ? 'bg-gray-900/90 border-gray-800' : 'bg-white border-gray-200'
-                }`}>
-                  <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-sm sm:text-base font-extrabold tracking-tight">
-                      {t.tier1Title}
-                    </h3>
-                    <span className="text-xs text-gray-400">{t.tier1Subtitle}</span>
-                  </div>
+            {/* ② Conditions Diagnostics */}
+            <div className="bg-[#16181D] p-5 sm:p-6 rounded-2xl border border-white/[0.08] shadow-[0_4px_20px_rgba(0,0,0,0.4)] space-y-3">
+              <div className="text-xs sm:text-sm font-black tracking-wider text-[#D1D5DB] uppercase border-b border-white/[0.08] pb-3">
+                {t.tier2Title}
+              </div>
 
-                  <div className="grid grid-cols-2 sm:grid-cols-6 gap-2.5 mb-6">
-                    {(evaluation?.tier1 || []).map(dim => {
-                      const isSelected = selectedDimensionKey === dim.key;
-                      return (
-                        <button
-                          key={dim.key}
-                          onClick={() => setSelectedDimensionKey(dim.key)}
-                          className={`p-4 sm:p-5 rounded-2xl border text-center transition-all flex flex-col items-center justify-center gap-1.5 ${
-                            isSelected 
-                              ? (isDarkMode ? 'bg-indigo-600/25 border-indigo-400 shadow-xl ring-2 ring-indigo-400/50 scale-105' : 'bg-indigo-50 border-indigo-500 shadow-lg ring-2 ring-indigo-500/30 scale-105')
-                              : (isDarkMode ? 'bg-gray-800/50 border-gray-800 hover:border-gray-600 hover:bg-gray-800/80' : 'bg-gray-50 border-gray-200 hover:bg-gray-100')
-                          }`}
-                        >
-                          <div className={`text-sm sm:text-base font-extrabold ${isDarkMode ? 'text-gray-200' : 'text-slate-800'}`}>{dim.label[lang]}</div>
-                          <div className={`w-14 h-14 sm:w-16 sm:h-16 flex items-center justify-center rounded-2xl border my-1.5 shadow-sm transition-transform ${getSymbolBadge(dim.symbol)}`}>
-                            <span className={`font-black leading-none flex items-center justify-center ${
-                              dim.symbol === 'N/A' 
-                                ? 'text-xs sm:text-sm font-bold' 
-                                : dim.symbol === '◎' 
-                                ? 'text-3xl sm:text-4xl scale-[1.35] transform inline-block' 
-                                : dim.symbol === '△' || dim.symbol === '▲'
-                                ? 'text-3xl sm:text-4xl scale-[1.35] transform inline-block' 
-                                : 'text-2xl sm:text-3xl inline-block'
-                            }`}>
-                              {dim.symbol}
-                            </span>
-                          </div>
-                          <div className={`text-xs sm:text-sm font-bold tracking-wide ${isDarkMode ? 'text-gray-400' : 'text-slate-500'}`}>
-                            {dim.score > 0 ? `+${dim.score.toFixed(1)}` : dim.score.toFixed(1)}
-                          </div>
-                        </button>
-                      );
-                    })}
-                  </div>
+              <div className="space-y-2.5">
+                {evaluation.conditions.map(c => {
+                  let badgeClass = "bg-[#1F222A] text-white border-white/[0.1]";
+                  if (c.overallType === 'positive') badgeClass = "bg-[#10B981]/15 text-[#10B981] border-[#10B981]/40";
+                  else if (c.overallType === 'neutral') badgeClass = "bg-[#F59E0B]/15 text-[#F59E0B] border-[#F59E0B]/40";
+                  else if (c.overallType === 'negative') badgeClass = "bg-[#EF4444]/15 text-[#EF4444] border-[#EF4444]/40";
 
-                  {/* Selected Dimension Rationale Box */}
-                  {activeDimension && (
-                    <div className={`p-4 rounded-2xl border transition-all ${
-                      isDarkMode ? 'bg-gray-800/60 border-gray-700' : 'bg-indigo-50/50 border-indigo-100'
-                    }`}>
-                      <div className="flex items-center gap-3.5 mb-3">
-                        <span className={`text-base sm:text-lg font-black uppercase tracking-wider ${isDarkMode ? 'text-indigo-400' : 'text-indigo-700'}`}>
-                          {activeDimension.label[lang]} • {t.reasonBoxHeader}
-                        </span>
-                        <span className={`px-4 py-1.5 rounded-xl text-xl sm:text-2xl font-black border-2 flex items-center justify-center leading-none shadow-md ${getSymbolBadge(activeDimension.symbol)}`}>
-                          <span className={`${activeDimension.symbol === '◎' ? 'scale-[1.25] transform inline-block' : 'inline-block'}`}>
-                            {activeDimension.symbol}
-                          </span>
+                  return (
+                    <div key={c.id} className="p-4 rounded-xl border border-white/[0.06] bg-[#0D0E12] space-y-1.5">
+                      <div className="flex items-center justify-between">
+                        <span className="font-bold text-sm sm:text-base text-white">{c.name[lang]}</span>
+                        <span className={`text-xs font-bold px-2.5 py-0.5 rounded-full border ${badgeClass}`}>
+                          {c.overall[lang]}
                         </span>
                       </div>
-                      <p className={`text-base sm:text-lg font-bold leading-relaxed ${isDarkMode ? 'text-gray-100' : 'text-slate-900'}`}>
-                        {activeDimension.reason[lang]}
-                      </p>
+
+                      <div className="space-y-1 text-xs sm:text-sm font-medium text-[#D1D5DB]">
+                        {c.merits.map((m, idx) => (
+                          <div key={`m-${idx}`} className="flex items-start gap-1.5 text-[#10B981]">
+                            <span className="font-black shrink-0">{t.meritPrefix}</span>
+                            <span className="leading-relaxed">{m[lang]}</span>
+                          </div>
+                        ))}
+                        {c.cautions.map((caution, idx) => (
+                          <div key={`c-${idx}`} className="flex items-start gap-1.5 text-[#F59E0B]">
+                            <span className="font-black shrink-0">{t.cautionPrefix}</span>
+                            <span className="leading-relaxed">{caution[lang]}</span>
+                          </div>
+                        ))}
+                        {c.demerits.map((d, idx) => (
+                          <div key={`d-${idx}`} className="flex items-start gap-1.5 text-[#EF4444]">
+                            <span className="font-black shrink-0">{t.demeritPrefix}</span>
+                            <span className="leading-relaxed">{d[lang]}</span>
+                          </div>
+                        ))}
+                      </div>
                     </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* 🚉 Station Transit Routes */}
+            {evaluation.stations && evaluation.stations.length > 0 && (
+              <div className="bg-[#16181D] p-5 sm:p-6 rounded-2xl border border-white/[0.08] shadow-[0_4px_20px_rgba(0,0,0,0.4)] space-y-3">
+                <div className="text-xs sm:text-sm font-black tracking-wider text-[#D1D5DB] uppercase">
+                  {t.stationsTitle}
+                </div>
+                <div className="space-y-2">
+                  {evaluation.stations.map((st, idx) => (
+                    <a
+                      key={idx}
+                      href={st.mapUrl || `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(st.station)}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="block p-3.5 rounded-xl border border-white/[0.06] bg-[#0D0E12] hover:border-[#38BDF8] hover:bg-[#1A1C23] transition-all space-y-1 group"
+                    >
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <span className="text-base">🚇</span>
+                          <span className="font-black text-sm sm:text-base text-white group-hover:text-[#38BDF8] transition-colors">
+                            {st.station}
+                          </span>
+                          <span className="text-xs font-semibold text-[#9CA3AF]">（{st.line}）</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs font-black text-[#38BDF8] bg-[#38BDF8]/10 px-2.5 py-0.5 rounded-full border border-[#38BDF8]/30">
+                            徒歩 {st.walkMin} 分
+                          </span>
+                          <span className="text-xs text-[#38BDF8] font-bold group-hover:underline">{t.walkRouteHint}</span>
+                        </div>
+                      </div>
+                      <div className="text-xs sm:text-sm text-[#9CA3AF] space-y-0.5 pt-1">
+                        <div><strong className="text-white font-bold">{t.destLabel}</strong> {st.destinations[lang]}</div>
+                        <div className="text-[#F59E0B] font-medium"><strong className="font-bold">{t.pitfallLabel}</strong> {st.pitfalls[lang]}</div>
+                      </div>
+                    </a>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* 🏪 Local Amenities (100% Genuine Supermarkets & Stores) */}
+            {evaluation.amenities && (
+              <div className="bg-[#16181D] p-5 sm:p-6 rounded-2xl border border-white/[0.08] shadow-[0_4px_20px_rgba(0,0,0,0.4)] space-y-4">
+                <div className="flex items-center justify-between border-b border-white/[0.08] pb-3">
+                  <span className="text-xs sm:text-sm font-black tracking-wider text-[#D1D5DB] uppercase">
+                    {t.amenitiesTitle}
+                  </span>
+                  {evaluation.amenities.isGoogleMapsLive && (
+                    <span className="text-xs font-bold text-[#38BDF8] bg-[#38BDF8]/10 border border-[#38BDF8]/30 px-2.5 py-0.5 rounded-full">
+                      {t.mapsLiveBadge}
+                    </span>
                   )}
                 </div>
 
-                {/* Condition Pros & Cons */}
-                <div className={`p-6 rounded-3xl border shadow-lg ${
-                  isDarkMode ? 'bg-gray-900/90 border-gray-800' : 'bg-white border-gray-200'
-                }`}>
-                  <h3 className="text-sm sm:text-base font-extrabold tracking-tight mb-4">
-                    {t.tier2Title}
-                  </h3>
-
-                  <div className="flex flex-col gap-3">
-                    {(evaluation?.conditions || []).map((card, idx) => (
-                      <div
+                {/* 1. Supermarkets (Genuine Supermarkets Only) */}
+                <div className="space-y-2">
+                  <div className="font-black text-white text-sm">
+                    {t.superLabel}
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 text-xs sm:text-sm">
+                    {evaluation.amenities.supermarkets.map((sm, idx) => (
+                      <a
                         key={idx}
-                        className={`p-4 rounded-2xl border transition-all ${
-                          isDarkMode ? 'bg-gray-800/40 border-gray-800 hover:border-gray-700' : 'bg-gray-50 border-gray-200'
-                        }`}
+                        href={sm.mapUrl || `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(sm.name)}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="block p-3.5 rounded-xl bg-[#0D0E12] border border-white/[0.06] hover:border-[#38BDF8] hover:bg-[#1A1C23] transition-all space-y-1.5 group cursor-pointer"
                       >
-                        <div className="flex items-center justify-between gap-2 mb-2">
-                          <span className={`font-extrabold text-base sm:text-xl ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>{card.name[lang]}</span>
-                          <span className={`px-3 py-1 rounded-full text-xs sm:text-sm font-bold border ${
-                            card.overallType === 'positive'
-                              ? (isDarkMode ? 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30' : 'bg-emerald-100 text-emerald-800 border-emerald-300 font-black')
-                              : card.overallType === 'neutral'
-                              ? (isDarkMode ? 'bg-amber-500/15 text-amber-400 border-amber-500/30' : 'bg-amber-100 text-amber-900 border-amber-300 font-black')
-                              : (isDarkMode ? 'bg-rose-500/15 text-rose-400 border-rose-500/30' : 'bg-rose-100 text-rose-800 border-rose-300 font-black')
-                          }`}>
-                            {card.overall[lang]}
-                          </span>
+                        <div className="flex justify-between items-start font-black text-white">
+                          <span className="leading-snug text-sm sm:text-base group-hover:text-[#38BDF8] transition-colors">{sm.name}</span>
+                          <span className="text-[#38BDF8] font-bold text-xs shrink-0 ml-1 bg-[#38BDF8]/10 px-2 py-0.5 rounded-full border border-[#38BDF8]/30">{sm.walk}</span>
                         </div>
+                        <div className="flex items-center justify-between text-xs">
+                          <div className="flex items-center gap-1.5">
+                            <span className="bg-[#1F222A] text-[#D1D5DB] px-2 py-0.5 rounded font-bold border border-white/[0.08]">{sm.tag[lang]}</span>
+                            {sm.priceLevel && <span className="text-[#F59E0B] font-bold">{sm.priceLevel[lang]}</span>}
+                          </div>
+                          <span className="text-[#38BDF8] font-bold text-xs">{t.walkRouteHint}</span>
+                        </div>
+                        <p className="text-xs sm:text-sm text-[#9CA3AF] leading-relaxed pt-0.5">{sm.note[lang]}</p>
+                      </a>
+                    ))}
+                  </div>
+                </div>
 
-                        {card.merits.map((m, mIdx) => (
-                          <div key={mIdx} className={`text-sm sm:text-base font-medium leading-relaxed mb-2 ${isDarkMode ? 'text-emerald-400' : 'text-emerald-800 font-semibold'}`}>
-                            <span className="font-bold">{t.meritPrefix}</span>{m[lang]}
+                {/* 2. Convenience Stores */}
+                <div className="space-y-2 pt-2">
+                  <div className="font-black text-white text-sm">
+                    {t.cvsLabel}
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 text-xs sm:text-sm">
+                    {evaluation.amenities.convenienceStores.map((cvs, idx) => (
+                      <a
+                        key={idx}
+                        href={cvs.mapUrl || `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(cvs.name)}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="block p-3.5 rounded-xl bg-[#0D0E12] border border-white/[0.06] hover:border-[#38BDF8] hover:bg-[#1A1C23] transition-all space-y-1.5 group cursor-pointer"
+                      >
+                        <div className="flex justify-between items-center">
+                          <span className="font-black text-sm sm:text-base text-white group-hover:text-[#38BDF8] transition-colors">{cvs.name}</span>
+                          <span className="text-xs text-[#9CA3AF] font-bold">{cvs.walk}</span>
+                        </div>
+                        <div className="flex items-center justify-between text-xs">
+                          <div className="flex items-center gap-1.5">
+                            <span className="bg-[#1F222A] text-[#D1D5DB] px-2 py-0.5 rounded font-bold border border-white/[0.08]">{cvs.tag[lang]}</span>
+                            {cvs.priceLevel && <span className="text-[#F59E0B] font-bold">{cvs.priceLevel[lang]}</span>}
                           </div>
-                        ))}
-                        {card.cautions.map((c, cIdx) => (
-                          <div key={cIdx} className={`text-sm sm:text-base font-medium leading-relaxed mb-2 ${isDarkMode ? 'text-amber-400' : 'text-amber-900 font-semibold'}`}>
-                            <span className="font-bold">{t.cautionPrefix}</span>{c[lang]}
+                          <span className="text-[#38BDF8] font-bold text-xs">{t.walkRouteHint}</span>
+                        </div>
+                        <p className="text-xs sm:text-sm text-[#9CA3AF] leading-relaxed pt-0.5">{cvs.note[lang]}</p>
+                      </a>
+                    ))}
+                  </div>
+                </div>
+
+                {/* 3. Famous Chains */}
+                <div className="space-y-2 pt-2">
+                  <div className="font-black text-white text-sm">
+                    {t.chainLabel}
+                  </div>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 text-xs sm:text-sm">
+                    {evaluation.amenities.famousChains.map((fc, idx) => (
+                      <a
+                        key={idx}
+                        href={fc.mapUrl || `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(fc.name)}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="block p-3 rounded-xl bg-[#0D0E12] border border-white/[0.06] hover:border-[#38BDF8] hover:bg-[#1A1C23] transition-all space-y-1 group cursor-pointer"
+                      >
+                        <div className="flex justify-between items-start">
+                          <span className="font-black text-xs sm:text-sm text-white leading-tight group-hover:text-[#38BDF8] transition-colors">{fc.name}</span>
+                          <span className="text-[11px] text-[#38BDF8] font-bold shrink-0 ml-1">{fc.walk}</span>
+                        </div>
+                        <div className="flex items-center justify-between text-xs text-[#9CA3AF] font-medium">
+                          <div className="flex items-center gap-1">
+                            <span>{fc.tag[lang]}</span>
+                            {fc.budget && <span>• {fc.budget}</span>}
                           </div>
-                        ))}
-                        {card.demerits.map((d, dIdx) => (
-                          <div key={dIdx} className={`text-sm sm:text-base font-medium leading-relaxed mb-2 ${isDarkMode ? 'text-rose-400' : 'text-rose-800 font-semibold'}`}>
-                            <span className="font-bold">{t.demeritPrefix}</span>{d[lang]}
-                          </div>
-                        ))}
-                      </div>
+                          <span className="text-[#38BDF8] font-bold">↗</span>
+                        </div>
+                        <p className="text-xs text-[#9CA3AF] leading-snug pt-0.5">{fc.note[lang]}</p>
+                      </a>
                     ))}
                   </div>
                 </div>
               </div>
             )}
 
-            {/* TAB 2: STATIONS & TRANSIT */}
-            {activeTab === 'stations' && (
-              <div className={`p-6 rounded-3xl border shadow-lg ${
-                isDarkMode ? 'bg-gray-900/90 border-gray-800' : 'bg-white border-gray-200'
-              }`}>
-                <div className="mb-4">
-                  <h3 className="text-sm sm:text-base font-extrabold tracking-tight">{t.stationsTitle}</h3>
-                  <p className="text-xs text-gray-400">{t.stationsSub}</p>
-                </div>
-
-                <div className="flex flex-col gap-3">
-                  {(evaluation?.stations || []).map((st, idx) => (
-                    <div
-                      key={idx}
-                      className={`p-4 rounded-2xl border transition-all ${
-                        isDarkMode ? 'bg-gray-800/40 border-gray-800 hover:border-gray-700' : 'bg-gray-50 border-gray-200'
-                      }`}
-                    >
-                      <div className="flex items-center justify-between gap-2 mb-2">
-                        <div className="flex items-center gap-2">
-                          <span className="text-lg">🚉</span>
-                          <span className={`font-black text-base sm:text-xl ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>{st.station}</span>
-                          <span className={`text-sm font-medium ${isDarkMode ? 'text-gray-300' : 'text-slate-600'}`}>({st.line})</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <span className={`px-3.5 py-1.5 rounded-xl text-sm sm:text-base font-black border ${
-                            isDarkMode ? 'bg-indigo-500/20 text-indigo-300 border-indigo-500/30' : 'bg-indigo-50 text-indigo-700 border-indigo-300'
-                          }`}>
-                            徒歩 {st.walkMin} 分
-                          </span>
-                          {st.mapUrl && (
-                            <a
-                              href={st.mapUrl}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className={`px-3.5 py-1.5 rounded-xl text-sm font-bold border transition-all ${
-                                isDarkMode ? 'bg-sky-500/15 text-sky-300 border-sky-500/30 hover:bg-sky-500/20' : 'bg-sky-50 text-sky-700 border-sky-300 hover:bg-sky-100'
-                              }`}
-                            >
-                              {t.walkRouteHint}
-                            </a>
-                          )}
-                        </div>
-                      </div>
-
-                      <div className={`text-sm sm:text-base leading-relaxed mb-2 ${isDarkMode ? 'text-gray-200' : 'text-slate-700'}`}>
-                        <span className={`font-bold ${isDarkMode ? 'text-gray-300' : 'text-slate-900'}`}>{t.destLabel}</span>
-                        {st.destinations[lang]}
-                      </div>
-                      <div className={`text-sm sm:text-base leading-relaxed font-medium ${isDarkMode ? 'text-amber-400/95' : 'text-amber-900'}`}>
-                        <span className="font-bold">{t.pitfallLabel}</span>
-                        {st.pitfalls[lang]}
-                      </div>
-                    </div>
-                  ))}
-                </div>
+            {/* ③ Viewing Checklist */}
+            <div className="bg-[#16181D] p-5 sm:p-6 rounded-2xl border border-white/[0.08] shadow-[0_4px_20px_rgba(0,0,0,0.4)] space-y-3">
+              <div className="flex items-center justify-between border-b border-white/[0.08] pb-3">
+                <span className="text-xs sm:text-sm font-black tracking-wider text-[#D1D5DB] uppercase">
+                  {t.tier3Title}
+                </span>
+                <button
+                  onClick={handleCopyChecklist}
+                  className="text-xs sm:text-sm text-[#38BDF8] hover:underline font-bold cursor-pointer"
+                >
+                  {copied ? t.copied : t.copyChecklist}
+                </button>
               </div>
-            )}
-
-            {/* TAB 3: NEIGHBORHOOD AMENITIES */}
-            {activeTab === 'amenities' && (
-              <div className="flex flex-col gap-6">
-                {/* Supermarkets */}
-                <div className={`p-6 rounded-3xl border shadow-lg ${
-                  isDarkMode ? 'bg-gray-900/90 border-gray-800' : 'bg-white border-gray-200'
-                }`}>
-                  <div className="mb-4">
-                    <h3 className="text-sm sm:text-base font-extrabold tracking-tight">{t.superLabel}</h3>
-                    <p className="text-xs text-gray-400">{t.amenitiesSub}</p>
-                  </div>
-
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    {(evaluation?.amenities?.supermarkets || []).map((sp, idx) => (
-                      <div
-                        key={idx}
-                        className={`p-4 rounded-2xl border transition-all flex flex-col justify-between ${
-                          isDarkMode ? 'bg-gray-800/40 border-gray-800 hover:border-gray-700' : 'bg-gray-50 border-gray-200'
-                        }`}
-                      >
-                        <div>
-                          <div className="flex items-center justify-between gap-2 mb-1.5">
-                            <span className={`font-black text-base sm:text-lg leading-snug ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>{sp.name}</span>
-                            <span className={`px-3 py-1 rounded-lg text-sm font-black whitespace-nowrap border ${isDarkMode ? "bg-emerald-500/20 text-emerald-300 border-emerald-500/30" : "bg-emerald-100 text-emerald-950 border-emerald-400 font-extrabold shadow-sm"}`}>
-                              {sp.walk}
-                            </span>
-                          </div>
-                          <div className={`flex items-center gap-2.5 text-sm font-semibold mb-2 ${isDarkMode ? 'text-gray-300' : 'text-slate-700'}`}>
-
-                            <span>{sp.tag[lang]}</span>
-                            {sp.rating && <span className="font-bold text-amber-400">★ {sp.rating}</span>}
-                          </div>
-                          <p className={`text-sm sm:text-base leading-relaxed mb-3 font-normal ${isDarkMode ? 'text-gray-300' : 'text-slate-600'}`}>
-
-                            {sp.note[lang]}
-                          </p>
-                        </div>
-
-                        {sp.mapUrl && (
-                          <a
-                            href={sp.mapUrl}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className={`inline-flex items-center justify-center gap-1.5 py-2 px-3.5 rounded-xl text-sm font-bold border transition-all self-end ${isDarkMode ? "bg-sky-500/15 text-sky-300 border-sky-500/30 hover:bg-sky-500/20" : "bg-sky-100 text-sky-950 border-sky-400 hover:bg-sky-200 font-extrabold shadow-sm"}`}
-                          >
-                            <span>{t.walkRouteHint}</span>
-                          </a>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Convenience Stores */}
-                <div className={`p-6 rounded-3xl border shadow-lg ${
-                  isDarkMode ? 'bg-gray-900/90 border-gray-800' : 'bg-white border-gray-200'
-                }`}>
-                  <h3 className="text-sm sm:text-base font-extrabold tracking-tight mb-4">{t.cvsLabel}</h3>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    {(evaluation?.amenities?.convenienceStores || []).map((cvs, idx) => (
-                      <div
-                        key={idx}
-                        className={`p-4 rounded-2xl border transition-all flex flex-col justify-between ${
-                          isDarkMode ? 'bg-gray-800/40 border-gray-800 hover:border-gray-700' : 'bg-gray-50 border-gray-200'
-                        }`}
-                      >
-                        <div>
-                          <div className="flex items-center justify-between gap-2 mb-1.5">
-                            <span className={`font-black text-base sm:text-lg leading-snug ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>{cvs.name}</span>
-                            <span className={`px-3 py-1 rounded-lg text-sm font-black whitespace-nowrap border ${isDarkMode ? "bg-indigo-500/20 text-indigo-300 border-indigo-500/40" : "bg-indigo-100 text-indigo-950 border-indigo-400 font-extrabold shadow-sm"}`}>
-                              {cvs.walk}
-                            </span>
-                          </div>
-                          <div className={`text-sm font-semibold mb-2 ${isDarkMode ? 'text-gray-300' : 'text-slate-700'}`}>{cvs.tag[lang]}</div>
-                          <p className={`text-sm sm:text-base leading-relaxed mb-3 font-normal ${isDarkMode ? 'text-gray-300' : 'text-slate-600'}`}>
-
-                            {cvs.note[lang]}
-                          </p>
-                        </div>
-                        {cvs.mapUrl && (
-                          <a
-                            href={cvs.mapUrl}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className={`inline-flex items-center justify-center gap-1.5 py-2 px-3.5 rounded-xl text-sm font-bold border transition-all self-end ${isDarkMode ? "bg-sky-500/15 text-sky-300 border-sky-500/30 hover:bg-sky-500/20" : "bg-sky-100 text-sky-950 border-sky-400 hover:bg-sky-200 font-extrabold shadow-sm"}`}
-                          >
-                            <span>{t.walkRouteHint}</span>
-                          </a>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Famous Chains */}
-                <div className={`p-6 rounded-3xl border shadow-lg ${
-                  isDarkMode ? 'bg-gray-900/90 border-gray-800' : 'bg-white border-gray-200'
-                }`}>
-                  <h3 className="text-sm sm:text-base font-extrabold tracking-tight mb-4">{t.chainLabel}</h3>
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                    {(evaluation?.amenities?.famousChains || []).map((c, idx) => (
-                      <div
-                        key={idx}
-                        className={`p-4 rounded-2xl border transition-all flex flex-col justify-between ${
-                          isDarkMode ? 'bg-gray-800/40 border-gray-800 hover:border-gray-700' : 'bg-gray-50 border-gray-200'
-                        }`}
-                      >
-                        <div>
-                          <div className={`font-black text-base sm:text-lg mb-1.5 ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>{c.name}</div>
-                          <div className={`text-sm sm:text-base font-black mb-1.5 ${isDarkMode ? 'text-indigo-300' : 'text-indigo-950 font-extrabold'}`}>{c.walk}</div>
-                          <p className={`text-sm leading-relaxed mb-3 ${isDarkMode ? 'text-gray-300' : 'text-slate-600'}`}>{c.note[lang]}</p>
-                        </div>
-                        {c.mapUrl && (
-                          <a
-                            href={c.mapUrl}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className={`inline-flex items-center justify-center gap-1 py-1 px-2.5 rounded-lg text-xs font-bold border transition-all self-end ${isDarkMode ? "bg-sky-500/10 text-sky-400 border-sky-500/30 hover:bg-sky-500/20" : "bg-sky-100 text-sky-950 border-sky-400 hover:bg-sky-200 font-extrabold shadow-sm"}`}
-                          >
-                            <span>{t.walkRouteHint}</span>
-                          </a>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                </div>
+              
+              <div className="space-y-2 text-xs sm:text-sm font-medium">
+                {evaluation.naiken.map((item, idx) => (
+                  <label key={idx} className="flex items-start gap-2.5 p-2 rounded-lg hover:bg-white/[0.04] cursor-pointer transition-colors">
+                    <input type="checkbox" className="mt-1 rounded border-zinc-700 bg-zinc-900 text-[#38BDF8] focus:ring-0 cursor-pointer" />
+                    <span className="text-[#D1D5DB] leading-relaxed">
+                      <strong className="font-black text-white">[{item.name[lang]}]</strong> {item.text[lang]}
+                    </span>
+                  </label>
+                ))}
               </div>
-            )}
-
-            {/* TAB 4: VIEWING CHECKLIST */}
-            {activeTab === 'checklist' && (
-              <div className={`p-6 rounded-3xl border shadow-lg ${
-                isDarkMode ? 'bg-gray-900/90 border-gray-800' : 'bg-white border-gray-200'
-              }`}>
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-sm sm:text-base font-extrabold tracking-tight">{t.tier3Title}</h3>
-                  <button
-                    onClick={handleCopyChecklist}
-                    className="px-3 py-1.5 rounded-xl text-xs font-bold bg-indigo-600 hover:bg-indigo-500 text-white transition-all shadow"
-                  >
-                    {copied ? t.copied : t.copyChecklist}
-                  </button>
-                </div>
-
-                <div className="flex flex-col gap-2.5">
-                  {evaluation?.naiken?.map((item, idx) => (
-                    <div
-                      key={idx}
-                      className={`p-3.5 rounded-xl border flex items-start gap-3 transition-all ${
-                        isDarkMode ? 'bg-gray-800/40 border-gray-800' : 'bg-gray-50 border-gray-200'
-                      }`}
-                    >
-                      <input
-                        type="checkbox"
-                        id={`chk-${idx}`}
-                        className="mt-0.5 w-4 h-4 rounded text-indigo-600 focus:ring-indigo-500 border-gray-300 dark:border-gray-700"
-                      />
-                      <label htmlFor={`chk-${idx}`} className={`text-xs sm:text-sm leading-relaxed cursor-pointer select-none ${isDarkMode ? 'text-gray-200' : 'text-slate-700'}`}>
-
-                        <span className={`font-bold mr-2 ${isDarkMode ? 'text-indigo-400' : 'text-indigo-700'}`}>[{item.name[lang]}]</span>
-                        {item.text[lang]}
-                      </label>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
+            </div>
 
           </div>
         )}
 
-        {/* Footer */}
-        <footer className="w-full mt-12 pt-6 border-t border-gray-200 dark:border-gray-800 text-center text-xs text-gray-400">
+        {/* Minimalist Footer */}
+        <footer className="w-full text-center mt-12 text-xs font-bold tracking-wider text-[#6B7280]">
           {t.footer}
         </footer>
-
       </div>
     </div>
   );
