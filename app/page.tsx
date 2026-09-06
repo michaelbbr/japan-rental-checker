@@ -50,7 +50,7 @@ export default function Home() {
       tier3Title: "内見時のチェックリスト",
       copyChecklist: "リストをコピー",
       copied: "✓ コピー完了",
-      footer: "v42（構建語法全修復・Webpack零錯誤生產版）• 日本賃貸 総合診断システム",
+      footer: "v42（精準起點門牌鎖定・零跨區飄移旗艦版）
       vacantBadge: "募集中",
       occupiedBadge: "満室（現在募集中なし / N/A）",
       mapsLiveBadge: "● Google Maps 即時連動中",
@@ -88,7 +88,7 @@ export default function Home() {
       tier3Title: "實地看房（內見）必查清單",
       copyChecklist: "一鍵複製清單",
       copied: "✓ 已複製到剪貼簿",
-      footer: "v42（構建語法全修復・Webpack零錯誤生產版）• 日本租房 綜合診斷系統",
+      footer: "v42（精準起點門牌鎖定・零跨區飄移旗艦版）
       vacantBadge: "招租中",
       occupiedBadge: "滿室（目前無招租中 / N/A）",
       mapsLiveBadge: "● Google Maps 即時座標連動",
@@ -126,7 +126,7 @@ export default function Home() {
       tier3Title: "实地看房（内见）必查清单",
       copyChecklist: "一键复制清单",
       copied: "✓ 已复制到剪贴板",
-      footer: "v42（構建語法全修復・Webpack零錯誤生產版）• 日本租房 综合诊断系统",
+      footer: "v42（精準起點門牌鎖定・零跨區飄移旗艦版）
       vacantBadge: "招租中",
       occupiedBadge: "满室（目前无招租中 / N/A）",
       mapsLiveBadge: "● Google Maps 即时坐标连动",
@@ -164,7 +164,7 @@ export default function Home() {
       tier3Title: "On-site Viewing Checklist",
       copyChecklist: "Copy Checklist",
       copied: "✓ Copied!",
-      footer: "v44 (Next-Gen Clean UI • Tabbed Navigation & Universal Precision Grounding) • Japan Rental Intelligence",
+      footer: "v42（精準起點門牌鎖定・零跨區飄移旗艦版）
       vacantBadge: "Available",
       occupiedBadge: "Fully Occupied (N/A)",
       mapsLiveBadge: "● Google Maps Real-time Telemetry",

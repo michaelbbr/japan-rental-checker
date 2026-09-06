@@ -34,12 +34,18 @@ function makeWalkingMapUrl(
 ): string {
   const cleanDest = destVicinity ? `${destName} ${destVicinity}` : destName;
   let originParam = "";
-  if (typeof origin === 'object' && origin.lat && origin.lng) {
-    originParam = `${origin.lat},${origin.lng}`;
-  } else if (typeof origin === 'string') {
-    originParam = origin;
+  if (typeof origin === 'object') {
+    if (origin.lat && origin.lng) {
+      originParam = `${origin.lat},${origin.lng}`;
+    } else if (origin.text && origin.text.trim()) {
+      originParam = origin.text.trim();
+    } else {
+      originParam = "東京都新宿区";
+    }
+  } else if (typeof origin === 'string' && origin.trim()) {
+    originParam = origin.trim();
   } else {
-    originParam = "東京都";
+    originParam = "東京都新宿区";
   }
   return `https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(originParam)}&destination=${encodeURIComponent(cleanDest)}&travelmode=walking`;
 }
@@ -390,14 +396,14 @@ export async function POST(req: NextRequest) {
 
     if (stations.length === 0) {
       if (address.includes("代々木") || propertyTitle.includes("代々木")) {
-        stations.push({ line: "小田急小田原線", station: "南新宿駅", walkMin: 3, fullText: "小田急小田原線 南新宿駅 徒歩3分", destinations: { ja: "新宿へ1駅（徒歩圏）、下北沢直通", zh: "新宿1站（步行亦可直達），下北澤直通", zhCN: "新宿1站（步行亦可直达），下北泽直通", en: "1 stop to Shinjuku, direct to Shimokitazawa" }, pitfalls: { ja: "各駅停車のみ運行", zh: "僅各站停車停靠", zhCN: "仅各站停车停靠", en: "Local trains only" }, mapUrl: makeWalkingMapUrl({ lat: propCoordinates?.lat, lng: propCoordinates?.lng, text: address }, "南新宿駅") });
-        stations.push({ line: "JR山手線・総武線", station: "代々木駅", walkMin: 5, fullText: "JR山手線 代々木駅 徒歩5分", destinations: { ja: "渋谷5分、新宿、東京直通大動脈", zh: "直達 澀谷(5分)、新宿、東京大動脈", zhCN: "直达 涩谷(5分)、新宿、东京大动脉", en: "Direct to Shibuya (5m), Shinjuku, Tokyo" }, pitfalls: { ja: "山手線ラッシュ時の混雑注意", zh: "早晚尖峰人潮擁擠", zhCN: "早晚高峰人潮拥挤", en: "Heavy morning rush crowds" }, mapUrl: makeWalkingMapUrl({ lat: propCoordinates?.lat, lng: propCoordinates?.lng, text: address }, "代々木駅") });
+        stations.push({ line: "小田急小田原線", station: "南新宿駅", walkMin: 3, fullText: "小田急小田原線 南新宿駅 徒歩3分", destinations: { ja: "新宿へ1駅（徒歩圏）、下北沢直通", zh: "新宿1站（步行亦可直達），下北澤直通", zhCN: "新宿1站（步行亦可直达），下北泽直通", en: "1 stop to Shinjuku, direct to Shimokitazawa" }, pitfalls: { ja: "各駅停車のみ運行", zh: "僅各站停車停靠", zhCN: "仅各站停车停靠", en: "Local trains only" }, mapUrl: makeWalkingMapUrl({ lat: propCoordinates?.lat, lng: propCoordinates?.lng, text: `${address} ${cleanBuildingName}`.trim() }, "南新宿駅") });
+        stations.push({ line: "JR山手線・総武線", station: "代々木駅", walkMin: 5, fullText: "JR山手線 代々木駅 徒歩5分", destinations: { ja: "渋谷5分、新宿、東京直通大動脈", zh: "直達 澀谷(5分)、新宿、東京大動脈", zhCN: "直达 涩谷(5分)、新宿、东京大动脉", en: "Direct to Shibuya (5m), Shinjuku, Tokyo" }, pitfalls: { ja: "山手線ラッシュ時の混雑注意", zh: "早晚尖峰人潮擁擠", zhCN: "早晚高峰人潮拥挤", en: "Heavy morning rush crowds" }, mapUrl: makeWalkingMapUrl({ lat: propCoordinates?.lat, lng: propCoordinates?.lng, text: `${address} ${cleanBuildingName}`.trim() }, "代々木駅") });
       } else if (address.includes("草加") || propertyTitle.includes("パリオヴェルデ") || url.toLowerCase().includes("soka")) {
-        stations.push({ line: "東武スカイツリーライン", station: "草加駅", walkMin: 16, fullText: "東武スカイツリーライン 草加駅 徒歩16分", destinations: { ja: "北千住・上野・大手町方面（直通地下鉄日比谷線・半蔵門線）", zh: "直達 北千住、上野、大手町（直通日比谷線・半藏門線）", zhCN: "直达 北千住、上野、大手町（直通日比谷线・半藏门线）", en: "Direct to Kitasenju, Ueno, Otemachi via Hibiya/Hanzomon lines" }, pitfalls: { ja: "急行停車駅。駅まで徒歩16分のため自転車利用も推奨", zh: "草加為急行大站。步行需16分，建議搭配自行車代步", zhCN: "草加为急行大站。步行需16分，建议搭配自行车", en: "Express stop; 16-min walk, bicycle commute recommended" }, mapUrl: makeWalkingMapUrl({ lat: propCoordinates?.lat, lng: propCoordinates?.lng, text: address }, "草加駅") });
+        stations.push({ line: "東武スカイツリーライン", station: "草加駅", walkMin: 16, fullText: "東武スカイツリーライン 草加駅 徒歩16分", destinations: { ja: "北千住・上野・大手町方面（直通地下鉄日比谷線・半蔵門線）", zh: "直達 北千住、上野、大手町（直通日比谷線・半藏門線）", zhCN: "直达 北千住、上野、大手町（直通日比谷线・半藏门线）", en: "Direct to Kitasenju, Ueno, Otemachi via Hibiya/Hanzomon lines" }, pitfalls: { ja: "急行停車駅。駅まで徒歩16分のため自転車利用も推奨", zh: "草加為急行大站。步行需16分，建議搭配自行車代步", zhCN: "草加为急行大站。步行需16分，建议搭配自行车", en: "Express stop; 16-min walk, bicycle commute recommended" }, mapUrl: makeWalkingMapUrl({ lat: propCoordinates?.lat, lng: propCoordinates?.lng, text: `${address} ${cleanBuildingName}`.trim() }, "草加駅") });
       } else if (address.includes("西新宿４") || propertyTitle.includes("永谷リヴュール")) {
-        stations.push({ line: "都営大江戸線", station: "都庁前駅", walkMin: 5, fullText: "都営大江戸線 都庁前駅 徒歩5分", destinations: { ja: "六本木・麻布十番方面直通", zh: "直達 六本木、麻布十番、汐留", zhCN: "直达 六本木、麻布十番、汐留", en: "Direct to Roppongi, Azabu-Juban, Shiodome" }, pitfalls: { ja: "⚠️ 大深度地下鉄のため移動時間要", zh: "⚠️ 大江戶線地下極深需多抓時間", zhCN: "⚠️ 大江户线地下极深需多抓时间", en: "⚠️ Deep underground station; allow escalator time" }, mapUrl: makeWalkingMapUrl({ lat: propCoordinates?.lat, lng: propCoordinates?.lng, text: address }, "都庁前駅") });
+        stations.push({ line: "都営大江戸線", station: "都庁前駅", walkMin: 5, fullText: "都営大江戸線 都庁前駅 徒歩5分", destinations: { ja: "六本木・麻布十番方面直通", zh: "直達 六本木、麻布十番、汐留", zhCN: "直达 六本木、麻布十番、汐留", en: "Direct to Roppongi, Azabu-Juban, Shiodome" }, pitfalls: { ja: "⚠️ 大深度地下鉄のため移動時間要", zh: "⚠️ 大江戶線地下極深需多抓時間", zhCN: "⚠️ 大江户线地下极深需多抓时间", en: "⚠️ Deep underground station; allow escalator time" }, mapUrl: makeWalkingMapUrl({ lat: propCoordinates?.lat, lng: propCoordinates?.lng, text: `${address} ${cleanBuildingName}`.trim() }, "都庁前駅") });
       } else {
-        stations.push({ line: "主要路線", station: "最寄り駅", walkMin: 8, fullText: "最寄り駅 徒歩8分", destinations: { ja: "都心方面へのアクセス良好", zh: "通往市區交通實用", zhCN: "通往市区交通实用", en: "Convenient access to city center" }, pitfalls: { ja: "ラッシュ時の運行間隔を確認", zh: "留意尖峰發車間距", zhCN: "留意高峰发车间距", en: "Check peak frequency" }, mapUrl: makeWalkingMapUrl({ lat: propCoordinates?.lat, lng: propCoordinates?.lng, text: address }, "最寄り駅") });
+        stations.push({ line: "主要路線", station: "最寄り駅", walkMin: 8, fullText: "最寄り駅 徒歩8分", destinations: { ja: "都心方面へのアクセス良好", zh: "通往市區交通實用", zhCN: "通往市区交通实用", en: "Convenient access to city center" }, pitfalls: { ja: "ラッシュ時の運行間隔を確認", zh: "留意尖峰發車間距", zhCN: "留意高峰发车间距", en: "Check peak frequency" }, mapUrl: makeWalkingMapUrl({ lat: propCoordinates?.lat, lng: propCoordinates?.lng, text: `${address} ${cleanBuildingName}`.trim() }, "最寄り駅") });
       }
     }
 
@@ -614,7 +620,7 @@ export async function POST(req: NextRequest) {
                   zhCN: `Google 评分 ${p.rating || '3.8'}★（${p.user_ratings_total || 50}条评价）`,
                   en: `Google ${p.rating || '3.8'}★ (${p.user_ratings_total || 50} reviews)`
                 },
-                mapUrl: makeWalkingMapUrl({ lat, lng, text: address }, p.name, p.vicinity)
+                mapUrl: makeWalkingMapUrl({ lat, lng, text: `${address} ${cleanBuildingName}`.trim() }, p.name, p.vicinity)
               };
             });
           }
@@ -671,7 +677,7 @@ export async function POST(req: NextRequest) {
                   zhCN: `Google 评分 ${p.rating || '3.5'}★，24小时营业便利`,
                   en: `Google ${p.rating || '3.5'}★, 24H convenience`
                 },
-                mapUrl: makeWalkingMapUrl({ lat, lng, text: address }, p.name, p.vicinity)
+                mapUrl: makeWalkingMapUrl({ lat, lng, text: `${address} ${cleanBuildingName}`.trim() }, p.name, p.vicinity)
               };
             });
           }
@@ -712,7 +718,7 @@ export async function POST(req: NextRequest) {
                   zhCN: `Google 评分 ${p.rating || '3.6'}★（${p.user_ratings_total || 100}条评价）`,
                   en: `Google ${p.rating || '3.6'}★ (${p.user_ratings_total || 100} reviews)`
                 },
-                mapUrl: makeWalkingMapUrl({ lat, lng, text: address }, p.name, p.vicinity)
+                mapUrl: makeWalkingMapUrl({ lat, lng, text: `${address} ${cleanBuildingName}`.trim() }, p.name, p.vicinity)
               };
             });
           }
@@ -758,7 +764,7 @@ export async function POST(req: NextRequest) {
             zhCN: `${localArea}生活圈便利生鲜门市！鲜奶蔬菜肉品齐全，省钱首选`, 
             en: `Convenient grocery store in ${localArea}; fresh milk, produce, and frozen food` 
           },
-          mapUrl: makeWalkingMapUrl({ lat: propCoordinates?.lat, lng: propCoordinates?.lng, text: address }, `まいばすけっと ${localArea}`)
+          mapUrl: makeWalkingMapUrl({ lat: propCoordinates?.lat, lng: propCoordinates?.lng, text: `${address} ${cleanBuildingName}`.trim() }, `まいばすけっと ${localArea}`)
         },
         {
           name: `マルエツ ${localArea}店`,
@@ -772,7 +778,7 @@ export async function POST(req: NextRequest) {
             zhCN: `${localArea}周边主力生鲜超市，熟食便当齐全`, 
             en: `Primary neighborhood supermarket in ${localArea} with fresh deli and produce` 
           },
-          mapUrl: makeWalkingMapUrl({ lat: propCoordinates?.lat, lng: propCoordinates?.lng, text: address }, `マルエツ ${localArea}`)
+          mapUrl: makeWalkingMapUrl({ lat: propCoordinates?.lat, lng: propCoordinates?.lng, text: `${address} ${cleanBuildingName}`.trim() }, `マルエツ ${localArea}`)
         }
       ];
     }
@@ -792,7 +798,7 @@ export async function POST(req: NextRequest) {
             zhCN: `位于${localArea}生活圈！7-Premium熟食品质高，ATM便利`, 
             en: `In ${localArea}; open 24/7 with quality bento, fresh coffee, and ATM` 
           },
-          mapUrl: makeWalkingMapUrl({ lat: propCoordinates?.lat, lng: propCoordinates?.lng, text: address }, `セブン-イレブン ${localArea}`)
+          mapUrl: makeWalkingMapUrl({ lat: propCoordinates?.lat, lng: propCoordinates?.lng, text: `${address} ${cleanBuildingName}`.trim() }, `セブン-イレブン ${localArea}`)
         },
         {
           name: `ファミリーマート ${localArea}店`,
@@ -806,7 +812,7 @@ export async function POST(req: NextRequest) {
             zhCN: `走路不用3分钟！多汁炸鸡与甜点优惠多`, 
             en: `Near ${localArea}; hot Famichiki snacks, fresh coffee, and bill pay` 
           },
-          mapUrl: makeWalkingMapUrl({ lat: propCoordinates?.lat, lng: propCoordinates?.lng, text: address }, `ファミリーマート ${localArea}`)
+          mapUrl: makeWalkingMapUrl({ lat: propCoordinates?.lat, lng: propCoordinates?.lng, text: `${address} ${cleanBuildingName}`.trim() }, `ファミリーマート ${localArea}`)
         }
       ];
     }
@@ -826,7 +832,7 @@ export async function POST(req: NextRequest) {
             zhCN: `位于${localArea}生活圈！24小时营业，出餐迅速省时`, 
             en: `In ${localArea} neighborhood; open 24/7 with budget-friendly beef bowls` 
           },
-          mapUrl: makeWalkingMapUrl({ lat: propCoordinates?.lat, lng: propCoordinates?.lng, text: address }, `すき家 ${localArea}`)
+          mapUrl: makeWalkingMapUrl({ lat: propCoordinates?.lat, lng: propCoordinates?.lng, text: `${address} ${cleanBuildingName}`.trim() }, `すき家 ${localArea}`)
         },
         {
           name: `松屋 ${localArea}店`,
@@ -840,7 +846,7 @@ export async function POST(req: NextRequest) {
             zhCN: `位于${localArea}商圈！堂食免费送热味噌汤，生姜烧肉定食高性价比`, 
             en: `In ${localArea} with free miso soup for dine-in; rich set meals` 
           },
-          mapUrl: makeWalkingMapUrl({ lat: propCoordinates?.lat, lng: propCoordinates?.lng, text: address }, `松屋 ${localArea}`)
+          mapUrl: makeWalkingMapUrl({ lat: propCoordinates?.lat, lng: propCoordinates?.lng, text: `${address} ${cleanBuildingName}`.trim() }, `松屋 ${localArea}`)
         },
         {
           name: `マクドナルド ${localArea}店`,
@@ -854,7 +860,7 @@ export async function POST(req: NextRequest) {
             zhCN: `位于${localArea}周边！百圆黑咖啡与早餐满福堡，附设充电插座`, 
             en: `Near ${localArea}; budget coffee, breakfast, and convenient seats` 
           },
-          mapUrl: makeWalkingMapUrl({ lat: propCoordinates?.lat, lng: propCoordinates?.lng, text: address }, `マクドナルド ${localArea}`)
+          mapUrl: makeWalkingMapUrl({ lat: propCoordinates?.lat, lng: propCoordinates?.lng, text: `${address} ${cleanBuildingName}`.trim() }, `マクドナルド ${localArea}`)
         }
       ];
     }
