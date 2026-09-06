@@ -201,24 +201,52 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ success: false, error: '請輸入有效的網址 (需以 http 或 https 開頭)' }, { status: 400 });
     }
 
-    const response = await fetch(url, {
-      headers: {
+    let html = "";
+    try {
+      const desktopHeaders = {
         'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
-        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8',
         'Accept-Language': 'ja,en-US;q=0.9,en;q=0.8',
-        'Cache-Control': 'no-cache'
-      },
-      next: { revalidate: 0 }
-    });
+        'Cache-Control': 'no-cache',
+        'Pragma': 'no-cache',
+        'Sec-Ch-Ua': '"Chromium";v="124", "Google Chrome";v="124", "Not-A.Brand";v="99"',
+        'Sec-Ch-Ua-Mobile': '?0',
+        'Sec-Ch-Ua-Platform': '"macOS"',
+        'Sec-Fetch-Dest': 'document',
+        'Sec-Fetch-Mode': 'navigate',
+        'Sec-Fetch-Site': 'none',
+        'Sec-Fetch-User': '?1',
+        'Upgrade-Insecure-Requests': '1'
+      };
 
-    if (!response.ok) {
+      let response = await fetch(url, { headers: desktopHeaders, next: { revalidate: 0 } });
+      
+      // If blocked by Cloudflare / Akamai bot protection, retry with mobile headers
+      if (!response.ok && (response.status === 403 || response.status === 429 || response.status === 503)) {
+        const mobileHeaders = {
+          'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_4_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.4.1 Mobile/15E148 Safari/604.1',
+          'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+          'Accept-Language': 'ja-JP,ja;q=0.9',
+          'Cache-Control': 'no-cache'
+        };
+        response = await fetch(url, { headers: mobileHeaders, next: { revalidate: 0 } });
+      }
+
+      if (!response.ok) {
+        return NextResponse.json({ 
+          success: false, 
+          error: `無法讀取房源頁面 (HTTP ${response.status})。請確認該網址在瀏覽器中能正常開啟。` 
+        }, { status: response.status });
+      }
+
+      html = await response.text();
+    } catch (fetchErr: any) {
       return NextResponse.json({ 
         success: false, 
-        error: `無法讀取房源頁面 (HTTP ${response.status})。` 
-      }, { status: response.status });
+        error: `連線房源網站失敗: ${fetchErr?.message || '網路超時'}。` 
+      }, { status: 502 });
     }
 
-    const html = await response.text();
     const bodyOnlyHtml = html.replace(/<head\b[^<]*(?:(?!<\/head>)<[^<]*)*<\/head>/gi, '');
     const bodyClean = bodyOnlyHtml;
 
@@ -372,9 +400,10 @@ export async function POST(req: NextRequest) {
     let match: RegExpExecArray | null;
 
     while ((match = stRegex.exec(cleanTransitText)) !== null) {
-      let line = (match[1] || "").replace(/^(?:地下鉄|新交通|東武鉄道)\s*/, '').trim();
+      let line = ((match?.[1]) || "").replace(/^(?:地下鉄|新交通|東武鉄道)\s*/, '').trim();
       line = line.replace(/東武伊勢崎[・線]+大師線|東武伊勢崎線[・]+大師線|人身線/g, '東武スカイツリーライン');
-      const station = match[2].trim().endsWith('駅') ? match[2].trim() : `${match[2].trim()}駅`;
+      const rawSt = (match?.[2] || '').trim();
+      const station = rawSt.endsWith('駅') ? rawSt : `${rawSt}駅`;
       const busMin = match[3] ? parseInt(match[3], 10) : 0;
       const walkMinOnly = match[4] ? parseInt(match[4], 10) : (match[3] ? parseInt(match[3], 10) : 5);
       const safeBus = isNaN(busMin) ? 0 : busMin;
@@ -640,8 +669,8 @@ export async function POST(req: NextRequest) {
             const data = await res.json();
             if (data.status === 'OK' && data.results?.[0]?.geometry?.location) {
               return {
-                loc: data.results[0].geometry.location,
-                formatted: data.results[0].formatted_address as string
+                loc: data.results[0]?.geometry?.location,
+                formatted: (data.results[0]?.formatted_address || '') as string
               };
             }
           } catch (e) {} finally {
@@ -706,7 +735,7 @@ export async function POST(req: NextRequest) {
             const seenSupers = new Set<string>();
             const dedupedSupers: any[] = [];
             for (const item of rawSupers) {
-              const baseName = item.p.name.replace(/[\s\-_・]/g, '').slice(0, 6);
+              const baseName = (item.p?.name || '').replace(/[\s\-_・]/g, '').slice(0, 6);
               if (!seenSupers.has(baseName) && dedupedSupers.length < 4) {
                 seenSupers.add(baseName);
                 dedupedSupers.push(item);
@@ -784,7 +813,7 @@ export async function POST(req: NextRequest) {
             const seenCvs = new Set<string>();
             const dedupedCvs: any[] = [];
             for (const item of rawCvs) {
-              const baseName = item.p.name.replace(/[\s\-_・]/g, '').slice(0, 10);
+              const baseName = (item.p?.name || '').replace(/[\s\-_・]/g, '').slice(0, 10);
               if (!seenCvs.has(baseName) && dedupedCvs.length < 4) {
                 seenCvs.add(baseName);
                 dedupedCvs.push(item);
@@ -832,7 +861,7 @@ export async function POST(req: NextRequest) {
             const seenChains = new Set<string>();
             const dedupedChains: any[] = [];
             for (const item of rawChains) {
-              const baseName = item.p.name.replace(/[\s\-_・]/g, '').slice(0, 10);
+              const baseName = (item.p?.name || '').replace(/[\s\-_・]/g, '').slice(0, 10);
               if (!seenChains.has(baseName) && dedupedChains.length < 6) {
                 seenChains.add(baseName);
                 dedupedChains.push(item);

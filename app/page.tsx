@@ -203,7 +203,7 @@ export default function Home() {
       setPropertyRent(data.rent);
       setEvaluation(data.evaluation);
       if (data.evaluation?.tier1?.length > 0) {
-        setSelectedDimensionKey(data.evaluation.tier1[0].key);
+        setSelectedDimensionKey(data.evaluation?.tier1?.[0]?.key);
       }
       setActiveTab('overview');
     } catch (err: any) {
@@ -215,7 +215,7 @@ export default function Home() {
 
   const handleCopyChecklist = () => {
     if (!evaluation) return;
-    const text = evaluation.naiken.map(c => `- [ ] [${c.name[lang]}] ${c.text[lang]}`).join('\n');
+    const text = evaluation?.naiken?.map(c => `- [ ] [${c.name[lang]}] ${c.text[lang]}`).join('\n');
     navigator.clipboard.writeText(text);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
@@ -387,13 +387,13 @@ export default function Home() {
                 <div className="flex-1">
                   <div className="flex items-center gap-2 mb-2 flex-wrap">
                     <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold border ${
-                      evaluation.isVacant 
+                      evaluation?.isVacant 
                         ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/30' 
                         : 'bg-rose-500/10 text-rose-500 border-rose-500/30'
                     }`}>
-                      {evaluation.isVacant ? t.vacantBadge : t.occupiedBadge}
+                      {evaluation?.isVacant ? t.vacantBadge : t.occupiedBadge}
                     </span>
-                    {evaluation.amenities.isGoogleMapsLive && (
+                    {evaluation?.amenities?.isGoogleMapsLive && (
                       <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-sky-500/10 text-sky-400 border border-sky-500/30">
                         {t.mapsLiveBadge}
                       </span>
@@ -458,7 +458,7 @@ export default function Home() {
                   </div>
 
                   <div className="grid grid-cols-2 sm:grid-cols-6 gap-2.5 mb-6">
-                    {evaluation.tier1.map(dim => {
+                    {(evaluation?.tier1 || []).map(dim => {
                       const isSelected = selectedDimensionKey === dim.key;
                       return (
                         <button
@@ -523,7 +523,7 @@ export default function Home() {
                   </h3>
 
                   <div className="flex flex-col gap-3">
-                    {evaluation.conditions.map((card, idx) => (
+                    {(evaluation?.conditions || []).map((card, idx) => (
                       <div
                         key={idx}
                         className={`p-4 rounded-2xl border transition-all ${
@@ -576,7 +576,7 @@ export default function Home() {
                 </div>
 
                 <div className="flex flex-col gap-3">
-                  {evaluation.stations.map((st, idx) => (
+                  {(evaluation?.stations || []).map((st, idx) => (
                     <div
                       key={idx}
                       className={`p-4 rounded-2xl border transition-all ${
@@ -637,7 +637,7 @@ export default function Home() {
                   </div>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    {evaluation.amenities.supermarkets.map((sp, idx) => (
+                    {(evaluation?.amenities?.supermarkets || []).map((sp, idx) => (
                       <div
                         key={idx}
                         className={`p-4 rounded-2xl border transition-all flex flex-col justify-between ${
@@ -683,7 +683,7 @@ export default function Home() {
                 }`}>
                   <h3 className="text-sm sm:text-base font-extrabold tracking-tight mb-4">{t.cvsLabel}</h3>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    {evaluation.amenities.convenienceStores.map((cvs, idx) => (
+                    {(evaluation?.amenities?.convenienceStores || []).map((cvs, idx) => (
                       <div
                         key={idx}
                         className={`p-4 rounded-2xl border transition-all flex flex-col justify-between ${
@@ -724,7 +724,7 @@ export default function Home() {
                 }`}>
                   <h3 className="text-sm sm:text-base font-extrabold tracking-tight mb-4">{t.chainLabel}</h3>
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                    {evaluation.amenities.famousChains.map((c, idx) => (
+                    {(evaluation?.amenities?.famousChains || []).map((c, idx) => (
                       <div
                         key={idx}
                         className={`p-4 rounded-2xl border transition-all flex flex-col justify-between ${
@@ -769,7 +769,7 @@ export default function Home() {
                 </div>
 
                 <div className="flex flex-col gap-2.5">
-                  {evaluation.naiken.map((item, idx) => (
+                  {evaluation?.naiken?.map((item, idx) => (
                     <div
                       key={idx}
                       className={`p-3.5 rounded-xl border flex items-start gap-3 transition-all ${
