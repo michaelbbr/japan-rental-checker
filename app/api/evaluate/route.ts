@@ -221,21 +221,35 @@ export async function POST(req: NextRequest) {
         .trim();
     };
 
-    // 1. Robust Property Title Extraction (Handles 【SUUMO】 at start of title)
+    // 1. Robust Property Title Extraction (Strips all portal suffixes like の賃貸マンション住宅情報)
     let propertyTitle = "";
+    const cleanRawTitle = (raw: string): string => {
+      let t = raw
+        .replace(/<[^>]+>/g, ' ')
+        .replace(/【.*?】|\[.*?\]/g, '')
+        .split('|')[0]
+        .split(' - ')[0]
+        .replace(/[\(（].*?[\)）]/g, '')
+        .replace(/の?(?:賃貸|物件|住宅|部屋|マンション|アパート|募集情報).*$/gi, '')
+        .replace(/[\r\n\t\s]+/g, ' ')
+        .trim();
+      return t;
+    };
+
     const h1Match = html.match(/<h1[^>]*>([\s\S]*?)<\/h1>/i);
     if (h1Match) {
-      let t = h1Match[1].replace(/<[^>]+>/g, ' ').replace(/[【\[（\(].*?[】\]）\)]/g, '').replace(/の賃貸・部屋探し情報.*|の賃貸物件.*|の賃貸住宅情報.*|賃貸マンション.*/gi, '').replace(/[\r\n\t\s]+/g, ' ').trim();
+      const t = cleanRawTitle(h1Match[1]);
       if (t.length >= 2) propertyTitle = t;
     }
     if (!propertyTitle) {
       const titleMatch = html.match(/<title[^>]*>(.*?)<\/title>/i);
       if (titleMatch) {
-        let t = titleMatch[1].replace(/【.*?】/g, '').replace(/\[.*?\]/g, '').split('|')[0].split(' - ')[0].replace(/[\(（].*?[\)）]/g, '').replace(/の賃貸・部屋探し情報.*|の賃貸物件.*|の賃貸住宅情報.*|の賃貸情報.*/gi, '').replace(/[\r\n\t\s]+/g, ' ').trim();
+        const t = cleanRawTitle(titleMatch[1]);
         if (t.length >= 2) propertyTitle = t;
       }
     }
     if (!propertyTitle) propertyTitle = "賃貸物件";
+    const cleanBuildingName = propertyTitle.replace(/\d+号室|\d+号/g, '').replace(/[【\[（\(].*?[】\]）\)]/g, '').trim() || propertyTitle;
 
     // 2. Accurate Rent Detection (Strips internal HTML so <span class="num">4.5</span>万円 matches!)
     const cleanTextForRent = html
