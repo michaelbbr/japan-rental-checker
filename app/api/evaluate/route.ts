@@ -395,7 +395,7 @@ export async function POST(req: NextRequest) {
     const stationMap = new Map<string, StationDetail>();
 
     const cleanTransitText = bodyOnlyHtml.replace(/<[^>]+>/g, ' ').replace(/[\r\n\t\s]+/g, ' ');
-    const stRegex = /([^\n\r<>/]{2,15}?[線道])?\s*[/／]?\s*[「『]?\s*([^\s/<>[^\n\r「」『』]{2,10}?)\s*(?:駅\s*[」』]?|[」』]?\s*駅)\s*(?:バス\s*(\d+)\s*分[^\n\r<]*?)?(?:徒歩|歩)?\s*(\d+)\s*分/g;
+    const stRegex = /([^\n\r<>/]{2,15}?[線道])?\s*[/／]?\s*[「『]?\s*([^\s/<>\n\r「」『』]{2,10}?)\s*(?:駅\s*[」』]?|[」』]?\s*駅)\s*(?:バス\s*(\d+)\s*分[^\n\r<]*?)?(?:徒歩|歩)?\s*(\d+)\s*分/g;
     let match: RegExpExecArray | null;
 
     while ((match = stRegex.exec(cleanTransitText)) !== null) {
