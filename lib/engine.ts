@@ -84,7 +84,8 @@ export function evaluateProperty(
     let reasonEn = "";
 
     if (key === 'location') {
-      const minWalk = stations.length > 0 ? Math.min(...stations.map(st => st.walkMin)) : (matchedIds.includes('walk_5') ? 5 : 10);
+      const validWalks = stations.map(st => st.walkMin).filter(n => typeof n === 'number' && !isNaN(n) && n > 0);
+      const minWalk = validWalks.length > 0 ? Math.min(...validWalks) : (matchedIds.includes('walk_5') ? 5 : 10);
       if (minWalk <= 5) {
         symbol = '◎';
         reasonJa = `駅徒歩${minWalk}分の駅近・好立地！雨天や夜間の移動も快適で、通勤・通学利便性に極めて優れます。`;

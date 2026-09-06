@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { evaluateProperty } from '@/lib/engine';
-import { StationDetail, LifeAmenityItem, LocalizedText } from '@/lib/types';
+import { evaluateProperty } from '../../../lib/engine';
+import { StationDetail, LifeAmenityItem, LocalizedText } from '../../../lib/types';
 
 export const dynamic = 'force-dynamic';
 
@@ -376,7 +376,9 @@ export async function POST(req: NextRequest) {
       const station = match[2].trim().endsWith('駅') ? match[2].trim() : `${match[2].trim()}駅`;
       const busMin = match[3] ? parseInt(match[3], 10) : 0;
       const walkMinOnly = match[4] ? parseInt(match[4], 10) : (match[3] ? parseInt(match[3], 10) : 5);
-      const walkMin = busMin + walkMinOnly;
+      const safeBus = isNaN(busMin) ? 0 : busMin;
+      const safeWalk = isNaN(walkMinOnly) ? 5 : walkMinOnly;
+      const walkMin = safeBus + safeWalk;
       const key = `${station}_${walkMin}`;
 
       if (!seenStations.has(key) && stations.length < 3 && !station.includes("利用") && station.length <= 7) {
