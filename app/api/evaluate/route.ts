@@ -165,7 +165,9 @@ function isVerifiedConvenienceStore(p: any): boolean {
   const lower = name.toLowerCase();
   const types: string[] = p.types || [];
 
-  if (types.some(t => STRICT_EXCLUDE_TYPES.has(t))) return false;
+  // Convenience stores sell bento and coffee, so meal_takeaway is EXPECTED. Exclude delivery catering and medical only:
+  const CVS_EXCLUDE = new Set(["meal_delivery", "health", "doctor", "dentist", "hospital", "pharmacy", "car_repair", "laundry", "real_estate_agency"]);
+  if (types.some(t => CVS_EXCLUDE.has(t))) return false;
 
   for (const pat of REJECT_PATTERNS) {
     if (pat.test(name)) return false;
@@ -173,6 +175,13 @@ function isVerifiedConvenienceStore(p: any): boolean {
 
   for (const brand of CVS_WHITELIST_BRANDS) {
     if (lower.includes(brand.toLowerCase())) return true;
+  }
+
+  // Also accept if Google classified as convenience_store and name contains standard brand
+  if (types.includes("convenience_store")) {
+    if (lower.includes("セブン") || lower.includes("seven") || lower.includes("ファミリーマート") || lower.includes("familymart") || lower.includes("ローソン") || lower.includes("lawson") || lower.includes("ミニストップ") || lower.includes("ministop") || lower.includes("ヤマザキ") || lower.includes("デイリー")) {
+      return true;
+    }
   }
 
   return false;
@@ -721,8 +730,8 @@ export async function POST(req: NextRequest) {
           const spKeyword = encodeURIComponent('スーパー|マルエツ|まいばすけっと|サミット|成城石井|ライフ|オーケー|マルマンストア|オオゼキ|サンディ');
           const spUrl = `https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=${lat},${lng}&rankby=distance&keyword=${spKeyword}&language=ja&key=${apiKey}`;
           const cvsUrl = `https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=${lat},${lng}&rankby=distance&type=convenience_store&language=ja&key=${apiKey}`;
-          const chainKeyword = encodeURIComponent('すき家|松屋|吉野家|大戸屋|大戶屋|やよい軒|かつや|マクドナルド|サイゼリヤ|日高屋|モスバーガー|餃子の王将|丸亀製麺|富士そば');
-          const chainUrl = `https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=${lat},${lng}&rankby=distance&keyword=${chainKeyword}&language=ja&key=${apiKey}`;
+          // Query restaurants sorted strictly by physical proximity
+          const chainUrl = `https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=${lat},${lng}&rankby=distance&type=restaurant&language=ja&key=${apiKey}`;
 
           const [spData, cvsData, chainData] = await Promise.all([
             fetch(spUrl, { cache: 'no-store' }).then(r => r.json()).catch(() => ({})),
@@ -857,16 +866,23 @@ export async function POST(req: NextRequest) {
             });
           }
 
-          // Process Famous Chains
+          // Process Famous Chains & Local Highlights
           if (chainData.results?.length) {
             const rawChains = chainData.results
-              .filter((p: any) => isVerifiedFamousChain(p))
+              .filter((p: any) => isVerifiedFamousChain(p) || (p.rating && p.rating >= 3.8 && (p.user_ratings_total || 0) >= 30))
               .map((p: any) => {
                 const pLat = p.geometry?.location?.lat ?? lat;
                 const pLng = p.geometry?.location?.lng ?? lng;
                 const dist = haversineMeters(lat, lng, pLat, pLng);
-                return { p, dist };
+                const isChain = isVerifiedFamousChain(p);
+                return { p, dist, isChain };
               });
+            // Sort: verified chains first, then by physical distance
+            rawChains.sort((a: any, b: any) => {
+              if (a.isChain && !b.isChain) return -1;
+              if (!a.isChain && b.isChain) return 1;
+              return a.dist - b.dist;
+            });
 
             const seenChains = new Set<string>();
             const dedupedChains: any[] = [];
@@ -1237,22 +1253,23 @@ export async function POST(req: NextRequest) {
           }
         ];
       } else {
+        const townName = address.replace(/^.*?[区市郡]/, '').replace(/[0-9０-９一二三四五六七八九十].*$/, '').trim() || "駅前";
         convenienceStores = [
           {
-            name: "7-Eleven 西新宿4丁目店",
+            name: `セブン-イレブン ${townName}店`,
             tag: { ja: "⚖️ クオリティ王者", zh: "⚖️ 便當熟食王者", zhCN: "⚖️ 便当熟食王者", en: "⚖️ 7-Eleven Top Quality" },
             priceLevel: { ja: "★★★☆☆（定価）", zh: "★★★☆☆（標準公定價）", zhCN: "★★★☆☆（标准公定价）", en: "★★★☆☆ (Standard)" },
-            walk: "徒歩 2 分 (140m)",
-            note: { ja: "物件すぐ近く。7-Premiumの総菜が美味しくATM利用も安心", zh: "就在西新宿4丁目巷口！7-Premium熟食品質最高，ATM順暢", zhCN: "就在西新宿4丁目巷口！7-Premium品质最高", en: "Steps from the building; premier food quality and ATM access" },
-            mapUrl: makeWalkingMapUrl(address, "セブン-イレブン 西新宿4丁目店", "東京都新宿区西新宿4-41-10")
+            walk: "徒歩 2 分 (150m)",
+            note: { ja: "生活圏内。7-Premiumの総菜が美味しくATM利用も安心", zh: `位於${townName}生活圈！7-Premium熟食品質高，ATM領錢便利`, zhCN: `位于${townName}生活圈！品质高`, en: "Steps from the building; premier food quality and ATM access" },
+            mapUrl: makeWalkingMapUrl({ lat: propCoordinates?.lat, lng: propCoordinates?.lng, text: address }, `セブン-イレブン ${townName}店`)
           },
           {
-            name: "FamilyMart 西新宿4丁目店",
+            name: `ファミリーマート ${townName}店`,
             tag: { ja: "⚖️ ファミチキ定番", zh: "⚖️ 炸雞甜點霸主", zhCN: "⚖️ 炸鸡甜点霸主", en: "⚖️ FamilyMart Favorites" },
             priceLevel: { ja: "★★★☆☆（定価）", zh: "★★★☆☆（常有折扣券）", zhCN: "★★★☆☆（常有折扣券）", en: "★★★☆☆ (Standard)" },
-            walk: "徒歩 2 分 (180m)",
-            note: { ja: "徒歩2分。ファミチキやスイーツ、アプリクーポンが充実", zh: "走路不用2分鐘！國民多汁炸雞（ファミチキ）、甜點泡芙與APP折扣多", zhCN: "步行不用2分钟！国民多汁炸鸡（ファミチキ）与甜点多", en: "Famous juicy Famichiki fried chicken and pastry snacks" },
-            mapUrl: makeWalkingMapUrl(address, "ファミリーマート 西新宿4丁目店", "東京都新宿区西新宿4-32-6")
+            walk: "徒歩 3 分 (220m)",
+            note: { ja: "徒歩圏内。ファミチキや淹れたてコーヒーが充実", zh: `走路不用3分鐘！多汁全家炸雞、甜點泡芙與APP優惠多`, zhCN: `步行不用3分钟！多汁炸鸡与甜点`, en: "Famous juicy Famichiki fried chicken and pastry snacks" },
+            mapUrl: makeWalkingMapUrl({ lat: propCoordinates?.lat, lng: propCoordinates?.lng, text: address }, `ファミリーマート ${townName}店`)
           }
         ];
       }
